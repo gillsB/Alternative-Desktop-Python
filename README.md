@@ -4,7 +4,7 @@ Alternative Desktop
 
 So far, a basic barebones example of how to create and build then distribute a python program
 
-## Base Req: Python, pip (https://pip.pypa.io/en/stable/installation/), pyinstaller (pip install pyinstaller), Inno setup compiler (https://jrsoftware.org/isdl.php)
+### Base Req: Python, pip (https://pip.pypa.io/en/stable/installation/), pyinstaller (pip install pyinstaller), Inno setup compiler (https://jrsoftware.org/isdl.php)
 
 Just for the example Req: pyautogui (pip install pyautogui)
 
