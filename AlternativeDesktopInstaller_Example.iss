@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{GUID}
 AppName=Alternative Desktop
-AppVersion=1.0
-DefaultDirName={pf}\Alternative Desktop
+AppVersion=v0.0.000
+DefaultDirName={commonpf}\Alternative Desktop
 DefaultGroupName=Alternative Desktop
 OutputDir=.
 OutputBaseFilename=Alternative Desktop Installer

@@ -10,7 +10,9 @@ pip (https://pip.pypa.io/en/stable/installation/)
 pyinstaller (pip install pyinstaller)  
 Inno setup compiler (https://jrsoftware.org/isdl.php)  
 
-**Just for the example Requirements:** pyautogui (pip install pyautogui)
+**Just for the example Requirements:**  
+pyautogui (pip install pyautogui)
+requests (pip install requests) (github API for checking new releases)
 
 ### Step 1: Building .exe
 open command prompt
@@ -32,9 +34,11 @@ Replace **GUID** in the Example file with the generated GUID
 ### Step 3: To make this into installer
 Click Build -> compile, To get the Installer exe
 
-**Install**: run **Alternative Desktop Installer.exe** (or whatever you rename it)
+###Install: 
+run **Alternative Desktop Installer.exe** (or whatever you rename it)
 
-**Uninstall**: Uninstall through Platform default or by launching unins000.exe wherever you installed it  
+###Uninstall: 
+Uninstall through Platform default or by launching unins000.exe wherever you installed it  
 (default directory: C:\Program Files (x86)\Alternative Desktop))
 
 
