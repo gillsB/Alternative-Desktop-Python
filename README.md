@@ -11,7 +11,7 @@ pyinstaller (pip install pyinstaller)
 Inno setup compiler (https://jrsoftware.org/isdl.php)  
 
 **Just for the example Requirements:**  
-pyautogui (pip install pyautogui)
+pyautogui (pip install pyautogui)  
 requests (pip install requests) (github API for checking new releases)
 
 ### Step 1: Building .exe
