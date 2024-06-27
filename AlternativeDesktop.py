@@ -9,7 +9,7 @@ import zipfile
 
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-CURRENT_VERSION = "v0.0.005"
+CURRENT_VERSION = "v0.0.006"
 
 def launch_notepad():
     # Launch Notepad
@@ -47,7 +47,8 @@ def check_for_updates():
         print(f"Error checking for updates: {e}")
 
 def download_and_update(download_url, latest_version):
-    local_filename = f"update_{latest_version}.exe"
+    home_directory = os.path.expanduser("~")
+    local_filename = os.path.join(home_directory, f"update_{latest_version}.exe")
     with requests.get(download_url, stream=True) as r:
         r.raise_for_status()
         with open(local_filename, "wb") as f:
@@ -59,9 +60,11 @@ def download_and_update(download_url, latest_version):
 def run_installer(installer_path):
     try:
         print(f"Running installer: {installer_path}")
-        subprocess.run([installer_path], check=True)
-        print("Installation complete. Please restart the application.")
+        subprocess.Popen([installer_path], close_fds=True)
+        print("Installation initiated. Closing the application.")
         sys.exit(0)
+    except PermissionError as e:
+        print(f"Permission error: {e}")
     except subprocess.CalledProcessError as e:
         print(f"Failed to run the installer: {e}")
 
