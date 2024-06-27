@@ -9,7 +9,7 @@ import zipfile
 
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-CURRENT_VERSION = "v0.0.002"
+CURRENT_VERSION = "v0.0.003"
 
 def launch_notepad():
     # Launch Notepad
@@ -19,7 +19,7 @@ def launch_notepad():
     time.sleep(2)
 
     # Type "Hello, World!"
-    pyautogui.typewrite(CURRENT_VERSION, interval=0.1)
+    pyautogui.typewrite(CURRENT_VERSION + "hello", interval=0.1)
 
     # Wait for 5 seconds
     time.sleep(5)
