@@ -9,7 +9,7 @@ import zipfile
 
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
-CURRENT_VERSION = "v0.0.006"
+CURRENT_VERSION = "v0.0.007"
 
 def launch_notepad():
     # Launch Notepad
