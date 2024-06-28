@@ -9,7 +9,7 @@ import zipfile
 from updater import check_for_updates
 
 
-CURRENT_VERSION = "v0.0.008"
+CURRENT_VERSION = "v0.0.009"
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
