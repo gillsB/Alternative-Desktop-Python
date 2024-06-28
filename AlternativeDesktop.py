@@ -6,12 +6,15 @@ import requests
 import sys
 import shutil
 import zipfile
+import json
 from updater import check_for_updates
+from settings import load_settings
 
 
-CURRENT_VERSION = "v0.0.009"
+CURRENT_VERSION = "v0.0.010"
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+SETTINGS_FILE = "config/settings.json"
 
 
 def launch_notepad():
@@ -31,5 +34,8 @@ def launch_notepad():
     notepad_process.terminate()
 
 if __name__ == '__main__':
-    check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)
+    settings = load_settings(SETTINGS_FILE)
+    print(settings)
+    if settings.get("update_on_launch", True):
+        check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)
     launch_notepad()
