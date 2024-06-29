@@ -11,7 +11,7 @@ from updater import check_for_updates
 from settings import load_settings
 from PyQt5.QtWidgets import QApplication
 import keyboard
-from desktop import main as desktop_main, show_overlay
+from desktop import main as desktop_main
 
 CURRENT_VERSION = "v0.0.010"
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
