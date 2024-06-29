@@ -3,3 +3,4 @@ dist
 AlternativeDesktop.spec
 AlternativeDesktopInstaller.iss
 Alternative Desktop Installer.exe
+__pycache__
