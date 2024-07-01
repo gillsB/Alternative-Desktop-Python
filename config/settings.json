@@ -1,4 +1,4 @@
 {
     "update_on_launch": true,
-    "desktop_keybind": "<alt>+d"
+    "toggle_overlay_keybind": "<alt>+d"
 }

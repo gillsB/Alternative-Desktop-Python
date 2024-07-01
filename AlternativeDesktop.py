@@ -20,7 +20,7 @@ SETTINGS_FILE = "config/settings.json"
 
 if __name__ == '__main__':
     set_dir(SETTINGS_FILE)
-    settings = load_settings(SETTINGS_FILE)
+    settings = load_settings()
     print(settings)
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)

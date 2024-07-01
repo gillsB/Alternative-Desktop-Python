@@ -5,18 +5,11 @@ from pathlib import Path
 DIRECTORY = None
 DEFUALT_SETTINGS = {
         "update_on_launch": True,
-        "desktop_keybind": "<alt>+d"
+        "toggle_overlay_keybind": "<alt>+d"
 }
 
-def load_settings(SETTINGS_FILE):
-    if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r") as f:
-            return json.load(f)
-    else:
-        print("Error loading settings, expected file at: " + SETTINGS_FILE )
-        return {}
     
-def load_local():
+def load_settings():
     if os.path.exists(DIRECTORY):
         with open(DIRECTORY, "r") as f:
             return json.load(f)
@@ -25,12 +18,12 @@ def load_local():
         return {}
 
 def get_setting(key, default=None):
-    settings = load_settings(DIRECTORY)
+    settings = load_settings()
     return settings.get(key, default)
 
 def set_setting(key, value):
     if DIRECTORY != None:
-        settings = load_settings(DIRECTORY)
+        settings = load_settings()
         settings[key] = value
         save_settings(settings)
 
@@ -53,7 +46,7 @@ def build_settings():
     save_settings(DEFUALT_SETTINGS)
 
 def check_for_new_settings():
-    settings = load_local()
+    settings = load_settings()
     new_settings = False
     for key, value in DEFUALT_SETTINGS.items():
         if key not in settings:
