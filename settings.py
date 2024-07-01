@@ -5,7 +5,7 @@ from pathlib import Path
 DIRECTORY = None
 DEFUALT_SETTINGS = {
         "update_on_launch": True,
-        "toggle_overlay_keybind": "<alt>+d"
+        "toggle_overlay_keybind": "Alt+d"
 }
 
     
@@ -54,3 +54,21 @@ def check_for_new_settings():
             new_settings = True
     if new_settings:
         save_settings(settings)
+
+
+def add_angle_brackets(text):
+    modifiers = {"alt", "ctrl", "shift"}  # Define the modifier keys
+    result = []
+    i = 0
+    while i < len(text):
+        found_modifier = False
+        for modifier in modifiers:
+            if text[i:i+len(modifier)].lower() == modifier:  # Check for modifier keys (case insensitive)
+                result.append("<" + text[i:i+len(modifier)] + ">")
+                i += len(modifier)
+                found_modifier = True
+                break
+        if not found_modifier:
+            result.append(text[i])
+            i += 1
+    return ''.join(result)

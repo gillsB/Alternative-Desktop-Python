@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox
+from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
-from settings import get_setting, set_setting, load_settings, save_settings
+from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
+
 
 
 class OverlayWidget(QWidget):
@@ -32,6 +33,8 @@ class OverlayWidget(QWidget):
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
 
+    
+
     def hotkey(self):
         def on_activate():
             if not self.isMinimized:
@@ -43,9 +46,11 @@ class OverlayWidget(QWidget):
 
         def for_canonical(f):
             return lambda k: f(l.canonical(k))
+        
+
 
         hotkey = keyboard.HotKey(
-            keyboard.HotKey.parse(get_setting("toggle_overlay_keybind")),
+            keyboard.HotKey.parse(add_angle_brackets(get_setting("toggle_overlay_keybind"))),
             on_activate
         )
         l = keyboard.Listener(
@@ -54,9 +59,52 @@ class OverlayWidget(QWidget):
         )
         l.start()
 
+        
+
     def show_settings(self):
         dialog = SettingsDialog()
         dialog.exec_()
+    
+
+
+
+class KeybindLineEdit(QLineEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setPlaceholderText("Click to set keybind")
+        self.setReadOnly(True)
+        self.key_sequence = []
+        self.allow_input = True
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        self.clear()
+        self.key_sequence = []
+        self.allow_input = True
+
+    def keyPressEvent(self, event):
+        if not self.allow_input:
+            return
+        print(event.key())
+        if event.key() <=16000000: # weird bug where it takes a modifier with no key pressed as a modifier + a bugged key input
+            key = event.key()
+            modifiers = event.modifiers()
+            key_string = QKeySequence(modifiers | key).toString(QKeySequence.NativeText)
+            print(key_string)
+            if key_string not in self.key_sequence:
+                self.key_sequence.append(key_string)
+                print(self.key_sequence)
+                self.allow_input = False
+        
+        self.setText("+".join(self.key_sequence))
+
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.allow_input = False
+
+    def get_keybind(self):
+        return self.text()
 
 class SettingsDialog(QDialog):
     def __init__(self):
@@ -75,7 +123,7 @@ class SettingsDialog(QDialog):
         layout.addRow("Update on Launch", self.update_on_launch_cb)
 
         # Line edit for toggle overlay keybind
-        self.toggle_overlay_keybind_le = QLineEdit()
+        self.toggle_overlay_keybind_le = KeybindLineEdit()
         self.toggle_overlay_keybind_le.setText(settings.get("toggle_overlay_keybind", "<alt>+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_le)
 
@@ -86,12 +134,9 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
-        settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_le.text()
+        settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_le.get_keybind()
         save_settings(settings)
         self.accept()
-
-
-
 
 def main():
     app = QApplication(sys.argv)
