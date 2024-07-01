@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVB
 from PyQt5.QtGui import QIcon
 import sys
 from pynput import keyboard
+from settings import get_setting, set_setting
 
 
 class OverlayWidget(QWidget):
@@ -34,7 +35,7 @@ class OverlayWidget(QWidget):
             return lambda k: f(l.canonical(k))
 
         hotkey = keyboard.HotKey(
-            keyboard.HotKey.parse('<alt>+d'),
+            keyboard.HotKey.parse(get_setting("desktop_keybind")),
             on_activate
         )
         l = keyboard.Listener(

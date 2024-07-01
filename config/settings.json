@@ -1,3 +1,4 @@
 {
-    "update_on_launch": true
+    "update_on_launch": true,
+    "desktop_keybind": "<alt>+d"
 }
