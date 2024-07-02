@@ -15,7 +15,7 @@ class OverlayWidget(QWidget):
         self.setWindowTitle("Overlay Desktop")
         self.setGeometry(300, 300, 400, 200)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         self.setLayout(layout)
 
         self.label = QLabel("Overlay Desktop", self)
@@ -32,10 +32,14 @@ class OverlayWidget(QWidget):
         layout.addWidget(self.label)
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
+        self.listener = None
+        self.set_hotkey()
 
+    def show_settings(self):
+        dialog = SettingsDialog(parent=self)
+        dialog.exec_()
     
-
-    def hotkey(self):
+    def set_hotkey(self):
         def on_activate():
             if not self.isMinimized:
                 self.showMinimized()
@@ -43,30 +47,27 @@ class OverlayWidget(QWidget):
             else:
                 self.showNormal()
                 self.isMinimized = False
-
-        def for_canonical(f):
-            return lambda k: f(l.canonical(k))
         
-
-
-        hotkey = keyboard.HotKey(
+        def for_canonical(f):
+            return lambda k: f(self.listener.canonical(k))
+        
+        if self.listener is not None:
+            self.listener.stop()
+            self.listener.join()
+        
+        # Create the HotKey object with the current hotkey setting
+        self.hotkey = keyboard.HotKey(
             keyboard.HotKey.parse(add_angle_brackets(get_setting("toggle_overlay_keybind"))),
             on_activate
         )
-        l = keyboard.Listener(
-            on_press=for_canonical(hotkey.press),
-            on_release=for_canonical(hotkey.release)
+        # Create a listener for the HotKey
+        self.listener = keyboard.Listener(
+            on_press=for_canonical(self.hotkey.press),
+            on_release=for_canonical(self.hotkey.release)
         )
-        l.start()
-
         
-
-    def show_settings(self):
-        dialog = SettingsDialog()
-        dialog.exec_()
+        self.listener.start()
     
-
-
 
 class KeybindLineEdit(QLineEdit):
     def __init__(self, parent=None):
@@ -107,8 +108,8 @@ class KeybindLineEdit(QLineEdit):
         return self.text()
 
 class SettingsDialog(QDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.initUI()
 
     def initUI(self):
@@ -124,7 +125,7 @@ class SettingsDialog(QDialog):
 
         # Line edit for toggle overlay keybind
         self.toggle_overlay_keybind_le = KeybindLineEdit()
-        self.toggle_overlay_keybind_le.setText(settings.get("toggle_overlay_keybind", "<alt>+d"))
+        self.toggle_overlay_keybind_le.setText(settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_le)
 
         save_button = QPushButton("Save")
@@ -136,13 +137,14 @@ class SettingsDialog(QDialog):
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_le.get_keybind()
         save_settings(settings)
+        if self.parent():
+            self.parent().set_hotkey()
         self.accept()
 
 def main():
     app = QApplication(sys.argv)
     overlay = OverlayWidget()
     overlay.show()
-    overlay.hotkey()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

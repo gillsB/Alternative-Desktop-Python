@@ -5,3 +5,4 @@ AlternativeDesktopInstaller.iss
 Alternative Desktop Installer.exe
 __pycache__
 config/settings.json
+/config
