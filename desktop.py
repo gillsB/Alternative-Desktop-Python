@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon, QKeySequence
 import sys
@@ -11,7 +11,9 @@ class OverlayWidget(QWidget):
     def __init__(self):
         super().__init__()
         #self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowOpacity(0.9)
+        window_opacity = get_setting("window_opacity", -1)
+        window_opacity = float(window_opacity/100)
+        self.setWindowOpacity(window_opacity)
         self.setWindowTitle("Overlay Desktop")
         self.setGeometry(300, 300, 400, 200)
 
@@ -67,6 +69,10 @@ class OverlayWidget(QWidget):
         )
         
         self.listener.start()
+    def change_opacity(self ,i):
+        print("change_opacity = ")
+        print(float(i/100))
+        self.setWindowOpacity(float(i/100))
     
 
 class KeybindLineEdit(QLineEdit):
@@ -128,18 +134,57 @@ class SettingsDialog(QDialog):
         self.toggle_overlay_keybind_le.setText(settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_le)
 
+        self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.window_opacity_slider.setMinimum(30)
+        self.window_opacity_slider.setMaximum(100)
+        self.window_opacity_slider.setSingleStep(1)
+        self.window_opacity_slider.setSliderPosition(settings.get("window_opacity", 100))
+        self.window_opacity_slider.valueChanged.connect(self.value_changed)
+        self.window_opacity_slider.sliderMoved.connect(self.slider_position)
+        self.window_opacity_slider.sliderPressed.connect(self.slider_pressed)
+        self.window_opacity_slider.sliderReleased.connect(self.slider_released)
+
+        
+        layout.addRow("Overlay Opacity", self.window_opacity_slider)
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
+
+    def value_changed(self, i):
+        print(i)
+        if self.parent():
+            self.parent().change_opacity(i)
+        self.setWindowOpacity(1.0)
+
+    def slider_position(self, p):
+        print("position", p)
+
+    def slider_pressed(self):
+        print("Pressed!")
+
+    def slider_released(self):
+        print("Released")
 
     def save_settings(self):
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_le.get_keybind()
+        settings["window_opacity"] = self.window_opacity_slider.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
         self.accept()
+    def closeEvent(self, event):
+        # Function to run before closing the dialog
+        self.on_close()
+        event.accept()  # Accept the event to close the window
+    
+    def on_close(self):
+        settings = load_settings()
+        save_settings(settings)
+        window_opacity = get_setting("window_opacity", -1)
+        self.parent().change_opacity(window_opacity)
 
 def main():
     app = QApplication(sys.argv)

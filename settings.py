@@ -5,7 +5,8 @@ from pathlib import Path
 DIRECTORY = None
 DEFUALT_SETTINGS = {
         "update_on_launch": True,
-        "toggle_overlay_keybind": "Alt+d"
+        "toggle_overlay_keybind": "Alt+d",
+        "window_opacity": 100
 }
 
     
@@ -43,6 +44,14 @@ def set_dir(directory):
 
 
 def build_settings():
+    current_directory = os.getcwd()
+    config_file = os.path.join(current_directory, "config")
+    try:
+        os.mkdir(config_file)
+    except FileExistsError:
+        print("Config file already exists")
+    except:
+        print("Error creating config file.")
     save_settings(DEFUALT_SETTINGS)
 
 def check_for_new_settings():
