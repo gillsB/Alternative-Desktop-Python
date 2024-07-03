@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
-from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
+from PyQt6.QtCore import Qt, QEvent, QKeyCombination
+from PyQt6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
@@ -39,7 +39,7 @@ class OverlayWidget(QWidget):
 
     def show_settings(self):
         dialog = SettingsDialog(parent=self)
-        dialog.exec_()
+        dialog.exec()
     
     def set_hotkey(self):
         def on_activate():
@@ -92,16 +92,27 @@ class KeybindLineEdit(QLineEdit):
     def keyPressEvent(self, event):
         if not self.allow_input:
             return
-        print(event.key())
-        if event.key() <=16000000: # weird bug where it takes a modifier with no key pressed as a modifier + a bugged key input
-            key = event.key()
+
+        # Check for valid key press
+        if event.key() <= 16000000:
+            key = Qt.Key(event.key())
             modifiers = event.modifiers()
-            key_string = QKeySequence(modifiers | key).toString(QKeySequence.NativeText)
-            print(key_string)
-            if key_string not in self.key_sequence:
-                self.key_sequence.append(key_string)
-                print(self.key_sequence)
-                self.allow_input = False
+
+            # Ensure modifiers is of type Qt.KeyboardModifier
+            if isinstance(modifiers, Qt.KeyboardModifier):
+                key_combination = QKeyCombination(modifiers, key)
+                key_sequence = QKeySequence(key_combination)
+
+                print(key)
+                print(modifiers)
+                
+                key_string = key_sequence.toString(QKeySequence.SequenceFormat.NativeText)
+                print(key_string)
+
+                if key_string not in self.key_sequence:
+                    self.key_sequence.append(key_string)
+                    print(self.key_sequence)
+                    self.allow_input = False
         
         self.setText("+".join(self.key_sequence))
 
@@ -190,7 +201,7 @@ def main():
     app = QApplication(sys.argv)
     overlay = OverlayWidget()
     overlay.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

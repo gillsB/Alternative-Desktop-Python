@@ -25,13 +25,4 @@ if __name__ == '__main__':
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)
     
-    value = get_setting("update_on_launch")
-    print(value)
-    set_setting("update_on_launch", False)
-    value = get_setting("update_on_launch")
-    print(value)
-    set_setting("update_on_launch", True)
-    value = get_setting("update_on_launch")
-    print(value)
-    
     desktop_main()
