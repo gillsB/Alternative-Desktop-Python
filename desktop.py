@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
-from PyQt6.QtCore import Qt, QEvent, QKeyCombination
-from PyQt6.QtGui import QIcon, QKeySequence
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
+from PySide6.QtCore import Qt, QEvent, QKeyCombination
+from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
@@ -82,7 +82,7 @@ class KeybindLineEdit(QLineEdit):
         self.setReadOnly(True)
         self.key_sequence = []
         self.allow_input = True
-
+    is_changed = False
     def focusInEvent(self, event):
         super().focusInEvent(event)
         self.clear()
@@ -92,7 +92,7 @@ class KeybindLineEdit(QLineEdit):
     def keyPressEvent(self, event):
         if not self.allow_input:
             return
-
+        self.parent().set_changed()
         # Check for valid key press
         if event.key() <= 16000000:
             key = Qt.Key(event.key())
@@ -128,7 +128,7 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.initUI()
-
+    is_changed = False
     def initUI(self):
         self.setWindowTitle("Settings")
         layout = QFormLayout()
@@ -138,6 +138,7 @@ class SettingsDialog(QDialog):
         self.update_on_launch_cb = QCheckBox()
         settings = load_settings()
         self.update_on_launch_cb.setChecked(settings.get("update_on_launch", True))
+        self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
 
         # Line edit for toggle overlay keybind
@@ -163,6 +164,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(save_button)
 
     def value_changed(self, i):
+        self.set_changed()
         print(i)
         if self.parent():
             self.parent().change_opacity(i)
@@ -188,9 +190,23 @@ class SettingsDialog(QDialog):
         self.accept()
     def closeEvent(self, event):
         # Function to run before closing the dialog
-        self.on_close()
-        event.accept()  # Accept the event to close the window
+        settings = load_settings()
+        
+        if self.is_changed == False:
+            print("no changeds made in settings")
+            event.accept()
+        else:
+            ret = QMessageBox.warning(self,"Settings NOT saved", "Do you wish to discard these changes?", QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Ok:
+                self.on_close()
+                event.accept()
+            else:
+                event.ignore()
     
+    def set_changed(self):
+        print("changed")
+        self.is_changed = True
+
     def on_close(self):
         settings = load_settings()
         save_settings(settings)
