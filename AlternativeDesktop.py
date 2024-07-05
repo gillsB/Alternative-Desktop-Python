@@ -9,7 +9,6 @@ import zipfile
 import json
 from updater import check_for_updates
 from settings import load_settings, set_dir, get_setting, set_setting
-from PyQt5.QtWidgets import QApplication
 import keyboard
 from desktop import main as desktop_main
 
