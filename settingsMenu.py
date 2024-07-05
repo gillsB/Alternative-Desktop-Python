@@ -6,57 +6,6 @@ from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 
 
-
-
-class KeybindLineEdit(QLineEdit):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setPlaceholderText("Click to set keybind")
-        self.setReadOnly(True)
-        self.key_sequence = []
-        self.allow_input = True
-    is_changed = False
-    def focusInEvent(self, event):
-        super().focusInEvent(event)
-        self.clear()
-        self.key_sequence = []
-        self.allow_input = True
-
-    def keyPressEvent(self, event):
-        if not self.allow_input:
-            return
-        self.parent().set_changed()
-        # Check for valid key press
-        if event.key() <= 16000000:
-            key = Qt.Key(event.key())
-            modifiers = event.modifiers()
-
-            # Ensure modifiers is of type Qt.KeyboardModifier
-            if isinstance(modifiers, Qt.KeyboardModifier):
-                key_combination = QKeyCombination(modifiers, key)
-                key_sequence = QKeySequence(key_combination)
-
-                print(key)
-                print(modifiers)
-                
-                key_string = key_sequence.toString(QKeySequence.SequenceFormat.NativeText)
-                print(key_string)
-
-                if key_string not in self.key_sequence:
-                    self.key_sequence.append(key_string)
-                    print(self.key_sequence)
-                    self.allow_input = False
-        
-        self.setText("+".join(self.key_sequence))
-
-
-    def focusOutEvent(self, event):
-        super().focusOutEvent(event)
-        self.allow_input = False
-
-    def get_keybind(self):
-        return self.text()
-
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,10 +23,9 @@ class SettingsDialog(QDialog):
         self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
 
-        # Line edit for toggle overlay keybind
-        self.toggle_overlay_keybind_le = KeybindLineEdit()
-        self.toggle_overlay_keybind_le.setText(settings.get("toggle_overlay_keybind", "alt+d"))
-        layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_le)
+        self.toggle_overlay_keybind_button = KeybindButton()
+        self.toggle_overlay_keybind_button.setText(settings.get("toggle_overlay_keybind", "alt+d"))
+        layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
 
         self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
         self.window_opacity_slider.setMinimum(30)
@@ -91,6 +39,9 @@ class SettingsDialog(QDialog):
 
         
         layout.addRow("Overlay Opacity", self.window_opacity_slider)
+
+
+        
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -115,7 +66,7 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
-        settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_le.get_keybind()
+        settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
         settings["window_opacity"] = self.window_opacity_slider.value()
         save_settings(settings)
         if self.parent():
@@ -145,3 +96,51 @@ class SettingsDialog(QDialog):
         save_settings(settings)
         window_opacity = get_setting("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
+
+    def change_button(self, text):
+        self.toggle_overlay_keybind_button.setText(text)
+
+class KeybindButton(QPushButton):
+    def __init__(self, parent=None):
+        super().__init__( parent)
+        self.listening = False
+        self.clicked.connect(self.enable_listening)
+        self.installEventFilter(self)
+    def enable_listening(self):
+        self.listening = True
+        self.setText("Press a key")
+
+    def keyPressEvent(self, event):
+        if self.listening and event.key() <= 16000000:
+            self.listening = False
+            key = event.key()
+            modifiers = event.modifiers()
+
+            key_name = QKeySequence(key).toString()
+            modifier_names = []
+
+            if modifiers & Qt.ShiftModifier:
+                modifier_names.append("Shift")
+            if modifiers & Qt.ControlModifier:
+                modifier_names.append("Ctrl")
+            if modifiers & Qt.AltModifier:
+                modifier_names.append("Alt")
+            if modifiers & Qt.MetaModifier:
+                modifier_names.append("Meta")
+
+            full_key_name = "+".join(modifier_names + [key_name])
+            self.parent().set_changed()
+            self.setText(full_key_name)
+        else:
+            super().keyPressEvent(event)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress and self.listening:
+            self.keyPressEvent(event)
+            return True
+        return super().eventFilter(source, event)
+    
+    def get_keybind(self):
+        return self.text()
+
+    
