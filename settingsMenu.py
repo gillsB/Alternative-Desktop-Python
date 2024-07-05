@@ -77,7 +77,7 @@ class SettingsDialog(QDialog):
         settings = load_settings()
         
         if self.is_changed == False:
-            print("no changeds made in settings")
+            print("no changes made in settings")
             event.accept()
         else:
             ret = QMessageBox.warning(self,"Settings NOT saved", "Do you wish to discard these changes?", QMessageBox.Ok | QMessageBox.Cancel)
@@ -88,7 +88,7 @@ class SettingsDialog(QDialog):
                 event.ignore()
     
     def set_changed(self):
-        print("changed")
+        print("Settings changed")
         self.is_changed = True
 
     def on_close(self):
