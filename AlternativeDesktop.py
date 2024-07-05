@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QApplication
 import keyboard
 from desktop import main as desktop_main
 
-CURRENT_VERSION = "v0.0.012"
+CURRENT_VERSION = "v0.0.013"
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None
