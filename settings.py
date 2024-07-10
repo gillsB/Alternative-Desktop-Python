@@ -48,14 +48,15 @@ def set_dir(directory):
 #however at the same time in AlternativeDesktop.py I explicitly create the directories if they do not exist
 #in app_data so this should be redundant???
 def build_settings():
-    current_directory = os.getcwd()
+    '''current_directory = os.getcwd()
     config_file = os.path.join(current_directory, "config")
+    print(config_file)
     try:
         os.mkdir(config_file)
     except FileExistsError:
         print("Config file already exists")
     except:
-        print("Error creating config file.")
+        print("Error creating config file.")'''
     save_settings(DEFUALT_SETTINGS)
 
 def check_for_new_settings():
