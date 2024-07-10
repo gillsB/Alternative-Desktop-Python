@@ -3,7 +3,9 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridL
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
-MAX_LABELS = 1000
+MAX_LABELS = 4900
+MAX_ROWS = 40
+MAX_COLS = 40
 
 
 class Grid(QWidget):
@@ -19,8 +21,8 @@ class Grid(QWidget):
         
 
         for i in range(MAX_LABELS):
-            row = i // 10
-            col = i % 10
+            row = i // MAX_ROWS
+            col = i % MAX_COLS
             icon_path = ""
             info = f"Item {i}"
             desktop_icon = DesktopIcon(row, col, icon_path, info)
@@ -28,14 +30,22 @@ class Grid(QWidget):
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
 
-        self.redraw_labels()
+        
+        #for i in range(MAX_LABELS):
+        #    print(self.labels[i].get_coord())
 
-    def redraw_labels(self):
+    def draw_labels(self):
         window_width = self.frameGeometry().width()
         window_height = self.frameGeometry().height()
 
+        
+
         num_columns = max(1, window_width // self.label_size)
         num_rows = max(1, window_height // self.label_size)
+
+        print(f"window dimensions : {window_width}x{window_height}")
+        print(f"window num_rows : {num_rows}")
+        print(f"window num_cols : {num_columns}")
 
         for label in self.labels:
             row = label.desktop_icon.row
@@ -72,10 +82,17 @@ class ClickableLabel(QLabel):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Info: {self.desktop_icon.info}")
-            # Set the icon to 'icon.png' on click
-            new_icon_path = "icon.png"  # Update with your actual icon path
+            new_icon_path = "icon.png"  
             self.desktop_icon.icon_path = new_icon_path
             self.set_icon(new_icon_path)
+
+
+    def get_row(self):
+        return self.desktop_icon.row
+    def get_col(self):
+        return self.desktop_icon.col
+    def get_coord(self):
+        return f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}"
 
 
 class DesktopIcon:
@@ -86,10 +103,12 @@ class DesktopIcon:
         self.info = info
 
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = Grid()
     widget.setMinimumSize(100, 100)  # Set a minimum size to ensure window can be small enough to hide labels
-    widget.resize(600, 400)
+    widget.resize(1920, 1000)
+    widget.draw_labels()
     widget.show()
     sys.exit(app.exec())
