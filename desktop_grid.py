@@ -3,9 +3,9 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridL
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 
-MAX_LABELS = 4900
-MAX_ROWS = 40
-MAX_COLS = 40
+MAX_LABELS = None
+MAX_ROWS = 10 #only used for now to get max_labels
+MAX_COLS = 20
 
 
 class Grid(QWidget):
@@ -18,10 +18,14 @@ class Grid(QWidget):
 
         self.labels = []
         self.label_size = 50
-        
 
+        #set MAX_LABELS to the maximum amount of items you would need based on rows/cols
+        MAX_LABELS = MAX_ROWS * MAX_COLS
+
+
+        #use MAX_COLS to diffrentiate when to add a new row.
         for i in range(MAX_LABELS):
-            row = i // MAX_ROWS
+            row = i // MAX_COLS
             col = i % MAX_COLS
             icon_path = ""
             info = f"Item {i}"
@@ -33,6 +37,10 @@ class Grid(QWidget):
         
         #for i in range(MAX_LABELS):
         #    print(self.labels[i].get_coord())
+    
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        self.draw_labels()
 
     def draw_labels(self):
         window_width = self.frameGeometry().width()
@@ -107,7 +115,7 @@ class DesktopIcon:
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = Grid()
-    widget.setMinimumSize(100, 100)  # Set a minimum size to ensure window can be small enough to hide labels
+    widget.setMinimumSize(100, 100)  
     widget.resize(1920, 1000)
     widget.draw_labels()
     widget.show()
