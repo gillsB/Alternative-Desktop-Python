@@ -1,15 +1,23 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 import os
 import json
+from desktop_grid_menu import Menu
+
+
+
 
 MAX_LABELS = None
 MAX_ROWS = 10 #only used for now to get max_labels
 MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = None
+
+
+
+
 
 DEFAULT_DESKTOP = [
     {
@@ -121,12 +129,14 @@ class ClickableLabel(QLabel):
         self.desktop_icon = desktop_icon
         self.setFixedSize(50, 50)
         self.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet("background-color: lightgray; border: 1px solid black;")
+        
         
         self.icon_label = QLabel(self)
+        self.icon_label.setStyleSheet("background-color: lightgray; border: 1px solid black;")
         self.icon_label.setFixedSize(48, 48)
         self.icon_label.setAlignment(Qt.AlignCenter)
         self.set_icon(self.desktop_icon.icon_path)
+        
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.icon_label)
@@ -144,6 +154,8 @@ class ClickableLabel(QLabel):
             new_icon_path = "icon.png"  
             self.desktop_icon.icon_path = new_icon_path
             self.set_icon(new_icon_path)
+            menu = Menu(parent=self)
+            menu.exec()
 
     def get_row(self):
         return self.desktop_icon.row
@@ -160,6 +172,8 @@ class DesktopIcon:
         self.name = name
         self.icon_path = icon_path
         self.executable_path = executable_path
+
+
 
 
 
@@ -197,7 +211,6 @@ if __name__ == "__main__":
     with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
         json.dump(DEFAULT_DESKTOP, f, indent=4)
 
-    
     ###
 
 
