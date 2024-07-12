@@ -151,9 +151,9 @@ class ClickableLabel(QLabel):
         if event.button() == Qt.LeftButton:
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}")
             #set all icons clicked to default icon.png (for ensuring that clickable keeps working.)
-            new_icon_path = "icon.png"  
-            self.desktop_icon.icon_path = new_icon_path
-            self.set_icon(new_icon_path)
+            #new_icon_path = "icon.png"  
+            #self.desktop_icon.icon_path = new_icon_path
+            #self.set_icon(new_icon_path)
             menu = Menu(parent=self)
             menu.exec()
 
@@ -163,6 +163,25 @@ class ClickableLabel(QLabel):
         return self.desktop_icon.col
     def get_coord(self):
         return f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}"
+    
+    def set_name(self, new_name):
+        self.desktop_icon.set_name = new_name
+    def set_icon_path(self, new_icon_path):
+        self.desktop_icon.icon_path = new_icon_path
+        self.set_icon(new_icon_path)
+    def set_executable_path(self, new_executable_path):
+        self.desktop_icon.set_executable_path = new_executable_path
+
+    def save_json(self, json):
+        print("ATTEMPTING TO SAVE JSON")
+
+    
+    def get_dir(self):
+        return DESKTOP_CONFIG_DIRECTORY
+    def get_json(self):
+        return JSON
+
+
 
 
 class DesktopIcon:
@@ -172,6 +191,7 @@ class DesktopIcon:
         self.name = name
         self.icon_path = icon_path
         self.executable_path = executable_path
+
 
 
 
