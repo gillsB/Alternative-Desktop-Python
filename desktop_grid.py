@@ -13,27 +13,13 @@ MAX_LABELS = None
 MAX_ROWS = 10 #only used for now to get max_labels
 MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
-JSON = None
+JSON = ""
 
 
 
 
 
 DEFAULT_DESKTOP = [
-    {
-        "row": 0,
-        "column": 0,
-        "name": "App1",
-        "icon_path": "icon.png",
-        "executable_path": "a.exe"
-    },
-    {
-        "row": 0,
-        "column": 1,
-        "name": "App2",
-        "icon_path": "floor.png",
-        "executable_path": "app2.exe"
-    }
 ]
 
 
@@ -165,15 +151,17 @@ class ClickableLabel(QLabel):
         return f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}"
     
     def set_name(self, new_name):
-        self.desktop_icon.set_name = new_name
+        self.desktop_icon.name = new_name
     def set_icon_path(self, new_icon_path):
         self.desktop_icon.icon_path = new_icon_path
         self.set_icon(new_icon_path)
     def set_executable_path(self, new_executable_path):
-        self.desktop_icon.set_executable_path = new_executable_path
+        self.desktop_icon.executable_path = new_executable_path
 
-    def save_json(self, json):
+    def save_json(self, new_json):
         print("ATTEMPTING TO SAVE JSON")
+        with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
+            json.dump(new_json, f, indent=4)
 
     
     def get_dir(self):
@@ -222,14 +210,14 @@ if __name__ == "__main__":
     print(f"Configuration file path: {config_path}")
     DESKTOP_CONFIG_DIRECTORY = config_path
 
-    if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
+    if os.path.exists(DESKTOP_CONFIG_DIRECTORY) and os.path.getsize(DESKTOP_CONFIG_DIRECTORY) > 0:
         with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
             JSON = json.load(f)
     else:
-        print("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
-        
-    with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
-        json.dump(DEFAULT_DESKTOP, f, indent=4)
+        print(f"Creating default settings at: {DESKTOP_CONFIG_DIRECTORY}")
+        JSON = DEFAULT_DESKTOP
+        with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
+            json.dump(DEFAULT_DESKTOP, f, indent=4)
 
     ###
 
