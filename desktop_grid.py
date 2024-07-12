@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 import os
 import json
 from desktop_grid_menu import Menu
+from lnk_to_image import extract_icon_from_lnk
 
 
 
@@ -14,6 +15,7 @@ MAX_ROWS = 10 #only used for now to get max_labels
 MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
+DATA_DIRECTORY = None
 
 
 
@@ -157,6 +159,20 @@ class ClickableLabel(QLabel):
         self.set_icon(new_icon_path)
     def set_executable_path(self, new_executable_path):
         self.desktop_icon.executable_path = new_executable_path
+        # if no icon set and exec file is a .lnk (shortcut file)
+        if self.desktop_icon.icon_path == "" and new_executable_path.endswith(".lnk"):
+            # point to new file called [row, col]
+            data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+            #make file if no file (new)
+            if not os.path.exists(data_path):
+                print("makedir")
+                os.makedirs(data_path)
+
+            data_path = os.path.join(data_path, "icon.png")
+            extract_icon_from_lnk(new_executable_path, data_path)
+            self.set_icon(data_path)
+
+            
 
     def save_json(self, new_json):
         print("ATTEMPTING TO SAVE JSON")
@@ -182,16 +198,30 @@ class DesktopIcon:
 
 
 
+def create_data_path():
 
+    global DATA_DIRECTORY
+    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
 
+    # Create app_data directory if it doesn't exist
+    if not os.path.exists(app_data_path):
+        os.makedirs(app_data_path)
 
-
-if __name__ == "__main__":
-
-
-    ### code within these are temporary, since i am running this as a main file
-    # would instead be setup like settings where i just call this file and pass it the DESKTOP_CONFIG_DIRECTORY
+    # Append /config/settings.json to the AppData path
+    data_path = os.path.join(app_data_path, 'data')
+    if not os.path.exists(data_path):
+        print("makedir")
+        os.makedirs(data_path)
     
+    DATA_DIRECTORY = data_path
+
+
+
+def create_config_path():
+
+    global DESKTOP_CONFIG_DIRECTORY
+    global DEFAULT_DESKTOP
+    global JSON
     app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
 
     # Create app_data directory if it doesn't exist
@@ -200,7 +230,6 @@ if __name__ == "__main__":
 
     # Append /config/settings.json to the AppData path
     config_path = os.path.join(app_data_path, 'config', 'desktop.json')
-
     #create the /config/settings.json if they do not exist already.
     config_dir = os.path.dirname(config_path)
     if not os.path.exists(config_dir):
@@ -219,9 +248,21 @@ if __name__ == "__main__":
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
             json.dump(DEFAULT_DESKTOP, f, indent=4)
 
+
+
+
+
+if __name__ == "__main__":
+
+
+    ### code within these are temporary, since i am running this as a main file
+    # would instead be setup like settings where i just call this file and pass it the DESKTOP_CONFIG_DIRECTORY
+    
+
+
     ###
-
-
+    create_config_path()
+    create_data_path()
     app = QApplication(sys.argv)
     widget = Grid()
     widget.setMinimumSize(100, 100)  
