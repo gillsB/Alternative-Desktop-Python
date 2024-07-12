@@ -57,7 +57,27 @@ class Menu(QDialog):
         print("save")
         if self.entry_exists() == True:
             self.edit_entry()
-            self.parent().save_json(JSON)
+        else:
+            self.add_entry()
+        self.update_clickable_item()
+        self.parent().save_json(JSON)
+        self.close()
+        
+            
+    def add_entry(self):
+        new_entry = {
+        "row": ROW,
+        "column": COL,
+        "name": self.name_le.text(),
+        "icon_path": self.icon_path_le.text(),
+        "executable_path": self.exec_path_le.text()
+        }
+        JSON.append(new_entry)
+        
+    def update_clickable_item(self):
+        self.parent().set_name(self.name_le.text())
+        self.parent().set_icon_path(self.icon_path_le.text())
+        self.parent().set_executable_path(self.exec_path_le.text())
 
     def edit_entry(self):
         print(f"Json: {JSON}")
@@ -65,7 +85,6 @@ class Menu(QDialog):
             if item['row'] == ROW and item['column'] == COL:
                 item['name'] = self.name_le.text()
                 item['icon_path'] = self.icon_path_le.text()
-                self.parent().set_icon_path(self.icon_path_le.text())
                 item['executable_path'] = self.exec_path_le.text()
                 print(f"Json updated: {JSON}")
                 break
