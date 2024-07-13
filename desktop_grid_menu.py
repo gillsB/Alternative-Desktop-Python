@@ -70,6 +70,11 @@ class Menu(QDialog):
     def closeEvent(self, event):
         print("closed")
         self.parent().default_border()
+        print(f"closing get item_path = {self.parent().get_icon_path()}")
+        #revert add
+        if self.parent().get_icon_path() == "add2.png":
+            self.parent().set_icon_path("blank.png")
+
         self.parent().render_icon()
 
 

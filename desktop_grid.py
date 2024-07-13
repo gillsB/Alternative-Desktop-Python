@@ -236,6 +236,9 @@ class ClickableLabel(QLabel):
         with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
             JSON = json.load(f)
         self.render_icon()
+    
+    def get_icon_path(self):
+        return self.desktop_icon.icon_path
         
 
     
