@@ -7,3 +7,4 @@ __pycache__
 config/settings.json
 /config
 /depreciated
+*.psd

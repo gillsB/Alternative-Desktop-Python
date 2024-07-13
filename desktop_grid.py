@@ -18,7 +18,7 @@ JSON = ""
 DATA_DIRECTORY = None
 LABEL_SIZE = 80
 LABEL_VERT_PAD = 80
-
+DEFAULT_BORDER = "border 0px"
 
 
 
@@ -49,6 +49,8 @@ class Grid(QWidget):
             col = i % MAX_COLS
             name = self.get_name(row,col)
             icon_path = self.get_icon_path(row,col)
+            if icon_path == "":
+                icon_path = "blank.png"
             executable_path = self.get_exectuable_path(row,col)
             desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path)
             label = ClickableLabel(desktop_icon, name)
@@ -108,9 +110,10 @@ class ClickableLabel(QLabel):
         
         
         self.icon_label = QLabel(self)
-        self.icon_label.setStyleSheet("background-color: lightgray; border: 1px solid black;")
+        self.icon_label.setStyleSheet(DEFAULT_BORDER)
         self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
         self.icon_label.setAlignment(Qt.AlignCenter)
+
         self.set_icon(self.desktop_icon.icon_path)
 
         self.text_label = QLabel(text)
@@ -136,8 +139,28 @@ class ClickableLabel(QLabel):
             #new_icon_path = "icon.png"  
             #self.desktop_icon.icon_path = new_icon_path
             #self.set_icon(new_icon_path)
+            #self.set_icon_path("add.png")
             menu = Menu(parent=self)
             menu.exec()
+
+    def enterEvent(self, event):
+        print(f"mousover label : {self.desktop_icon.row}, {self.desktop_icon.col}")
+        print(f"mouseover icon_path = {self.desktop_icon.icon_path}")
+        if self.desktop_icon.icon_path == "blank.png":
+            print("change icon")
+            self.set_icon_path("add.png")
+
+    def leaveEvent(self, event):
+        print(f"exit event : {self.desktop_icon.icon_path}")
+        if self.desktop_icon.icon_path == "add.png":
+            print("changing icon")
+            self.set_icon_path("blank.png")
+        
+    def selected_border(self, percent):
+        self.icon_label.setStyleSheet(f"border: {LABEL_SIZE * (percent/100)}px solid red;")
+
+    def default_border(self):
+        self.icon_label.setStyleSheet(DEFAULT_BORDER)
 
     def get_row(self):
         return self.desktop_icon.row
@@ -153,11 +176,11 @@ class ClickableLabel(QLabel):
     def set_icon_path(self, new_icon_path):
         self.desktop_icon.icon_path = new_icon_path
         self.set_icon(new_icon_path)
-        self.icon_label.setStyleSheet("background-color: none; border: 1px solid black;")
+        self.icon_label.setStyleSheet(DEFAULT_BORDER)
     def set_executable_path(self, new_executable_path):
         self.desktop_icon.executable_path = new_executable_path
         # if no icon set and exec file is a .lnk (shortcut file)
-        if self.desktop_icon.icon_path == "" and new_executable_path.endswith(".lnk"):
+        if self.desktop_icon.icon_path == "blank.png" or self.desktop_icon.icon_path == "unknown.png" and new_executable_path.endswith(".lnk"):
             # point to new file called [row, col]
             data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
             #make file if no file (new)
@@ -168,13 +191,61 @@ class ClickableLabel(QLabel):
             data_path = os.path.join(data_path, "icon.png")
             extract_icon_from_lnk(new_executable_path, data_path)
             self.set_icon(data_path)
+            self.update_json_icon(data_path)
+        else:
+            self.check_icon()
+
+    def update_json_icon(self, data_path):
+        for item in JSON:
+            if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
+                item['icon_path'] = data_path
+                break
+        self.save_json(JSON)
+
+
+    # check if desktop_icon has a name or an executable path set. (but no icon set)
+    def check_icon(self):
+        #if it has name or executable path
+        print("checking icon")
+        if self.desktop_icon.name != "" or self.desktop_icon.executable_path != "":
+            print("has name or exec")
+            #but no icon
+            print(f"icon path = {self.desktop_icon.icon_path}")
+            if self.desktop_icon.icon_path == "":
+                print("name is indeed blank.png")
+                self.set_icon_path("unknown.png")
+        self.update_json_icon(self.desktop_icon.icon_path)
+
+    
+    def re_render(self):
+        for item in JSON:
+            if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
+                self.set_name(item['name'])
+                self.set_icon_path(item['icon_path'])
+                self.set_executable_path(item['executable_path'])
+                break
 
             
 
     def save_json(self, new_json):
+        global JSON
         print("ATTEMPTING TO SAVE JSON")
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
+            print("saving json")
             json.dump(new_json, f, indent=4)
+        if os.path.exists(DESKTOP_CONFIG_DIRECTORY) and os.path.getsize(DESKTOP_CONFIG_DIRECTORY) > 0:
+            with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
+                JSON = json.load(f)
+
+        print(JSON)
+
+    def load_settings():
+        if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
+            with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
+                return json.load(f)
+        else:
+            print("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
+            return {}
 
     
     def get_dir(self):
