@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 import os
@@ -16,8 +16,8 @@ MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-LABEL_SIZE = 50
-LABEL_VERT_PAD = 50
+LABEL_SIZE = 80
+LABEL_VERT_PAD = 80
 
 
 
@@ -109,12 +109,14 @@ class ClickableLabel(QLabel):
         
         self.icon_label = QLabel(self)
         self.icon_label.setStyleSheet("background-color: lightgray; border: 1px solid black;")
-        self.icon_label.setFixedSize(48, 48)
+        self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
         self.icon_label.setAlignment(Qt.AlignCenter)
         self.set_icon(self.desktop_icon.icon_path)
 
         self.text_label = QLabel(text)
         self.text_label.setAlignment(Qt.AlignCenter)
+        self.text_label.setWordWrap(True)
+        self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         
 
         layout = QVBoxLayout(self)
@@ -124,7 +126,7 @@ class ClickableLabel(QLabel):
         self.setLayout(layout)
 
     def set_icon(self, icon_path):
-        pixmap = QPixmap(icon_path).scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.icon_label.setPixmap(pixmap)
 
     def mousePressEvent(self, event):
@@ -146,6 +148,8 @@ class ClickableLabel(QLabel):
     
     def set_name(self, new_name):
         self.desktop_icon.name = new_name
+        self.text_label.setText(new_name)
+        self.update()
     def set_icon_path(self, new_icon_path):
         self.desktop_icon.icon_path = new_icon_path
         self.set_icon(new_icon_path)
