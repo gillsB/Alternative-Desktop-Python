@@ -5,7 +5,7 @@ import json
 import os
 
 
-JSON = "empty"
+
 
 COL = -1
 ROW = -1
@@ -19,11 +19,12 @@ class Menu(QDialog):
 
         global ROW 
         global COL 
-        global JSON
-        
+
+
+        config = self.parent().load_desktop_config()
         ROW = self.parent().get_row()
         COL = self.parent().get_col()
-        JSON = self.parent().get_json()
+
 
         self.setWindowTitle("Settings")
         layout = QFormLayout()
@@ -36,7 +37,7 @@ class Menu(QDialog):
         self.parent().selected_border(10)
         icon_path = ""
         
-        for item in JSON:
+        for item in config:
             
             if item['row'] == ROW and item['column'] == COL:
                 self.name_le.setText(item['name'])
@@ -57,10 +58,8 @@ class Menu(QDialog):
         layout.addRow("Icon Path: ", self.icon_path_le)
         layout.addRow("Executable Path: ", self.exec_path_le)
 
-        #self.parent().set_icon_path("floor.png")
 
         save_button = QPushButton("Save")
-        #save_button.clicked.connect(self.save_settings)
         
         save_button.clicked.connect(self.save_config)
 
@@ -71,22 +70,22 @@ class Menu(QDialog):
     def closeEvent(self, event):
         print("closed")
         self.parent().default_border()
-        self.parent().re_render()
+        self.parent().render_icon()
 
 
     def save_config(self):
-        print(JSON)
-        print("save")
-        if self.entry_exists() == True:
-            self.edit_entry()
+        config = self.parent().load_desktop_config()
+        print(f"config before = {config}")
+        if self.entry_exists(config) == True:
+            new_config = self.edit_entry(config)
         else:
-            self.add_entry()
-        self.parent().save_json(JSON)
-        self.parent().re_render()
+            new_config = self.add_entry(config)
+        self.parent().save_desktop_config(new_config)
         self.close()
+
         
             
-    def add_entry(self):
+    def add_entry(self, config):
         new_entry = {
         "row": ROW,
         "column": COL,
@@ -94,30 +93,27 @@ class Menu(QDialog):
         "icon_path": self.icon_path_le.text(),
         "executable_path": self.exec_path_le.text()
         }
-        JSON.append(new_entry)
-        
-    def update_clickable_item(self):
-        self.parent().set_name(self.name_le.text())
-        if self.icon_path_le.text() == "":
-            self.parent().set_icon_path("blank.png")
-        else:
-            self.parent().set_icon_path(self.icon_path_le.text())
-        self.parent().set_executable_path(self.exec_path_le.text())
+        config.append(new_entry)
+        return config
 
-    def edit_entry(self):
-        print(f"Json: {JSON}")
-        for item in JSON:
+
+        
+
+    def edit_entry(self, config):
+        
+        for item in config:
             if item['row'] == ROW and item['column'] == COL:
-                
                 item['name'] = self.name_le.text()
                 item['icon_path'] = self.icon_path_le.text()
                 item['executable_path'] = self.exec_path_le.text()
-                print(f"Json updated: {JSON}")
+                #print(f"Json updated: {config}")
                 break
+        return config
+        
 
 
-    def entry_exists(self):
-        for item in JSON:
+    def entry_exists(self, config):
+        for item in config:
             if item['row'] == ROW and item['column'] == COL:
                 return True
         return False
