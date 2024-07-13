@@ -1,8 +1,7 @@
 import pylnk3
 from PIL import Image
-import win32gui
+from win32 import win32gui
 import win32ui
-import win32con
 
 def extract_icon_from_lnk(lnk_path, output_path):
     # Read the .lnk file
