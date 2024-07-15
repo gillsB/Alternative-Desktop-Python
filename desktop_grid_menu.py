@@ -76,12 +76,21 @@ class Menu(QDialog):
 
     def check_valid_path(self, path):
         return os.path.isfile(path)
+    
+
+    ## clean up common problems with file path, i.e. copying a file and pasting into exec_path produces file:///C:/...
+    # the correct path for use requires just the C:/...
+    def cleanup_exec_path(self):
+        if self.exec_path_le.text().startswith("file:///"):
+            self.exec_path_le.setText(self.exec_path_le.text()[8:])  # remove "file:///"
+        elif self.exec_path_le.text().startswith("file://"):
+            self.exec_path_le.setText(self.exec_path_le.text()[7:])  # Remove 'file://' prefix
 
 
     def save_config(self):
         config = self.parent().load_desktop_config()
         print(f"config before = {config}")
-
+        self.cleanup_exec_path()
         if self.check_valid_path(self.exec_path_le.text()):
             if self.entry_exists(config) == True:
                 new_config = self.edit_entry(config)
