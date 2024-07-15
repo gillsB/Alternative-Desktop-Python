@@ -50,7 +50,7 @@ class Menu(QDialog):
                 break
             print(f"ICON PATH {icon_path}")
         if icon_path == "":
-            self.parent().set_icon_path("add2.png")
+            self.parent().set_icon_path("assets/images/add2.png")
         self.parent().selected_border(10)
 
 
@@ -72,8 +72,8 @@ class Menu(QDialog):
         self.parent().default_border()
         print(f"closing get item_path = {self.parent().get_icon_path()}")
         #revert add
-        if self.parent().get_icon_path() == "add2.png":
-            self.parent().set_icon_path("blank.png")
+        if self.parent().get_icon_path() == "assets/images/add2.png":
+            self.parent().set_icon_path("assets/images/blank.png")
 
         self.parent().render_icon()
 

@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt
 import os
 import json
 from desktop_grid_menu import Menu
-from image_gen.lnk_to_image import extract_icon_from_lnk
+from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 
 
 
@@ -50,7 +50,7 @@ class Grid(QWidget):
             name = self.get_name(row,col)
             icon_path = self.get_icon_path(row,col)
             if icon_path == "":
-                icon_path = "blank.png"
+                icon_path = "assets/images/blank.png"
             executable_path = self.get_exectuable_path(row,col)
             desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path)
             label = ClickableLabel(desktop_icon, name)
@@ -147,15 +147,15 @@ class ClickableLabel(QLabel):
     def enterEvent(self, event):
         print(f"mousover label : {self.desktop_icon.row}, {self.desktop_icon.col}")
         print(f"mouseover icon_path = {self.desktop_icon.icon_path}")
-        if self.desktop_icon.icon_path == "blank.png" or self.desktop_icon.icon_path == "":
+        if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "":
             print("change icon")
-            self.set_icon_path("add.png")
+            self.set_icon_path("assets/images/add.png")
 
     def leaveEvent(self, event):
         print(f"exit event : {self.desktop_icon.icon_path}")
-        if self.desktop_icon.icon_path == "add.png":
+        if self.desktop_icon.icon_path == "assets/images/add.png":
             print("changing icon")
-            self.set_icon_path("blank.png")
+            self.set_icon_path("assets/images/blank.png")
     
         
     def selected_border(self, percent):
@@ -182,7 +182,7 @@ class ClickableLabel(QLabel):
     def set_executable_path(self, new_executable_path):
         self.desktop_icon.executable_path = new_executable_path
         # if no icon set and exec file is a .lnk (shortcut file)
-        if (self.desktop_icon.icon_path == "blank.png" or self.desktop_icon.icon_path == "unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".lnk"):
+        if (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "assets/images/unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".lnk"):
             # point to new file called [row, col]
             data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
             #make file if no file (new)
@@ -194,8 +194,8 @@ class ClickableLabel(QLabel):
             extract_icon_from_lnk(new_executable_path, data_path)
             self.auto_gen_icon(data_path)    
 
-        elif (self.desktop_icon.icon_path == "blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
-            self.auto_gen_icon("unknown.png")
+        elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
+            self.auto_gen_icon("assets/images/unknown.png")
 
     
 
