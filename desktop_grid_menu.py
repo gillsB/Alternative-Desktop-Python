@@ -41,11 +41,8 @@ class Menu(QDialog):
             
             if item['row'] == ROW and item['column'] == COL:
                 self.name_le.setText(item['name'])
-                print(f"super long name so that ican see it in console: {item['name']}")
-                print(f"super long name so that ican see it in console: {item['icon_path']}")
                 icon_path = item['icon_path']
                 self.icon_path_le.setText(item['icon_path'])
-                print(f"super long name so that ican see it in console: {icon_path}")
                 self.exec_path_le.setText(item['executable_path'])
                 break
             print(f"ICON PATH {icon_path}")
@@ -77,16 +74,23 @@ class Menu(QDialog):
 
         self.parent().render_icon()
 
+    def check_valid_path(self, path):
+        return os.path.isfile(path)
+
 
     def save_config(self):
         config = self.parent().load_desktop_config()
         print(f"config before = {config}")
-        if self.entry_exists(config) == True:
-            new_config = self.edit_entry(config)
+
+        if self.check_valid_path(self.exec_path_le.text()):
+            if self.entry_exists(config) == True:
+                new_config = self.edit_entry(config)
+            else:
+                new_config = self.add_entry(config)
+            self.parent().save_desktop_config(new_config)
+            self.close()
         else:
-            new_config = self.add_entry(config)
-        self.parent().save_desktop_config(new_config)
-        self.close()
+            print("error not a valid path")
 
         
             
