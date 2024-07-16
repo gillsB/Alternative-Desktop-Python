@@ -134,13 +134,16 @@ class ClickableLabel(QLabel):
         self.icon_label.setPixmap(pixmap)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.RightButton:
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}")
             #set all icons clicked to default icon.png (for ensuring that clickable keeps working.)
             #new_icon_path = "icon.png"  
             #self.desktop_icon.icon_path = new_icon_path
             #self.set_icon(new_icon_path)
             #self.set_icon_path("add.png")
+            menu = Menu(parent=self)
+            menu.exec()
+        elif event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             menu = Menu(parent=self)
             menu.exec()
     
