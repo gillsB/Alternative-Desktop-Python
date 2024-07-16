@@ -91,7 +91,14 @@ class Menu(QDialog):
         config = self.parent().load_desktop_config()
         print(f"config before = {config}")
         self.cleanup_exec_path()
-        if self.check_valid_path(self.exec_path_le.text()):
+
+        print(f"text == \"\" = {self.exec_path_le.text() == ""}")
+
+        if self.exec_path_le.text() == "":
+            new_config = self.edit_entry(config)
+            self.parent().save_desktop_config(new_config)
+            self.close()
+        elif self.check_valid_path(self.exec_path_le.text()):
             if self.entry_exists(config) == True:
                 new_config = self.edit_entry(config)
             else:
