@@ -17,7 +17,7 @@ MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-LABEL_SIZE = 250
+LABEL_SIZE = 300
 LABEL_VERT_PAD = 80
 DEFAULT_BORDER = "border 0px"
 
@@ -194,8 +194,8 @@ class ClickableLabel(QLabel):
                 print("makedir")
                 os.makedirs(data_path)
 
-            data_path = os.path.join(data_path, "icon.png")
             extract_icon_from_lnk(new_executable_path, data_path)
+            data_path = os.path.join(data_path, "icon.png")
             self.auto_gen_icon(data_path)    
         
         elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "assets/images/unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".exe"):
@@ -205,8 +205,9 @@ class ClickableLabel(QLabel):
                 print("makedir")
                 os.makedirs(data_path)
 
-            data_path = os.path.join(data_path, "icon.png")
+
             extract_ico_from_exe(new_executable_path, data_path)
+            data_path = os.path.join(data_path, "icon.png")
             self.auto_gen_icon(data_path)  
 
         elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
