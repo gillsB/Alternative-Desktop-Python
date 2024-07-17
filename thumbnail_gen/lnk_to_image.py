@@ -2,6 +2,7 @@ import pylnk3
 from PIL import Image
 from win32 import win32gui
 import win32ui
+import os
 
 def extract_icon_from_lnk(lnk_path, output_path):
     # Read the .lnk file
@@ -11,8 +12,16 @@ def extract_icon_from_lnk(lnk_path, output_path):
     target_path = lnk.path
     icon_index = lnk.icon_index
 
-    # Get the icon handle
+    # Try to extract the icon from the target executable
     large, small = win32gui.ExtractIconEx(target_path, icon_index)
+    
+    # If icon extraction fails, search for .ico file in the same directory
+    if not large and not small:
+        target_dir = os.path.dirname(target_path)
+        ico_files = [file for file in os.listdir(target_dir) if file.lower().endswith('.ico')]
+        if ico_files:
+            fallback_icon_path = os.path.join(target_dir, ico_files[0])
+            large, small = win32gui.ExtractIconEx(fallback_icon_path, 0)
 
     # Ensure the handle is valid
     if large:
@@ -20,7 +29,7 @@ def extract_icon_from_lnk(lnk_path, output_path):
     elif small:
         hicon = small[0]
     else:
-        raise ValueError("No icon found in the .lnk file")
+        raise ValueError("No icon found in the .lnk file and no .ico file found in the target directory")
 
     # Create a device context
     dc = win32ui.CreateDCFromHandle(win32gui.GetDC(0))
@@ -48,4 +57,3 @@ def extract_icon_from_lnk(lnk_path, output_path):
     win32gui.DestroyIcon(hicon)
 
     print(f"Icon saved to {output_path}")
-

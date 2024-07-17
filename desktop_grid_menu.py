@@ -156,6 +156,7 @@ class Menu(QDialog):
                 name = exec_path.split('/')[-1]
                 self.exec_path_le.setText(exec_path)
                 self.name_le.setText(name)
+                self.icon_path_le.setText("")
                 event.acceptProposedAction()
 
     def text_changed(self):
