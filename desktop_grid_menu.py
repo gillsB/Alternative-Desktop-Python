@@ -30,7 +30,7 @@ class Menu(QDialog):
         self.setWindowTitle("Settings")
         layout = QFormLayout()
         self.setLayout(layout)
-        self.setWindowTitle("QLabel and QLineEdit")
+        self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]")
 
         self.name_le = QLineEdit()
         self.icon_path_le = QLineEdit()

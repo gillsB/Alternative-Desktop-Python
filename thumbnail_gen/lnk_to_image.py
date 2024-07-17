@@ -1,7 +1,5 @@
 import pylnk3
 from PIL import Image
-from win32 import win32gui
-import win32ui
 import os
 import shutil
 from thumbnail_gen.exe_to_image import extract_ico_from_exe
