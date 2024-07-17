@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QMessageBox
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
 
 import json
@@ -36,6 +37,8 @@ class Menu(QDialog):
         self.exec_path_le = QLineEdit()
         self.parent().selected_border(10)
         icon_path = ""
+
+        self.setAcceptDrops(True)
         
         for item in config:
             
@@ -122,8 +125,6 @@ class Menu(QDialog):
         return config
 
 
-        
-
     def edit_entry(self, config):
         
         for item in config:
@@ -135,13 +136,27 @@ class Menu(QDialog):
                 break
         return config
         
-
-
     def entry_exists(self, config):
         for item in config:
             if item['row'] == ROW and item['column'] == COL:
                 return True
         return False
+
+
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls:
+                exec_path = urls[0].toLocalFile()
+                name = exec_path.split('/')[-1]
+                self.exec_path_le.setText(exec_path)
+                self.name_le.setText(name)
+                event.acceptProposedAction()
 
     def text_changed(self):
         ...
