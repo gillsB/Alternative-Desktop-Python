@@ -6,6 +6,7 @@ import os
 import json
 from desktop_grid_menu import Menu
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
+from thumbnail_gen.exe_to_image import extract_ico_from_exe
 
 
 
@@ -16,7 +17,7 @@ MAX_COLS = 20
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-LABEL_SIZE = 80
+LABEL_SIZE = 250
 LABEL_VERT_PAD = 80
 DEFAULT_BORDER = "border 0px"
 
@@ -196,6 +197,17 @@ class ClickableLabel(QLabel):
             data_path = os.path.join(data_path, "icon.png")
             extract_icon_from_lnk(new_executable_path, data_path)
             self.auto_gen_icon(data_path)    
+        
+        elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "assets/images/unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".exe"):
+            data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+            #make file if no file (new)
+            if not os.path.exists(data_path):
+                print("makedir")
+                os.makedirs(data_path)
+
+            data_path = os.path.join(data_path, "icon.png")
+            extract_ico_from_exe(new_executable_path, data_path)
+            self.auto_gen_icon(data_path)  
 
         elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
             self.auto_gen_icon("assets/images/unknown.png")
