@@ -81,17 +81,26 @@ class Menu(QDialog):
 
     ## clean up common problems with file path, i.e. copying a file and pasting into exec_path produces file:///C:/...
     # the correct path for use requires just the C:/...
-    def cleanup_exec_path(self):
+    def cleanup_path(self):
+
+        #cleanup file_path
+        if self.icon_path_le.text().startswith("file:///"):
+            self.icon_path_le.setText(self.icon_path_le.text()[8:])  # remove "file:///"
+        elif self.icon_path_le.text().startswith("file://"):
+            self.icon_path_le.setText(self.icon_path_le.text()[7:])  # Remove 'file://' prefix
+
+        #cleanup executable_path
         if self.exec_path_le.text().startswith("file:///"):
             self.exec_path_le.setText(self.exec_path_le.text()[8:])  # remove "file:///"
         elif self.exec_path_le.text().startswith("file://"):
             self.exec_path_le.setText(self.exec_path_le.text()[7:])  # Remove 'file://' prefix
 
 
+
     def save_config(self):
         config = self.parent().load_desktop_config()
         print(f"config before = {config}")
-        self.cleanup_exec_path()
+        self.cleanup_path()
 
         # if exec_path is empty save file
         if self.exec_path_le.text() == "":
