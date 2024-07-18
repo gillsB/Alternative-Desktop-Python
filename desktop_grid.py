@@ -4,6 +4,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 import os
 import json
+import subprocess
 from desktop_grid_menu import Menu
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 from thumbnail_gen.exe_to_image import extract_ico_from_exe
@@ -137,28 +138,23 @@ class ClickableLabel(QLabel):
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}")
-            #set all icons clicked to default icon.png (for ensuring that clickable keeps working.)
-            #new_icon_path = "icon.png"  
-            #self.desktop_icon.icon_path = new_icon_path
-            #self.set_icon(new_icon_path)
-            #self.set_icon_path("add.png")
             menu = Menu(parent=self)
             menu.exec()
         elif event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             menu = Menu(parent=self)
             menu.exec()
+        #if icon has an executable_path already (icon exists with path)
+        elif event.button() == Qt.LeftButton and self.desktop_icon.executable_path != "":
+            self.run_program()
     
+    #mousover icon
     def enterEvent(self, event):
-        print(f"mousover label : {self.desktop_icon.row}, {self.desktop_icon.col}")
-        print(f"mouseover icon_path = {self.desktop_icon.icon_path}")
         if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "":
-            print("change icon")
             self.set_icon_path("assets/images/add.png")
 
+    #mouseover leaves the icon
     def leaveEvent(self, event):
-        print(f"exit event : {self.desktop_icon.icon_path}")
         if self.desktop_icon.icon_path == "assets/images/add.png":
-            print("changing icon")
             self.set_icon_path("assets/images/blank.png")
     
         
@@ -255,6 +251,19 @@ class ClickableLabel(QLabel):
     
     def get_icon_path(self):
         return self.desktop_icon.icon_path
+    
+    def run_program(self):
+        file_path = self.desktop_icon.executable_path
+        args = None
+        try:
+            if file_path.lower().endswith('.lnk'):
+                os.startfile(file_path)
+            else:
+                subprocess.Popen([file_path])
+        except FileNotFoundError:
+            print("The specified file was not found")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         
 
     
