@@ -35,6 +35,7 @@ class Menu(QDialog):
         self.name_le = QLineEdit()
         self.icon_path_le = QLineEdit()
         self.exec_path_le = QLineEdit()
+        self.command_args_le = QLineEdit()
         self.parent().selected_border(10)
         icon_path = ""
 
@@ -47,6 +48,7 @@ class Menu(QDialog):
                 icon_path = item['icon_path']
                 self.icon_path_le.setText(item['icon_path'])
                 self.exec_path_le.setText(item['executable_path'])
+                self.command_args_le.setText(item['command_args'])
                 break
         if icon_path == "":
             self.parent().set_icon_path("assets/images/add2.png")
@@ -56,6 +58,7 @@ class Menu(QDialog):
         layout.addRow("Name: ", self.name_le)
         layout.addRow("Icon Path: ", self.icon_path_le)
         layout.addRow("Executable Path: ", self.exec_path_le)
+        layout.addRow("Command line arguments: ", self.command_args_le)
 
 
         save_button = QPushButton("Save")
@@ -126,7 +129,8 @@ class Menu(QDialog):
         "column": COL,
         "name": self.name_le.text(),
         "icon_path": self.icon_path_le.text(),
-        "executable_path": self.exec_path_le.text()
+        "executable_path": self.exec_path_le.text(),
+        "command_args": self.command_args_le.text()
         }
         config.append(new_entry)
         return config
@@ -139,7 +143,7 @@ class Menu(QDialog):
                 item['name'] = self.name_le.text()
                 item['icon_path'] = self.icon_path_le.text()
                 item['executable_path'] = self.exec_path_le.text()
-                #print(f"Json updated: {config}")
+                item['command_args'] = self.command_args_le.text()
                 break
         return config
         

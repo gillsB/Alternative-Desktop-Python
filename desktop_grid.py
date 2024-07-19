@@ -60,7 +60,8 @@ class Grid(QWidget):
             if icon_path == "":
                 icon_path = "assets/images/blank.png"
             executable_path = self.get_exectuable_path(row,col)
-            desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path)
+            command_args = self.get_command_args(row,col)
+            desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path, command_args)
             label = ClickableLabel(desktop_icon, name)
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
@@ -81,6 +82,11 @@ class Grid(QWidget):
         for item in JSON:
             if item['row'] == row and item['column'] == column:
                 return item['executable_path']
+        return ""
+    def get_command_args(self, row, column):
+        for item in JSON:
+            if item['row'] == row and item['column'] == column:
+                return item['command_args']
         return ""
     
     
@@ -143,7 +149,7 @@ class ClickableLabel(QLabel):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.RightButton:
-            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}")
+            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
             menu = Menu(parent=self)
             menu.exec()
         elif event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
@@ -215,7 +221,8 @@ class ClickableLabel(QLabel):
         elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
             self.auto_gen_icon("assets/images/unknown.png")
 
-    
+    def set_command_args(self, command_args):
+        self.desktop_icon.command_args = command_args
 
     def auto_gen_icon(self, new_icon_path):
         for item in JSON:
@@ -232,6 +239,7 @@ class ClickableLabel(QLabel):
                 self.set_name(item['name'])
                 self.set_icon_path(item['icon_path'])
                 self.set_executable_path(item['executable_path'])
+                self.set_command_args(item['command_args'])
                 break
 
             
@@ -273,12 +281,13 @@ class ClickableLabel(QLabel):
 
 
 class DesktopIcon:
-    def __init__(self, row, col, name, icon_path, executable_path):
+    def __init__(self, row, col, name, icon_path, executable_path, command_args):
         self.row = row
         self.col = col
         self.name = name
         self.icon_path = icon_path
         self.executable_path = executable_path
+        self.command_args = command_args
 
 def load_desktop_config():
     if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
