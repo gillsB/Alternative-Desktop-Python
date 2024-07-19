@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 import os
 import json
 import subprocess
+import shlex
 from desktop_grid_menu import Menu
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 from thumbnail_gen.exe_to_image import extract_ico_from_exe
@@ -232,6 +233,12 @@ class ClickableLabel(QLabel):
         self.save_desktop_config(JSON)
 
     
+
+    #
+    #
+    # This is required to run in order for any client sided (non restart) edit to appear/work as normal
+    #
+    #
     def render_icon(self):
 
         for item in JSON:
@@ -259,12 +266,15 @@ class ClickableLabel(QLabel):
     
     def run_program(self):
         file_path = self.desktop_icon.executable_path
-        args = None
+        args = shlex.split(self.desktop_icon.command_args)
+        command = [file_path] + args
         try:
+            #if it is a .lnk file it is expected that the .lnk contains the command line arguments
+            #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
             if file_path.lower().endswith('.lnk'):
                 os.startfile(file_path)
             else:
-                subprocess.Popen([file_path])
+                subprocess.Popen(command)
         except FileNotFoundError:
             print("The specified file was not found")
         except Exception as e:
