@@ -22,7 +22,7 @@ class Menu(QDialog):
         global COL 
 
 
-        config = self.parent().load_desktop_config()
+        config = self.parent().load_config()
         ROW = self.parent().get_row()
         COL = self.parent().get_col()
 
@@ -98,7 +98,7 @@ class Menu(QDialog):
 
 
     def save_config(self):
-        config = self.parent().load_desktop_config()
+        config = self.parent().load_config()
         print(f"config before = {config}")
         self.cleanup_path()
 

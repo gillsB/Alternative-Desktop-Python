@@ -24,9 +24,15 @@ DEFAULT_BORDER = "border 0px"
 
 
 
-
-DEFAULT_DESKTOP = [
-]
+#These are all active .json arguments and their defaults
+DEFAULT_DESKTOP =  {
+    "row": -1,
+    "column": -1,
+    "name": "",
+    "icon_path": "",
+    "executable_path": "",
+    "command_args": ""
+}
 
 
 
@@ -44,7 +50,7 @@ class Grid(QWidget):
         #set MAX_LABELS to the maximum amount of items you would need based on rows/cols
         MAX_LABELS = MAX_ROWS * MAX_COLS
 
-
+        check_for_new_config()
         #use MAX_COLS to diffrentiate when to add a new row.
         for i in range(MAX_LABELS):
             row = i // MAX_COLS
@@ -230,23 +236,14 @@ class ClickableLabel(QLabel):
 
             
 
+    def load_config(self):
+        return load_desktop_config()
 
-    def load_desktop_config(self):
-        if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
-            with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
-                return json.load(f)
-        else:
-            print("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
-            return {}
+    
         
 
-    def save_desktop_config(self, settings):
-        print("ATTEMPTING TO SAVE THE DESKTOP .JSON")
-        global JSON
-        with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
-            json.dump(settings, f, indent=4)
-        with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
-            JSON = json.load(f)
+    def save_desktop_config(self, config):
+        save_config_to_file(config)
         self.render_icon()
     
     def get_icon_path(self):
@@ -283,6 +280,37 @@ class DesktopIcon:
         self.icon_path = icon_path
         self.executable_path = executable_path
 
+def load_desktop_config():
+    if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
+        with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
+            return json.load(f)
+    else:
+        print("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
+        return {}
+
+def check_for_new_config():
+    config = load_desktop_config()
+    new_config = False
+
+    for entry in config:
+        for key, value in DEFAULT_DESKTOP.items():
+            if key not in entry:
+                print("key not in settings")
+                entry[key] = value
+                new_config = True
+
+    if new_config:
+        print("new settings")
+        save_config_to_file(config)
+
+
+def save_config_to_file(config):
+    print("ATTEMPTING TO SAVE THE DESKTOP .JSON")
+    global JSON
+    with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
+        json.dump(config, f, indent=4)
+    with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
+        JSON = json.load(f)
 
 
 def create_data_path():
@@ -334,6 +362,8 @@ def create_config_path():
         JSON = DEFAULT_DESKTOP
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
             json.dump(DEFAULT_DESKTOP, f, indent=4)
+
+
 
 
 
