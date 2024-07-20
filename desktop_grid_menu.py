@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QMessageBox
+from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QMessageBox, QTabWidget
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
 
@@ -10,26 +10,27 @@ import os
 
 COL = -1
 ROW = -1
-ICON_PATH = ""
+
 
 class Menu(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
 
-
         global ROW 
         global COL 
-
 
         config = self.parent().load_config()
         ROW = self.parent().get_row()
         COL = self.parent().get_col()
 
+        main_layout = QVBoxLayout()
 
-        self.setWindowTitle("Settings")
-        layout = QFormLayout()
-        self.setLayout(layout)
+        self.tabs = QTabWidget()
+        
+        self.basic_tab = QWidget()
+        self.basic_tab_layout = QFormLayout()
+
         self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]")
 
         self.name_le = QLineEdit()
@@ -41,6 +42,32 @@ class Menu(QDialog):
 
         self.setAcceptDrops(True)
         
+
+
+
+        self.basic_tab_layout.addRow("Name: ", self.name_le)
+        self.basic_tab_layout.addRow("Icon Path: ", self.icon_path_le)
+        self.basic_tab_layout.addRow("Executable Path: ", self.exec_path_le)
+        #self.basic_tab_layout.addRow("Command line arguments: ", self.command_args_le)
+
+        self.basic_tab.setLayout(self.basic_tab_layout)
+
+        #### end of basic tab
+        self.advanced_tab = QWidget()
+        self.advanced_tab_layout = QFormLayout()
+        
+        self.advanced_setting_le = QLineEdit()
+        self.advanced_tab_layout.addRow("Command line arguments: ", self.command_args_le)
+
+        self.advanced_tab.setLayout(self.advanced_tab_layout)
+
+        self.tabs.addTab(self.basic_tab, "Basic")
+        self.tabs.addTab(self.advanced_tab, "Advanced")
+
+        main_layout.addWidget(self.tabs)
+
+
+        ## load already saved data for desktop_icon into fields in this menu
         for item in config:
             
             if item['row'] == ROW and item['column'] == COL:
@@ -54,18 +81,13 @@ class Menu(QDialog):
             self.parent().set_icon_path("assets/images/add2.png")
         self.parent().selected_border(10)
 
-
-        layout.addRow("Name: ", self.name_le)
-        layout.addRow("Icon Path: ", self.icon_path_le)
-        layout.addRow("Executable Path: ", self.exec_path_le)
-        layout.addRow("Command line arguments: ", self.command_args_le)
-
-
         save_button = QPushButton("Save")
         
         save_button.clicked.connect(self.save_config)
 
-        layout.addWidget(save_button)
+        main_layout.addWidget(save_button)
+
+        self.setLayout(main_layout)
 
 
 
