@@ -185,11 +185,17 @@ class Menu(QDialog):
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()
             if urls:
-                exec_path = urls[0].toLocalFile()
-                name = exec_path.split('/')[-1]
-                self.exec_path_le.setText(exec_path)
-                self.name_le.setText(name)
-                self.icon_path_le.setText("")
+                file_path = urls[0].toLocalFile()
+                file_name = file_path.split('/')[-1]
+                file_extension = file_path.split('.')[-1].lower()
+
+                image_extensions = {'jpg', 'jpeg', 'png', 'ico', 'bmp', 'gif', 'tiff'}
+                if file_extension in image_extensions:
+                    self.icon_path_le.setText(file_path)
+                    self.name_le.setText(file_name)
+                else:
+                    self.exec_path_le.setText(file_path)
+                    self.name_le.setText(file_name)
                 event.acceptProposedAction()
 
     def text_changed(self):
