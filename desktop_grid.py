@@ -321,6 +321,7 @@ def check_for_new_config():
     if new_config:
         print("new settings")
         save_config_to_file(config)
+    
 
 
 def save_config_to_file(config):
@@ -341,7 +342,7 @@ def create_data_path():
     if not os.path.exists(app_data_path):
         os.makedirs(app_data_path)
 
-    # Append /config/settings.json to the AppData path
+    # Append /config/data.json to the AppData path
     data_path = os.path.join(app_data_path, 'data')
     if not os.path.exists(data_path):
         print("makedir")
@@ -362,9 +363,9 @@ def create_config_path():
     if not os.path.exists(app_data_path):
         os.makedirs(app_data_path)
 
-    # Append /config/settings.json to the AppData path
+    # Append /config/desktop.json to the AppData path
     config_path = os.path.join(app_data_path, 'config', 'desktop.json')
-    #create the /config/settings.json if they do not exist already.
+    #create the /config/desktop.json if they do not exist already.
     config_dir = os.path.dirname(config_path)
     if not os.path.exists(config_dir):
         print("makedir")
@@ -378,9 +379,9 @@ def create_config_path():
             JSON = json.load(f)
     else:
         print(f"Creating default settings at: {DESKTOP_CONFIG_DIRECTORY}")
-        JSON = DEFAULT_DESKTOP
+        JSON = [DEFAULT_DESKTOP]
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
-            json.dump(DEFAULT_DESKTOP, f, indent=4)
+            json.dump([DEFAULT_DESKTOP], f, indent=4)
 
 
 
