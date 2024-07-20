@@ -123,29 +123,29 @@ class Menu(QDialog):
 
 
     def save_config(self):
+
+        # if exec_path is empty save file
+        if self.exec_path_le.text() == "":
+            self.handle_save()
+        #if exec_path is not empty check if it is a valid path then save if valid
+        elif self.check_valid_path(self.exec_path_le.text()):
+            self.handle_save()
+        # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
+        else:
+            QMessageBox.warning(self,"Error: File Path", "Error: Executable path, item at path does not exist", QMessageBox.Ok | QMessageBox.Cancel)
+
+    #exec_path is "" or valid so now save
+    def handle_save(self):
         config = self.parent().load_config()
         print(f"config before = {config}")
         self.cleanup_path()
 
-        # if exec_path is empty save file
-        if self.exec_path_le.text() == "":
-            if self.entry_exists(config) == True:
-                new_config = self.edit_entry(config)
-            else:
-                new_config = self.add_entry(config)
-            self.parent().save_desktop_config(new_config)
-            self.close()
-        #if exec_path is not empty check if it is a valid path then save if valid
-        elif self.check_valid_path(self.exec_path_le.text()):
-            if self.entry_exists(config) == True:
-                new_config = self.edit_entry(config)
-            else:
-                new_config = self.add_entry(config)
-            self.parent().save_desktop_config(new_config)
-            self.close()
-        # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
+        if self.entry_exists(config) == True:
+            new_config = self.edit_entry(config)
         else:
-            QMessageBox.warning(self,"Error: File Path", "Error: Executable path, item at path does not exist", QMessageBox.Ok | QMessageBox.Cancel)
+            new_config = self.add_entry(config)
+        self.parent().save_desktop_config(new_config)
+        self.close()
         
             
     def add_entry(self, config):
