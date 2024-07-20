@@ -129,7 +129,10 @@ class Menu(QDialog):
 
         # if exec_path is empty save file
         if self.exec_path_le.text() == "":
-            new_config = self.edit_entry(config)
+            if self.entry_exists(config) == True:
+                new_config = self.edit_entry(config)
+            else:
+                new_config = self.add_entry(config)
             self.parent().save_desktop_config(new_config)
             self.close()
         #if exec_path is not empty check if it is a valid path then save if valid
