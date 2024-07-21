@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QMessageBox, QTabWidget
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from thumbnail_gen.extract_ico_file import has_ico_file
 
 
 import json
@@ -200,12 +201,27 @@ class Menu(QDialog):
 
                 image_extensions = {'jpg', 'jpeg', 'png', 'ico', 'bmp', 'gif', 'tiff'}
                 if file_extension in image_extensions:
-                    self.icon_path_le.setText(file_path)
-                    self.name_le.setText(file_name)
+                    if file_extension == 'ico':
+                        file_path = self.upscale_ico(file_path)
+                        self.name_le.setText(file_name)
+                    else:
+                        self.icon_path_le.setText(file_path)
+                        self.name_le.setText(file_name)
                 else:
                     self.exec_path_le.setText(file_path)
                     self.name_le.setText(file_name)
                 event.acceptProposedAction()
+    
+    def upscale_ico(self, file_path):
+        data_path = self.parent().get_data_icon_dir()
+        
+        print(f"DATA PATH: {data_path}")
+        print(f"FILE PATH: {file_path}")
+        upscaled_icon = has_ico_file(file_path, data_path)
+        if(upscaled_icon):
+            print("UPSCALED .ICO FILE")
+            data_path = os.path.join(data_path, "icon.png")
+            self.icon_path_le.setText(data_path)
 
     def text_changed(self):
         ...

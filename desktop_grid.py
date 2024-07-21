@@ -225,6 +225,8 @@ class ClickableLabel(QLabel):
     def set_command_args(self, command_args):
         self.desktop_icon.command_args = command_args
 
+    #changes icon path to the /[row, col]/icon.png file
+    #essentially call this method if the icon is saved in appdata and not drawn from an external file
     def auto_gen_icon(self, new_icon_path):
         for item in JSON:
             if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
@@ -232,7 +234,17 @@ class ClickableLabel(QLabel):
                 break
         self.save_desktop_config(JSON)
 
-    
+    # returns base DATA_DIRECTORY/[row, col]
+    def get_data_icon_dir(self):
+        data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+        #make file if no file (new)
+        if not os.path.exists(data_path):
+            print("makedir")
+            os.makedirs(data_path)
+        print(f"get_data_icon_path: {data_path}")
+        return data_path
+        
+
 
     #
     #
