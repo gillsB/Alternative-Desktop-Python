@@ -144,8 +144,14 @@ class Menu(QDialog):
             new_config = self.edit_entry(config)
         else:
             new_config = self.add_entry(config)
-        self.parent().save_desktop_config(new_config)
-        self.close()
+
+        # display a warning if user wants to save a .lnk exec_path WITH command arguments (not supported, possible to support but for 99.9% of users wouldn't be worth the time)
+        if self.exec_path_le.text().endswith(".lnk") and self.command_args_le.text() != "":
+            QMessageBox.warning(self,"Warning .lnk", "Warning: .lnk files do not have command arguments support. Please add the command arguments to the .lnk file itself or replace the .lnk with the file it points to.", QMessageBox.Ok)
+            self.command_args_le.setText("")
+        else:
+            self.parent().save_desktop_config(new_config)
+            self.close()
         
             
     def add_entry(self, config):
