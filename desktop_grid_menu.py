@@ -203,12 +203,13 @@ class Menu(QDialog):
                 if file_extension in image_extensions:
                     if file_extension == 'ico':
                         file_path = self.upscale_ico(file_path)
-                        self.name_le.setText(file_name)
                     else:
                         self.icon_path_le.setText(file_path)
-                        self.name_le.setText(file_name)
                 else:
-                    self.exec_path_le.setText(file_path)
+                    self.exec_path_le.setText(file_path)           
+
+                #only change name line edit if the name is empty (i.e. take the name of the first drag and drop or do not overwrite a name already existing)
+                if self.name_le.text == "":
                     self.name_le.setText(file_name)
                 event.acceptProposedAction()
     
