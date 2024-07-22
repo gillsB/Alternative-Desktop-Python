@@ -210,7 +210,7 @@ class Menu(QDialog):
 
                 #only change name line edit if the name is empty (i.e. take the name of the first drag and drop or do not overwrite a name already existing)
                 if self.name_le.text() == "":
-                    self.name_le.setText(file_name)
+                    self.name_le.setText(self.remove_file_extentions(file_name))
                 event.acceptProposedAction()
     
     def upscale_ico(self, file_path):
@@ -223,6 +223,14 @@ class Menu(QDialog):
             print("UPSCALED .ICO FILE")
             data_path = os.path.join(data_path, "icon.png")
             self.icon_path_le.setText(data_path)
+
+
+    def remove_file_extentions(self, file_name):
+        while True:
+            file_name, extension = os.path.splitext(file_name)
+            if not extension:
+                break
+        return file_name
 
     def text_changed(self):
         ...
