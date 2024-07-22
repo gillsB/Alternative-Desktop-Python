@@ -27,8 +27,8 @@ DEFAULT_BORDER = "border 0px"
 
 #These are all active .json arguments and their defaults
 DEFAULT_DESKTOP =  {
-    "row": -1,
-    "column": -1,
+    "row": 0,
+    "column": 0,
     "name": "",
     "icon_path": "",
     "executable_path": "",
@@ -100,7 +100,7 @@ class Grid(QWidget):
         window_height = self.frameGeometry().height()
 
         num_columns = max(1, window_width // LABEL_SIZE)
-        num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) # +10 or else the labels can become smaller than their minimum icon size
+        num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
 
         print(f"window dimensions : {window_width}x{window_height}")
         print(f"window num_rows : {num_rows}")
@@ -345,6 +345,8 @@ def save_config_to_file(config):
         JSON = json.load(f)
 
 
+
+#this would be passed by AlternativeDesktop.py or one of the main program files (settings.py etc.)
 def create_data_path():
 
     global DATA_DIRECTORY
@@ -363,7 +365,7 @@ def create_data_path():
     DATA_DIRECTORY = data_path
 
 
-
+#this would also be done by AlternativeDesktop.py or main program files (possibly settings.py)
 def create_config_path():
 
     global DESKTOP_CONFIG_DIRECTORY
