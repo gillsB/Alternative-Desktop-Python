@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
 import os
@@ -286,9 +286,25 @@ class ClickableLabel(QLabel):
             if file_path.lower().endswith('.lnk'):
                 os.startfile(file_path)
             else:
-                subprocess.Popen(command)
-        except FileNotFoundError:
-            print("The specified file was not found")
+                try:
+                    
+                    #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
+                    process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                    stdout, stderr = process.communicate(timeout=0.5)
+
+
+                    text = stderr.decode('utf-8')
+                    if "is not recognized as an internal or external command" in text:
+                        QMessageBox.warning(self, "Error Opening File",
+                                    "The file could not be opened.\nPlease check that the file exists at the specified location or ensure there is a default application set to open this file type.",
+                                    QMessageBox.Ok)
+                    
+                #kill the connection between this process and the subprocess we just launched.
+                #this will not kill the subprocess but just set it free from the connection
+                except Exception as e:
+                    print("killing connection to new subprocess")
+                    process.kill()
+                    
         except Exception as e:
             print(f"An error occurred: {e}")
         
