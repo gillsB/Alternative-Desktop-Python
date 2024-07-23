@@ -5,28 +5,30 @@ from thumbnail_gen.extract_ico_file import has_ico_file
 
 
 
-def extract_ico_from_exe(lnk_path, output_path):
+def exe_to_image(lnk_path, output_path):
 
-    if has_ico_file(lnk_path, output_path) == True:
-        print("Copying .ico file directly")
-    else:
-        try:
-            extractor = IconExtractor(lnk_path)
 
-            # Export the first group icon to a .ico file
-            extractor.export_icon(os.path.join(output_path, "icon.png"), num=0)
+    try:
+        extractor = IconExtractor(lnk_path)
 
-            # Or read the .ico into a buffer, to pass it into other code
-            data = extractor.get_icon(num=0)
+        output_path = os.path.join(output_path, "icon2.png")
 
-            #from PIL import Image
-            im = Image.open(data)
-            img_resized = im.resize((256, 256), Image.Resampling.LANCZOS)
+        # Export the first group icon to a .ico file
+        extractor.export_icon(output_path, num=0)
 
-            # Save the resized image to the output path
-            img_resized.save(os.path.join(output_path, "icon.png"))
-            # ... manipulate a copy of the icon
+        # Or read the .ico into a buffer, to pass it into other code
+        data = extractor.get_icon(num=0)
 
-        except IconExtractorError:
-            # No icons available, or the icon resource is malformed
-            pass
+        #from PIL import Image
+        im = Image.open(data)
+        img_resized = im.resize((256, 256), Image.Resampling.LANCZOS)
+
+        # Save the resized image to the output path
+        img_resized.save(output_path)
+        # ... manipulate a copy of the icon
+
+        return output_path
+
+    except IconExtractorError:
+        # No icons available, or the icon resource is malformed
+        pass

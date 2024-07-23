@@ -7,8 +7,7 @@ import json
 import subprocess
 import shlex
 from desktop_grid_menu import Menu
-from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
-from thumbnail_gen.exe_to_image import extract_ico_from_exe
+
 
 
 
@@ -194,45 +193,9 @@ class ClickableLabel(QLabel):
         self.icon_label.setStyleSheet(DEFAULT_BORDER)
     def set_executable_path(self, new_executable_path):
         self.desktop_icon.executable_path = new_executable_path
-        # if no icon set and exec file is a .lnk (shortcut file)
-        if (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "assets/images/unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".lnk"):
-            # point to new file called [row, col]
-            data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
-            #make file if no file (new)
-            if not os.path.exists(data_path):
-                print("makedir")
-                os.makedirs(data_path)
-
-            extract_icon_from_lnk(new_executable_path, data_path)
-            data_path = os.path.join(data_path, "icon.png")
-            self.auto_gen_icon(data_path)    
-        
-        elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "assets/images/unknown.png" or self.desktop_icon.icon_path == "") and new_executable_path.endswith(".exe"):
-            data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
-            #make file if no file (new)
-            if not os.path.exists(data_path):
-                print("makedir")
-                os.makedirs(data_path)
-
-
-            extract_ico_from_exe(new_executable_path, data_path)
-            data_path = os.path.join(data_path, "icon.png")
-            self.auto_gen_icon(data_path)  
-
-        elif (self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "") and (self.desktop_icon.name != "" or self.desktop_icon.executable_path != ""):
-            self.auto_gen_icon("assets/images/unknown.png")
-
     def set_command_args(self, command_args):
         self.desktop_icon.command_args = command_args
 
-    #changes icon path to the /[row, col]/icon.png file
-    #essentially call this method if the icon is saved in appdata and not drawn from an external file
-    def auto_gen_icon(self, new_icon_path):
-        for item in JSON:
-            if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
-                item['icon_path'] = new_icon_path
-                break
-        self.save_desktop_config(JSON)
 
     # returns base DATA_DIRECTORY/[row, col]
     def get_data_icon_dir(self):
