@@ -15,7 +15,7 @@ def extract_icon_from_lnk(lnk_path, output_path):
     icon_index = lnk.icon_index
 
     if has_ico_file(target_path, output_path) == True:
-        ico_path = os.path.join(output_path, "icon2.png")
+        ico_path = os.path.join(output_path, "icon.png")
         print("Copying .ico file directly")
 
     new_path = exe_to_image(target_path, output_path)

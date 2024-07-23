@@ -3,6 +3,7 @@ from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from thumbnail_gen.extract_ico_file import has_ico_file
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 from thumbnail_gen.exe_to_image import exe_to_image
+from thumbnail_gen.icon_selection import select_icon_from_paths
 
 
 import json
@@ -129,6 +130,8 @@ class Menu(QDialog):
 
         # if exec_path is empty -> save file
         if self.exec_path_le.text() == "":
+            if self.icon_path_le.text() == "":
+                self.icon_path_le.setText("assets/images/unknown.png")
             self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
         elif self.check_valid_path(self.exec_path_le.text()):
@@ -141,27 +144,27 @@ class Menu(QDialog):
     def auto_gen_icon(self):
 
         data_path = self.parent().get_data_icon_dir()
-        print(f"DATA PATH ====={data_path}")
 
         ico_file = False
         lnk_file = False
         exe_file = False
+        path_ico_icon = ""
+        path_exe_icon = ""
+        path_lnk_icon = ""
 
         if has_ico_file(self.exec_path_le.text(), data_path):
             ico_file = True
+            path_ico_icon = os.path.join(data_path, "icon.png")
 
 
-        print(f" desk icon path == {self.parent().desktop_icon.icon_path}")
-
-        print(self.icon_path_le.text() == "")
-        print(self.exec_path_le.text().endswith(".lnk"))
 
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
 
             path_ico_icon, path_lnk_icon = extract_icon_from_lnk(self.exec_path_le.text(), data_path)
+
             if path_lnk_icon != None:
                 lnk_file = True
-            elif path_ico_icon != None:
+            if path_ico_icon != None:
                 ico_file = True
             
             #self.icon_path_le.setText(data_path)
@@ -172,14 +175,20 @@ class Menu(QDialog):
                 exe_file = True
             #self.icon_path_le.setText(data_path)
 
-        if ico_file:
-            self.icon_path_le.setText(os.path.join(data_path, "icon.png"))
+        
+        if ico_file and lnk_file:
+            self.icon_path_le.setText(select_icon_from_paths(path_ico_icon, path_lnk_icon))
+        elif ico_file and exe_file:
+            self.icon_path_le.setText(select_icon_from_paths(path_ico_icon, path_exe_icon))
+        elif ico_file:
+            self.icon_path_le.setText(path_ico_icon)
         elif lnk_file:
             self.icon_path_le.setText(path_lnk_icon)
         elif exe_file:
             self.icon_path_le.setText(path_exe_icon)
         else:
             self.icon_path_le.setText("assets/images/unknown.png")
+
 
     #exec_path is "" or valid so now save
     def handle_save(self):
