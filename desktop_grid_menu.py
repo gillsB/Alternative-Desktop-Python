@@ -130,8 +130,7 @@ class Menu(QDialog):
 
         # if exec_path is empty -> save file
         if self.exec_path_le.text() == "":
-            if self.icon_path_le.text() == "":
-                self.icon_path_le.setText("assets/images/unknown.png")
+            
             
             self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
@@ -199,7 +198,8 @@ class Menu(QDialog):
             QMessageBox.warning(self,"Warning .lnk", "Warning: .lnk files do not have command arguments support. Please add the command arguments to the .lnk file itself or replace the .lnk with the file it points to.", QMessageBox.Ok)
             self.command_args_le.setText("")
         #this can call for save even if path for icon is wrong, so do this one last as doing it before the other error checks can result in it saving THEN displaying another warning.
-        if self.check_valid_path(self.icon_path_le.text()) != True:
+        #check icon_path_le if it is NOT empty AND the path to file does NOT exist (invalid path)
+        if self.icon_path_le.text() != "" and self.check_valid_path(self.icon_path_le.text()) != True:
             ret = QMessageBox.warning(self,"Error: Icon Path", f"Error: Icon path, item at path: \n{self.icon_path_le.text()} does not exist. \nClick OK to generate a placeholder icon, or Cancel to continue editing.", QMessageBox.Ok | QMessageBox.Cancel)
             if ret == QMessageBox.Ok:
                 self.save()
