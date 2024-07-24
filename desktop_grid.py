@@ -144,6 +144,8 @@ class ClickableLabel(QLabel):
         self.render_icon()
 
     def set_icon(self, icon_path):
+        if os.path.isfile(icon_path) != True:
+            icon_path = "assets/images/unknown.png"
         pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.icon_label.setPixmap(pixmap)
 

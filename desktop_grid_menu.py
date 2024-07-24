@@ -132,6 +132,7 @@ class Menu(QDialog):
         if self.exec_path_le.text() == "":
             if self.icon_path_le.text() == "":
                 self.icon_path_le.setText("assets/images/unknown.png")
+            
             self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
         elif self.check_valid_path(self.exec_path_le.text()):
@@ -167,13 +168,11 @@ class Menu(QDialog):
             if path_ico_icon != None:
                 ico_file = True
             
-            #self.icon_path_le.setText(data_path)
         
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
             path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path)  
             if path_exe_icon != None:
                 exe_file = True
-            #self.icon_path_le.setText(data_path)
 
         
         if ico_file and lnk_file:
@@ -186,28 +185,41 @@ class Menu(QDialog):
             self.icon_path_le.setText(path_lnk_icon)
         elif exe_file:
             self.icon_path_le.setText(path_exe_icon)
-        else:
-            self.icon_path_le.setText("assets/images/unknown.png")
 
 
-    #exec_path is "" or valid so now save
+
+    #last minute checks before saving
     def handle_save(self):
-        config = self.parent().load_config()
-        print(f"config before = {config}")
+
+        #ensure clean paths for icon_path and executable_path
         self.cleanup_path()
+
+        #.lnks do not have command line arguments supported (possible but annoying to implement)
+        if self.exec_path_le.text().endswith(".lnk") and self.command_args_le.text() != "":
+            QMessageBox.warning(self,"Warning .lnk", "Warning: .lnk files do not have command arguments support. Please add the command arguments to the .lnk file itself or replace the .lnk with the file it points to.", QMessageBox.Ok)
+            self.command_args_le.setText("")
+        #this can call for save even if path for icon is wrong, so do this one last as doing it before the other error checks can result in it saving THEN displaying another warning.
+        if self.check_valid_path(self.icon_path_le.text()) != True:
+            ret = QMessageBox.warning(self,"Error: Icon Path", f"Error: Icon path, item at path: \n{self.icon_path_le.text()} does not exist. \nClick OK to generate a placeholder icon, or Cancel to continue editing.", QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Ok:
+                self.save()
+        else:
+            self.save()
+                
+
+    def save(self):
+        config = self.parent().load_config()
+
 
         if self.entry_exists(config) == True:
             new_config = self.edit_entry(config)
         else:
             new_config = self.add_entry(config)
 
-        # display a warning if user wants to save a .lnk exec_path WITH command arguments (not supported, possible to support but for 99.9% of users wouldn't be worth the time)
-        if self.exec_path_le.text().endswith(".lnk") and self.command_args_le.text() != "":
-            QMessageBox.warning(self,"Warning .lnk", "Warning: .lnk files do not have command arguments support. Please add the command arguments to the .lnk file itself or replace the .lnk with the file it points to.", QMessageBox.Ok)
-            self.command_args_le.setText("")
-        else:
-            self.parent().save_desktop_config(new_config)
-            self.close()
+
+        self.parent().save_desktop_config(new_config)
+        self.close()
+
         
             
     def add_entry(self, config):
