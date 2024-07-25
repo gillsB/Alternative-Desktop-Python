@@ -200,7 +200,7 @@ class Menu(QDialog):
         #this can call for save even if path for icon is wrong, so do this one last as doing it before the other error checks can result in it saving THEN displaying another warning.
         #check icon_path_le if it is NOT empty AND the path to file does NOT exist (invalid path)
         if self.icon_path_le.text() != "" and self.check_valid_path(self.icon_path_le.text()) != True:
-            ret = QMessageBox.warning(self,"Error: Icon Path", f"Error: Icon path, item at path: \n{self.icon_path_le.text()} does not exist. \nClick OK to generate a placeholder icon, or Cancel to continue editing.", QMessageBox.Ok | QMessageBox.Cancel)
+            ret = QMessageBox.warning(self,"Error: Icon Path", f"Error: Icon path, item at path: \n{self.icon_path_le.text()} does not exist. \nClick OK save regardless, or Cancel to continue editing.", QMessageBox.Ok | QMessageBox.Cancel)
             if ret == QMessageBox.Ok:
                 self.save()
         else:

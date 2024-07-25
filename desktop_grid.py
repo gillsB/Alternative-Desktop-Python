@@ -1,6 +1,6 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu
+from PySide6.QtGui import QPixmap, QAction
 from PySide6.QtCore import Qt
 import os
 import json
@@ -40,6 +40,8 @@ DEFAULT_DESKTOP =  {
 class Grid(QWidget):
     def __init__(self):
         super().__init__()
+
+
 
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(0)
@@ -118,6 +120,8 @@ class Grid(QWidget):
 class ClickableLabel(QLabel):
     def __init__(self, desktop_icon, text, parent=None):
         super().__init__(parent)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
         self.desktop_icon = desktop_icon
         self.setFixedSize(LABEL_SIZE, LABEL_SIZE* 2)
         self.setAlignment(Qt.AlignCenter)
@@ -150,16 +154,37 @@ class ClickableLabel(QLabel):
         self.icon_label.setPixmap(pixmap)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
-            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
-            menu = Menu(parent=self)
-            menu.exec()
-        elif event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
+        if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             menu = Menu(parent=self)
             menu.exec()
         #if icon has an executable_path already (icon exists with path)
         elif event.button() == Qt.LeftButton and self.desktop_icon.executable_path != "":
             self.run_program()
+
+    def showContextMenu(self, pos):
+            context_menu = QMenu(self)
+            self.selected_border(10)
+            
+            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
+            
+            action1 = QAction('Edit', self)
+            action1.triggered.connect(self.edit_triggered)
+            context_menu.addAction(action1)
+            
+            action2 = QAction('Delete', self)
+            action2.triggered.connect(self.delete_triggered)
+            context_menu.addAction(action2)
+            
+            context_menu.exec(self.mapToGlobal(pos))
+
+    def edit_triggered(self):
+
+            menu = Menu(parent=self)
+            menu.exec()
+    
+    def delete_triggered(self):
+        QMessageBox.information(self, "Delete Requested", "Delete triggered")
+
     
     #mousover icon
     def enterEvent(self, event):
