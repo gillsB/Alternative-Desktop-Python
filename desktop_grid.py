@@ -150,7 +150,7 @@ class ClickableLabel(QLabel):
 
     def set_icon(self, icon_path):
         if os.path.isfile(icon_path) == False:
-            if is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
+            if entry_exists(self.desktop_icon.row, self.desktop_icon.col) and is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
                 icon_path = "assets/images/unknown.png"
         pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.icon_label.setPixmap(pixmap)
@@ -191,7 +191,11 @@ class ClickableLabel(QLabel):
             menu.exec()
     
     def delete_triggered(self):
-        QMessageBox.information(self, "Delete Requested", "Delete triggered")
+        ret = QMessageBox.warning(self, "Delete Icon",
+                                    f"Are you sure you wish to delete \"{self.desktop_icon.name}\" at: [{self.desktop_icon.row},{self.desktop_icon.col}]?",
+                                    QMessageBox.Ok| QMessageBox.Cancel)
+        if ret == QMessageBox.Ok:   
+            self.set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
     
 
     #mousover icon
@@ -251,14 +255,19 @@ class ClickableLabel(QLabel):
     #
     def render_icon(self):
 
-        for item in JSON:
-            if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
-                self.set_name(item['name'])
-                self.set_icon_path(item['icon_path'])
-                self.set_executable_path(item['executable_path'])
-                self.set_command_args(item['command_args'])
-                break
-
+        if entry_exists(self.desktop_icon.row, self.desktop_icon.col):
+            for item in JSON:
+                if item['row'] == self.desktop_icon.row and item['column'] == self.desktop_icon.col:
+                    self.set_name(item['name'])
+                    self.set_icon_path(item['icon_path'])
+                    self.set_executable_path(item['executable_path'])
+                    self.set_command_args(item['command_args'])
+                    break
+        else:
+            self.set_name("")
+            self.set_icon_path("")
+            self.set_executable_path("")
+            self.set_command_args("")
             
 
     def load_config(self):
@@ -328,6 +337,17 @@ class ClickableLabel(QLabel):
     def get_json(self):
         return JSON
 
+    #updates the entry at row,col to DEFAULT_DESKTOP fields (except row/column)
+    def set_entry_to_default(self, row, col):
+        config = load_desktop_config()
+        for entry in config:
+            if entry.get('row') == row and entry.get('column') == col:
+                for key in DEFAULT_DESKTOP:
+                    if key not in ['row', 'column']:
+                        entry[key] = DEFAULT_DESKTOP[key]
+                break
+        self.save_desktop_config(config)
+
 
 
 
@@ -383,6 +403,8 @@ def is_default(row, col):
                 item.get('command_args', "") == DEFAULT_DESKTOP['command_args']):
                 return True
     return False
+
+
 
 def entry_exists(row, col):
     config = load_desktop_config()
