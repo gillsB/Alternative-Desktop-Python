@@ -81,9 +81,9 @@ class Menu(QDialog):
                 self.exec_path_le.setText(item['executable_path'])
                 self.command_args_le.setText(item['command_args'])
                 break
-        if icon_path == "":
-            self.parent().set_icon_path("assets/images/add2.png")
-        self.parent().selected_border(10)
+
+
+        self.parent().edit_mode_icon()
 
         save_button = QPushButton("Save")
         
@@ -97,12 +97,7 @@ class Menu(QDialog):
 
     def closeEvent(self, event):
         print("closed edit menu")
-        self.parent().default_border()
-        #revert add
-        if self.parent().get_icon_path() == "assets/images/add2.png":
-            self.parent().set_icon_path("assets/images/blank.png")
-
-        self.parent().render_icon()
+        self.parent().normal_mode_icon()
 
     def check_valid_path(self, path):
         return os.path.isfile(path)

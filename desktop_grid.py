@@ -122,6 +122,7 @@ class ClickableLabel(QLabel):
         super().__init__(parent)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
+        
         self.desktop_icon = desktop_icon
         self.setFixedSize(LABEL_SIZE, LABEL_SIZE* 2)
         self.setAlignment(Qt.AlignCenter)
@@ -148,8 +149,9 @@ class ClickableLabel(QLabel):
         self.render_icon()
 
     def set_icon(self, icon_path):
-        if os.path.isfile(icon_path) != True:
-            icon_path = "assets/images/unknown.png"
+        if os.path.isfile(icon_path) == False:
+            if is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
+                icon_path = "assets/images/unknown.png"
         pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.icon_label.setPixmap(pixmap)
 
@@ -163,7 +165,8 @@ class ClickableLabel(QLabel):
 
     def showContextMenu(self, pos):
             context_menu = QMenu(self)
-            self.selected_border(10)
+
+            self.edit_mode_icon()
             
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
             
@@ -175,7 +178,12 @@ class ClickableLabel(QLabel):
             action2.triggered.connect(self.delete_triggered)
             context_menu.addAction(action2)
             
+            context_menu.aboutToHide.connect(self.context_menu_closed)
             context_menu.exec(self.mapToGlobal(pos))
+    
+    def context_menu_closed(self):
+        print("Context menu closed without selecting any action")
+        self.normal_mode_icon()
 
     def edit_triggered(self):
 
@@ -184,8 +192,8 @@ class ClickableLabel(QLabel):
     
     def delete_triggered(self):
         QMessageBox.information(self, "Delete Requested", "Delete triggered")
-
     
+
     #mousover icon
     def enterEvent(self, event):
         if self.desktop_icon.icon_path == "assets/images/blank.png":
@@ -255,6 +263,21 @@ class ClickableLabel(QLabel):
 
     def load_config(self):
         return load_desktop_config()
+    
+    #set icon into edit mode: red selected border, if icon is originally blank, set it to "add2.png"
+    def edit_mode_icon(self):
+        if self.desktop_icon.icon_path == "" or entry_exists(self.desktop_icon.row, self.desktop_icon.col) == False:
+            self.set_icon_path("assets/images/add2.png")
+        self.selected_border(10)
+    
+    #return icon into normal mode: (remove red select border) revert back to blank if icon was "add2.png"
+    def normal_mode_icon(self):
+        self.default_border()
+        #revert add
+        if self.get_icon_path() == "assets/images/add2.png":
+            self.set_icon_path("assets/images/blank.png")
+
+        self.render_icon()
 
     
         
@@ -349,6 +372,24 @@ def save_config_to_file(config):
         json.dump(config, f, indent=4)
     with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
         JSON = json.load(f)
+
+def is_default(row, col):
+    config = load_desktop_config()
+    for item in config:
+        if item['row'] == row and item['column'] == col:
+            if (item.get('name', "") == DEFAULT_DESKTOP['name'] and
+                item.get('icon_path', "") == DEFAULT_DESKTOP['icon_path'] and
+                item.get('executable_path', "") == DEFAULT_DESKTOP['executable_path'] and
+                item.get('command_args', "") == DEFAULT_DESKTOP['command_args']):
+                return True
+    return False
+
+def entry_exists(row, col):
+    config = load_desktop_config()
+    for item in config:
+        if item['row'] == row and item['column'] == col:
+            return True
+    return False
 
 
 
