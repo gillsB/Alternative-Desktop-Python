@@ -31,8 +31,15 @@ DEFAULT_DESKTOP =  {
     "name": "",
     "icon_path": "",
     "executable_path": "",
-    "command_args": ""
+    "command_args": "",
+    "website_link": "",
+    "left_click": 1
 }
+
+#left_click options:
+#1 First come first serve (down the list) i.e. executable_path, then if none -> website_link
+#2 Website link first
+#3 Maybe a popup to select?
 
 
 
@@ -174,6 +181,8 @@ class ClickableLabel(QLabel):
             edit_action.triggered.connect(self.edit_triggered)
             context_menu.addAction(edit_action)
 
+            context_menu.addSeparator()
+
             icon_path_action = QAction('Open Icon Location', self)
             icon_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.icon_path))
             context_menu.addAction(icon_path_action)
@@ -182,6 +191,8 @@ class ClickableLabel(QLabel):
             exec_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.executable_path))
             context_menu.addAction(exec_path_action)
             
+            context_menu.addSeparator()
+
             delte_action = QAction('Delete Icon', self)
             delte_action.triggered.connect(self.delete_triggered)
             context_menu.addAction(delte_action)
