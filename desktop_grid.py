@@ -170,13 +170,17 @@ class ClickableLabel(QLabel):
             
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
             
-            action1 = QAction('Edit', self)
-            action1.triggered.connect(self.edit_triggered)
-            context_menu.addAction(action1)
+            edit_action = QAction('Edit Icon', self)
+            edit_action.triggered.connect(self.edit_triggered)
+            context_menu.addAction(edit_action)
+
+            icon_path_action = QAction('Open Icon Location', self)
+            icon_path_action.triggered.connect(self.icon_path_triggered)
+            context_menu.addAction(icon_path_action)
             
-            action2 = QAction('Delete', self)
-            action2.triggered.connect(self.delete_triggered)
-            context_menu.addAction(action2)
+            delte_action = QAction('Delete Icon', self)
+            delte_action.triggered.connect(self.delete_triggered)
+            context_menu.addAction(delte_action)
             
             context_menu.aboutToHide.connect(self.context_menu_closed)
             context_menu.exec(self.mapToGlobal(pos))
@@ -189,6 +193,14 @@ class ClickableLabel(QLabel):
 
             menu = Menu(parent=self)
             menu.exec()
+    def icon_path_triggered(self):
+        if not os.path.exists(self.desktop_icon.icon_path):
+            QMessageBox.warning(self, "Icon Path does not exist",
+                                    f"File at location: {self.desktop_icon.icon_path}\n does not exist, please check the location.",
+                                    QMessageBox.Ok)
+            return
+        # Open the folder and select the file in Explorer
+        subprocess.run(['explorer', '/select,', os.path.normpath(self.desktop_icon.icon_path)])
     
     def delete_triggered(self):
         ret = QMessageBox.warning(self, "Delete Icon",
