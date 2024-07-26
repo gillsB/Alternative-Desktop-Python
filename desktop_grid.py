@@ -175,8 +175,12 @@ class ClickableLabel(QLabel):
             context_menu.addAction(edit_action)
 
             icon_path_action = QAction('Open Icon Location', self)
-            icon_path_action.triggered.connect(self.icon_path_triggered)
+            icon_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.icon_path))
             context_menu.addAction(icon_path_action)
+
+            exec_path_action = QAction('Open Executable Location', self)
+            exec_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.executable_path))
+            context_menu.addAction(exec_path_action)
             
             delte_action = QAction('Delete Icon', self)
             delte_action.triggered.connect(self.delete_triggered)
@@ -193,14 +197,14 @@ class ClickableLabel(QLabel):
 
             menu = Menu(parent=self)
             menu.exec()
-    def icon_path_triggered(self):
-        if not os.path.exists(self.desktop_icon.icon_path):
-            QMessageBox.warning(self, "Icon Path does not exist",
-                                    f"File at location: {self.desktop_icon.icon_path}\n does not exist, please check the location.",
+    def path_triggered(self, path):
+        if not os.path.exists(path):
+            QMessageBox.warning(self, "Path does not exist",
+                                    f"File at location: {path}\n does not exist, please check the location.",
                                     QMessageBox.Ok)
             return
         # Open the folder and select the file in Explorer
-        subprocess.run(['explorer', '/select,', os.path.normpath(self.desktop_icon.icon_path)])
+        subprocess.run(['explorer', '/select,', os.path.normpath(path)])
     
     def delete_triggered(self):
         ret = QMessageBox.warning(self, "Delete Icon",
