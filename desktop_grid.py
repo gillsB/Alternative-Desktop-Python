@@ -33,13 +33,13 @@ DEFAULT_DESKTOP =  {
     "executable_path": "",
     "command_args": "",
     "website_link": "",
-    "left_click": 1
+    "left_click": 0
 }
 
 #left_click options:
-#1 First come first serve (down the list) i.e. executable_path, then if none -> website_link
-#2 Website link first
-#3 Maybe a popup to select?
+#0 First come first serve (down the list) i.e. executable_path, then if none -> website_link
+#1 Website link first
+#2 Maybe a popup to select?
 
 
 
