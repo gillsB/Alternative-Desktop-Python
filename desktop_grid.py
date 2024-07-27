@@ -427,7 +427,9 @@ def is_default(row, col):
             if (item.get('name', "") == DEFAULT_DESKTOP['name'] and
                 item.get('icon_path', "") == DEFAULT_DESKTOP['icon_path'] and
                 item.get('executable_path', "") == DEFAULT_DESKTOP['executable_path'] and
-                item.get('command_args', "") == DEFAULT_DESKTOP['command_args']):
+                item.get('command_args', "") == DEFAULT_DESKTOP['command_args'] and
+                item.get('website_link', "") == DEFAULT_DESKTOP['website_link'] and
+                item.get('left_click', 1) == DEFAULT_DESKTOP['left_click']):
                 return True
     return False
 
