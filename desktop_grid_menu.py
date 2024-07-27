@@ -41,6 +41,7 @@ class Menu(QDialog):
         self.icon_path_le = QLineEdit()
         self.exec_path_le = QLineEdit()
         self.command_args_le = QLineEdit()
+        self.web_link_le = QLineEdit()
         self.parent().selected_border(10)
         icon_path = ""
 
@@ -52,11 +53,12 @@ class Menu(QDialog):
         self.basic_tab_layout.addRow("Name: ", self.name_le)
         self.basic_tab_layout.addRow("Icon Path: ", self.icon_path_le)
         self.basic_tab_layout.addRow("Executable Path: ", self.exec_path_le)
-        #self.basic_tab_layout.addRow("Command line arguments: ", self.command_args_le)
+        self.basic_tab_layout.addRow("Website Link: ", self.web_link_le)
 
         self.basic_tab.setLayout(self.basic_tab_layout)
 
         #### end of basic tab
+        # Advanced tab below
         self.advanced_tab = QWidget()
         self.advanced_tab_layout = QFormLayout()
         
@@ -76,9 +78,9 @@ class Menu(QDialog):
             
             if item['row'] == ROW and item['column'] == COL:
                 self.name_le.setText(item['name'])
-                icon_path = item['icon_path']
                 self.icon_path_le.setText(item['icon_path'])
                 self.exec_path_le.setText(item['executable_path'])
+                self.web_link_le.setText(item['website_link'])
                 self.command_args_le.setText(item['command_args'])
                 break
 
@@ -224,7 +226,8 @@ class Menu(QDialog):
         "name": self.name_le.text(),
         "icon_path": self.icon_path_le.text(),
         "executable_path": self.exec_path_le.text(),
-        "command_args": self.command_args_le.text()
+        "command_args": self.command_args_le.text(),
+        "website_link": self.web_link_le.text()
         }
         config.append(new_entry)
         return config
@@ -238,6 +241,7 @@ class Menu(QDialog):
                 item['icon_path'] = self.icon_path_le.text()
                 item['executable_path'] = self.exec_path_le.text()
                 item['command_args'] = self.command_args_le.text()
+                item["website_link"] = self.web_link_le.text()
                 break
         return config
         
