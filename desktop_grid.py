@@ -171,7 +171,7 @@ class ClickableLabel(QLabel):
             menu = Menu(parent=self)
             menu.exec()
         #if icon has an executable_path already (icon exists with path)
-        elif event.button() == Qt.LeftButton and self.desktop_icon.executable_path != "":
+        elif event.button() == Qt.LeftButton:
             self.run_program()
 
     def showContextMenu(self, pos):
@@ -338,36 +338,68 @@ class ClickableLabel(QLabel):
         return self.desktop_icon.icon_path
     
     def run_program(self):
+        if self.desktop_icon.launch_option == 0:
+            print("launch option = 0")
+            if self.run_executable() == False:
+                self.run_website_link()
+        elif self.desktop_icon.launch_option == 1:
+            print("launch option = 1")
+            if self.run_website_link() == False:
+                self.run_executable()
+        elif self.desktop_icon.launch_option == 2:
+            print("launch option = 2")
+            self.choose_launch()
+
+    def run_executable(self):
+        #returns running = true if runs program, false otherwise
+        running = False
+
         file_path = self.desktop_icon.executable_path
         args = shlex.split(self.desktop_icon.command_args)
         command = [file_path] + args
-        try:
-            #if it is a .lnk file it is expected that the .lnk contains the command line arguments
-            #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
-            if file_path.lower().endswith('.lnk'):
-                os.startfile(file_path)
-            else:
-                try:
-                    
-                    #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
-                    process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                    stdout, stderr = process.communicate(timeout=0.5)
 
+        #only bother trying to run file_path if it is not empty
+        if file_path != "":
+            try:
+                #if it is a .lnk file it is expected that the .lnk contains the command line arguments
+                #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
+                if file_path.lower().endswith('.lnk'):
+                    running = True
+                    os.startfile(file_path)
+                else:
+                    try:
 
-                    text = stderr.decode('utf-8')
-                    if "is not recognized as an internal or external command" in text:
-                        QMessageBox.warning(self, "Error Opening File",
-                                    "The file could not be opened.\nPlease check that the file exists at the specified location or ensure there is a default application set to open this file type.",
-                                    QMessageBox.Ok)
-                    
-                #kill the connection between this process and the subprocess we just launched.
-                #this will not kill the subprocess but just set it free from the connection
-                except Exception as e:
-                    print("killing connection to new subprocess")
-                    process.kill()
-                    
-        except Exception as e:
-            print(f"An error occurred: {e}")
+                        #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
+                        process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                        running = True
+                        stdout, stderr = process.communicate(timeout=0.5)
+                        
+
+                        text = stderr.decode('utf-8')
+                        if "is not recognized as an internal or external command" in text:
+                            running = False
+                            
+                            QMessageBox.warning(self, "Error Opening File",
+                                        f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease check that the file exists at the specified location or ensure there is a default application set to open this file type.",
+                                        QMessageBox.Ok)
+                        
+                    #kill the connection between this process and the subprocess we just launched.
+                    #this will not kill the subprocess but just set it free from the connection
+                    except Exception as e:
+                        print("killing connection to new subprocess")
+                        process.kill()
+                        
+            except Exception as e:
+                print(f"An error occurred: {e}")
+        return running
+        
+    def run_website_link(self):
+        print("run_web_link attempted")
+        running = False
+        return running
+
+    def choose_launch(self):
+        print("Choose_launch called")
         
 
     
