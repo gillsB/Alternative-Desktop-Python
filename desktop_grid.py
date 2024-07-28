@@ -33,10 +33,10 @@ DEFAULT_DESKTOP =  {
     "executable_path": "",
     "command_args": "",
     "website_link": "",
-    "left_click": 0
+    "launch_option": 0
 }
 
-#left_click options:
+#launch_option options:
 #0 First come first serve (down the list) i.e. executable_path, then if none -> website_link
 #1 Website link first
 #2 Maybe a popup to select?
@@ -70,7 +70,9 @@ class Grid(QWidget):
                 icon_path = "assets/images/blank.png"
             executable_path = self.get_exectuable_path(row,col)
             command_args = self.get_command_args(row,col)
-            desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path, command_args)
+            website_link = self.get_website_link(row,col)
+            launch_option = self.get_launch_option(row,col)
+            desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path, command_args, website_link, launch_option)
             label = ClickableLabel(desktop_icon, name)
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
@@ -96,6 +98,16 @@ class Grid(QWidget):
         for item in JSON:
             if item['row'] == row and item['column'] == column:
                 return item['command_args']
+        return ""
+    def get_website_link(self, row, column):
+        for item in JSON:
+            if item['row'] == row and item['column'] == column:
+                return item['website_link']
+        return ""
+    def get_launch_option(self, row, column):
+        for item in JSON:
+            if item['row'] == row and item['column'] == column:
+                return item['launch_option']
         return ""
     
     
@@ -175,7 +187,7 @@ class ClickableLabel(QLabel):
 
             self.edit_mode_icon()
             
-            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}")
+            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}, Website Link: {self.desktop_icon.website_link}, Launch option: {self.desktop_icon.launch_option}")
             
             edit_action = QAction('Edit Icon', self)
             edit_action.triggered.connect(self.edit_triggered)
@@ -261,6 +273,10 @@ class ClickableLabel(QLabel):
         self.desktop_icon.executable_path = new_executable_path
     def set_command_args(self, command_args):
         self.desktop_icon.command_args = command_args
+    def set_website_link(self, website_link):
+        self.desktop_icon.website_link = website_link
+    def set_launch_option(self, launch_option):
+        self.desktop_icon.launch_option = launch_option
 
 
     # returns base DATA_DIRECTORY/[row, col]
@@ -289,12 +305,16 @@ class ClickableLabel(QLabel):
                     self.set_icon_path(item['icon_path'])
                     self.set_executable_path(item['executable_path'])
                     self.set_command_args(item['command_args'])
+                    self.set_website_link(item['website_link'])
+                    self.set_launch_option(item['launch_option'])
                     break
         else:
             self.set_name("")
             self.set_icon_path("")
             self.set_executable_path("")
             self.set_command_args("")
+            self.set_website_link("")
+            self.set_launch_option(0)
             
 
     def load_config(self):
@@ -379,13 +399,15 @@ class ClickableLabel(QLabel):
 
 
 class DesktopIcon:
-    def __init__(self, row, col, name, icon_path, executable_path, command_args):
+    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option):
         self.row = row
         self.col = col
         self.name = name
         self.icon_path = icon_path
         self.executable_path = executable_path
         self.command_args = command_args
+        self.website_link = website_link
+        self.launch_option = launch_option
 
 def load_desktop_config():
     if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
@@ -429,7 +451,7 @@ def is_default(row, col):
                 item.get('executable_path', "") == DEFAULT_DESKTOP['executable_path'] and
                 item.get('command_args', "") == DEFAULT_DESKTOP['command_args'] and
                 item.get('website_link', "") == DEFAULT_DESKTOP['website_link'] and
-                item.get('left_click', 1) == DEFAULT_DESKTOP['left_click']):
+                item.get('launch_option', 1) == DEFAULT_DESKTOP['launch_option']):
                 return True
     return False
 

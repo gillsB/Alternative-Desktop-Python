@@ -63,12 +63,12 @@ class Menu(QDialog):
         self.advanced_tab_layout = QFormLayout()
         
         self.command_args_le = QLineEdit()
-        self.left_click_cb = QComboBox()
-        self.left_click_cb.addItems(["Launch first found", "Prioritize Website links", "Ask upon launching"])
-        self.left_click_cb.currentIndexChanged.connect(self.handle_selection_change)
+        self.launch_option_cb = QComboBox()
+        self.launch_option_cb.addItems(["Launch first found", "Prioritize Website links", "Ask upon launching"])
+        self.launch_option_cb.currentIndexChanged.connect(self.handle_selection_change)
 
         self.advanced_tab_layout.addRow("Command line arguments: ", self.command_args_le)
-        self.advanced_tab_layout.addRow("Left click launch option:", self.left_click_cb)
+        self.advanced_tab_layout.addRow("Left click launch option:", self.launch_option_cb)
 
         self.advanced_tab.setLayout(self.advanced_tab_layout)
 
@@ -87,8 +87,8 @@ class Menu(QDialog):
                 self.exec_path_le.setText(item['executable_path'])
                 self.web_link_le.setText(item['website_link'])
                 self.command_args_le.setText(item['command_args'])
-                self.left_click_cb.setCurrentIndex(item['left_click'])
-                LAUNCH_OPTIONS = item['left_click']
+                self.launch_option_cb.setCurrentIndex(item['launch_option'])
+                LAUNCH_OPTIONS = item['launch_option']
                 break
 
 
@@ -235,7 +235,7 @@ class Menu(QDialog):
         "executable_path": self.exec_path_le.text(),
         "command_args": self.command_args_le.text(),
         "website_link": self.web_link_le.text(),
-        "left_click": self.left_click_cb.currentIndex()
+        "launch_option": self.launch_option_cb.currentIndex()
         }
         config.append(new_entry)
         return config
@@ -250,7 +250,7 @@ class Menu(QDialog):
                 item['executable_path'] = self.exec_path_le.text()
                 item['command_args'] = self.command_args_le.text()
                 item["website_link"] = self.web_link_le.text()
-                item["left_click"] = self.left_click_cb.currentIndex()
+                item["launch_option"] = self.launch_option_cb.currentIndex()
                 break
         return config
         
@@ -291,7 +291,7 @@ class Menu(QDialog):
     def handle_selection_change(self, index):
         global LAUNCH_OPTIONS
         LAUNCH_OPTIONS = index
-        print(f"Selected index: {index}, option: {self.left_click_cb.currentText()}")
+        print(f"Selected index: {index}, option: {self.launch_option_cb.currentText()}")
     
     def upscale_ico(self, file_path):
         data_path = self.parent().get_data_icon_dir()
