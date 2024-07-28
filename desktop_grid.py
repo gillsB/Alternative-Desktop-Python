@@ -64,51 +64,43 @@ class Grid(QWidget):
         for i in range(MAX_LABELS):
             row = i // MAX_COLS
             col = i % MAX_COLS
-            name = self.get_name(row,col)
-            icon_path = self.get_icon_path(row,col)
-            if icon_path == "":
-                icon_path = "assets/images/blank.png"
-            executable_path = self.get_exectuable_path(row,col)
-            command_args = self.get_command_args(row,col)
-            website_link = self.get_website_link(row,col)
-            launch_option = self.get_launch_option(row,col)
-            desktop_icon = DesktopIcon(row, col, name, icon_path, executable_path, command_args, website_link, launch_option)
-            label = ClickableLabel(desktop_icon, name)
+            data = self.get_item_data(row, col)
+            if data['icon_path'] == "":
+                data['icon_path'] = "assets/images/blank.png"
+            desktop_icon = DesktopIcon(
+                row, 
+                col, 
+                data['name'], 
+                data['icon_path'], 
+                data['executable_path'], 
+                data['command_args'], 
+                data['website_link'], 
+                data['launch_option']
+            )
+            label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
 
-        print(self.get_icon_path(0, 1))
         
-    def get_icon_path(self, row, column):
+    def get_item_data(self, row, column):
         for item in JSON:
             if item['row'] == row and item['column'] == column:
-                return item['icon_path']
-        return ""
-    def get_name(self, row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return item['name']
-        return ""
-    def get_exectuable_path(self, row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return item['executable_path']
-        return ""
-    def get_command_args(self, row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return item['command_args']
-        return ""
-    def get_website_link(self, row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return item['website_link']
-        return ""
-    def get_launch_option(self, row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return item['launch_option']
-        return ""
+                return {
+                    'icon_path': item.get('icon_path', ""),
+                    'name': item.get('name', ""),
+                    'executable_path': item.get('executable_path', ""),
+                    'command_args': item.get('command_args', ""),
+                    'website_link': item.get('website_link', ""),
+                    'launch_option': item.get('launch_option', "")
+                }
+        return {
+            'icon_path': "",
+            'name': "",
+            'executable_path': "",
+            'command_args': "",
+            'website_link': "",
+            'launch_option': 0
+        }
     
     
     def resizeEvent(self,event):
