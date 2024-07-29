@@ -395,7 +395,19 @@ class ClickableLabel(QLabel):
         
     def run_website_link(self):
         print("run_web_link attempted")
-        running = False
+        running = True
+        url = self.desktop_icon.website_link
+
+        if(url == ""): 
+            running = False
+            return running
+        #append http:// to website to get it to open as a web link
+        #for example google.com will not open as a link, but www.google.com, http://google.com, www.google.com all will, even http://google will open in the web browser (it just won't put you at google.com)
+        elif not url.startswith(('http://', 'https://')):
+            url = 'http://' + url
+        
+        os.startfile(url)
+        print(running)
         return running
 
     def choose_launch(self):
