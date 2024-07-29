@@ -358,39 +358,55 @@ class ClickableLabel(QLabel):
         args = shlex.split(self.desktop_icon.command_args)
         command = [file_path] + args
 
+        
+
         #only bother trying to run file_path if it is not empty
-        if file_path != "":
-            try:
-                #if it is a .lnk file it is expected that the .lnk contains the command line arguments
-                #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
-                if file_path.lower().endswith('.lnk'):
+        if file_path == "":
+            return running
+        
+        #ensure path is an actual file that exists, display message if not
+        try:
+            if os.path.exists(file_path) == False:
+                raise FileNotFoundError
+        except FileNotFoundError:
+            QMessageBox.warning(self, "Error Opening File",
+                                    f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease check that the file exists at the specified location.",
+                                    QMessageBox.Ok)
+            return running
+
+
+        #file path exists and is not ""
+        try:
+            #if it is a .lnk file it is expected that the .lnk contains the command line arguments
+            #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
+            if file_path.lower().endswith('.lnk'):
+                running = True
+                os.startfile(file_path)
+            else:
+                try:
+
+                    #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
+                    process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
                     running = True
-                    os.startfile(file_path)
-                else:
-                    try:
+                    stdout, stderr = process.communicate(timeout=0.5)
+                    
 
-                        #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
-                        process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                        running = True
-                        stdout, stderr = process.communicate(timeout=0.5)
+                    text = stderr.decode('utf-8')
+                    if "is not recognized as an internal or external command" in text:
+                        running = False
                         
+                        QMessageBox.warning(self, "Error Opening File",
+                                    f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease ensure there is a default application set to open this file type.",
+                                    QMessageBox.Ok)
+                    
+                #kill the connection between this process and the subprocess we just launched.
+                #this will not kill the subprocess but just set it free from the connection
+                except Exception as e:
+                    print("killing connection to new subprocess")
+                    process.kill()
 
-                        text = stderr.decode('utf-8')
-                        if "is not recognized as an internal or external command" in text:
-                            running = False
-                            
-                            QMessageBox.warning(self, "Error Opening File",
-                                        f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease check that the file exists at the specified location or ensure there is a default application set to open this file type.",
-                                        QMessageBox.Ok)
-                        
-                    #kill the connection between this process and the subprocess we just launched.
-                    #this will not kill the subprocess but just set it free from the connection
-                    except Exception as e:
-                        print("killing connection to new subprocess")
-                        process.kill()
-                        
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         return running
         
     def run_website_link(self):
