@@ -350,17 +350,30 @@ class ClickableLabel(QLabel):
         return self.desktop_icon.icon_path
     
     def run_program(self):
-        if self.desktop_icon.launch_option == 0:
-            print("launch option = 0")
-            if self.run_executable() == False:
-                self.run_website_link()
-        elif self.desktop_icon.launch_option == 1:
-            print("launch option = 1")
-            if self.run_website_link() == False:
-                self.run_executable()
-        elif self.desktop_icon.launch_option == 2:
-            print("launch option = 2")
-            self.choose_launch()
+        launch_option_methods = {
+            0: self.launch_0,
+            1: self.launch_1,
+            2: self.launch_2,
+        }
+
+        launch_option = self.desktop_icon.launch_option
+        method = launch_option_methods.get(launch_option, 0)
+        success = method()
+        
+        if not success:
+            QMessageBox.warning(self, "No Successful launch",
+                                    f"No Successful launch detected, please check the icon's Executable path or Website Link",
+                                    QMessageBox.Ok)
+    
+    def launch_0(self):
+        print("launch option = 0")
+        return self.run_executable() or self.run_website_link()
+    def launch_1(self):
+        print("launch option = 1")
+        return self.run_website_link() or self.run_executable()
+    def launch_2(self):
+        print("launch option = 2")
+        self.choose_launch()
 
     def run_executable(self):
         #returns running = true if runs program, false otherwise
