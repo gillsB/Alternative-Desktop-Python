@@ -7,6 +7,7 @@ import json
 import subprocess
 import shlex
 from desktop_grid_menu import Menu
+from run_menu_dialog import RunMenuDialog
 
 
 
@@ -373,7 +374,7 @@ class ClickableLabel(QLabel):
         return self.run_website_link() or self.run_executable()
     def launch_2(self):
         print("launch option = 2")
-        self.choose_launch()
+        return self.choose_launch()
 
     def run_executable(self):
         #returns running = true if runs program, false otherwise
@@ -451,8 +452,21 @@ class ClickableLabel(QLabel):
         print(running)
         return running
 
+    
     def choose_launch(self):
+        
         print("Choose_launch called")
+        self.run_menu_dialog = RunMenuDialog()
+        if self.run_menu_dialog.exec() == QDialog.Accepted:
+            result = self.run_menu_dialog.get_result()
+            if result == 'run_executable':
+                print("Run Executable button was clicked")
+                return self.run_executable()
+
+            elif result == 'open_website_link':
+                print("Open Website Link button was clicked")
+                return self.run_website_link()
+        return True
         
 
     
