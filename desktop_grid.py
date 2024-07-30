@@ -187,6 +187,16 @@ class ClickableLabel(QLabel):
 
             context_menu.addSeparator()
 
+            executable_action = QAction('Run Executable', self)
+            executable_action.triggered.connect(self.run_executable)
+            context_menu.addAction(executable_action)
+            
+            website_link_action = QAction('Open Website in browser', self)
+            website_link_action.triggered.connect(self.run_website_link)
+            context_menu.addAction(website_link_action)
+
+            context_menu.addSeparator()
+
             icon_path_action = QAction('Open Icon location', self)
             icon_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.icon_path))
             context_menu.addAction(icon_path_action)
@@ -195,9 +205,7 @@ class ClickableLabel(QLabel):
             exec_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.executable_path))
             context_menu.addAction(exec_path_action)
 
-            website_link_action = QAction('Open Website in browser', self)
-            website_link_action.triggered.connect(self.run_website_link)
-            context_menu.addAction(website_link_action)
+
             
             context_menu.addSeparator()
 
