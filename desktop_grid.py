@@ -189,6 +189,8 @@ class ClickableLabel(QLabel):
             context_menu = QMenu(self)
 
             self.edit_mode_icon()
+
+            # Edit Icon section
             
             print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}, Website Link: {self.desktop_icon.website_link}, Launch option: {self.desktop_icon.launch_option}")
             
@@ -198,6 +200,27 @@ class ClickableLabel(QLabel):
 
             context_menu.addSeparator()
 
+            #Launch Options submenu section
+            launch_options_sm = QMenu("Launch Options", self)
+        
+            action_names = [
+                "Launch first found",
+                "Prioritize Website links",
+                "Ask upon launching",
+                "Executable only",
+                "Website Link only"
+            ]
+        
+            for i, name in enumerate(action_names, start=0):
+                action = QAction(name, self)
+                action.triggered.connect(lambda checked, pos=i: self.launch_triggered(pos))
+                launch_options_sm.addAction(action)
+
+            context_menu.addMenu(launch_options_sm)
+
+            context_menu.addSeparator()
+
+            # Launch executable or website section
             executable_action = QAction('Run Executable', self)
             executable_action.triggered.connect(self.run_executable)
             context_menu.addAction(executable_action)
@@ -208,6 +231,7 @@ class ClickableLabel(QLabel):
 
             context_menu.addSeparator()
 
+            #Open Icon and Executable section
             icon_path_action = QAction('Open Icon location', self)
             icon_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.icon_path))
             context_menu.addAction(icon_path_action)
@@ -258,6 +282,14 @@ class ClickableLabel(QLabel):
                                     QMessageBox.Ok| QMessageBox.Cancel)
         if ret == QMessageBox.Ok:   
             self.set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
+
+    def launch_triggered(self, new_launch_value):
+        config = load_desktop_config()
+        for entry in config:
+            if entry.get('row') == self.desktop_icon.row and entry.get('column') == self.desktop_icon.col:
+                entry['launch_option'] = new_launch_value
+                break
+        self.save_desktop_config(config)
     
 
     #mousover icon
