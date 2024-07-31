@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu
 from PySide6.QtGui import QPixmap, QAction
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 import os
 import json
 import subprocess
@@ -22,6 +22,7 @@ DATA_DIRECTORY = None
 LABEL_SIZE = 200
 LABEL_VERT_PAD = 200
 DEFAULT_BORDER = "border 0px"
+CONTEXT_OPEN = False
 
 
 
@@ -135,6 +136,8 @@ class ClickableLabel(QLabel):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         
+        self.timer = QTimer()
+        
         self.desktop_icon = desktop_icon
         self.setFixedSize(LABEL_SIZE, LABEL_SIZE* 2)
         self.setAlignment(Qt.AlignCenter)
@@ -168,14 +171,19 @@ class ClickableLabel(QLabel):
         self.icon_label.setPixmap(pixmap)
 
     def mousePressEvent(self, event):
+        global CONTEXT_OPEN
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             menu = Menu(parent=self)
             menu.exec()
         #if icon has an executable_path already (icon exists with path)
-        elif event.button() == Qt.LeftButton:
+        elif event.button() == Qt.LeftButton and not CONTEXT_OPEN:
             self.run_program()
+        elif event.button() == Qt.LeftButton:
+            CONTEXT_OPEN = False
 
     def showContextMenu(self, pos):
+            global CONTEXT_OPEN
+            CONTEXT_OPEN = True
             context_menu = QMenu(self)
 
             self.edit_mode_icon()
@@ -220,6 +228,14 @@ class ClickableLabel(QLabel):
     def context_menu_closed(self):
         print("Context menu closed without selecting any action")
         self.normal_mode_icon()
+        self.timer.timeout.connect(self.context_close)
+        self.timer.start(100) 
+
+    def context_close(self):
+        global CONTEXT_OPEN
+        CONTEXT_OPEN = False
+        self.timer.stop()
+        self.timer.timeout.disconnect(self.context_close)
 
     def edit_triggered(self):
 
