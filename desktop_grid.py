@@ -41,7 +41,9 @@ DEFAULT_DESKTOP =  {
 #launch_option options:
 #0 First come first serve (down the list) i.e. executable_path, then if none -> website_link
 #1 Website link first
-#2 Maybe a popup to select?
+#2 Ask upon launching (run_menu_dialog)
+#3 executable only
+#4 website link only
 
 
 
@@ -368,9 +370,11 @@ class ClickableLabel(QLabel):
     
     def run_program(self):
         launch_option_methods = {
-            0: self.launch_0,
-            1: self.launch_1,
-            2: self.launch_2,
+            0: self.launch_first_found,
+            1: self.launch_prio_web_link,
+            2: self.launch_ask_upon_launching,
+            3: self.launch_exec_only,
+            4: self.launch_web_link_only,
         }
 
         launch_option = self.desktop_icon.launch_option
@@ -382,15 +386,21 @@ class ClickableLabel(QLabel):
                                     f"No Successful launch detected, please check the icon's Executable path or Website Link",
                                     QMessageBox.Ok)
     
-    def launch_0(self):
+    def launch_first_found(self):
         print("launch option = 0")
         return self.run_executable() or self.run_website_link()
-    def launch_1(self):
+    def launch_prio_web_link(self):
         print("launch option = 1")
         return self.run_website_link() or self.run_executable()
-    def launch_2(self):
+    def launch_ask_upon_launching(self):
         print("launch option = 2")
         return self.choose_launch()
+    def launch_exec_only(self):
+        print("launch option = 3")
+        return self.run_executable()
+    def launch_web_link_only(self):
+        print("launch option = 4")
+        return self.run_website_link()
 
     def run_executable(self):
         #returns running = true if runs program, false otherwise

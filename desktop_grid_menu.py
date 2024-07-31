@@ -64,7 +64,7 @@ class Menu(QDialog):
         
         self.command_args_le = QLineEdit()
         self.launch_option_cb = QComboBox()
-        self.launch_option_cb.addItems(["Launch first found", "Prioritize Website links", "Ask upon launching"])
+        self.launch_option_cb.addItems(["Launch first found", "Prioritize Website links", "Ask upon launching", "Executable only", "Website Link only"])
         self.launch_option_cb.currentIndexChanged.connect(self.handle_selection_change)
 
         self.advanced_tab_layout.addRow("Command line arguments: ", self.command_args_le)
