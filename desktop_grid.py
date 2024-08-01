@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu
-from PySide6.QtGui import QPixmap, QAction
+from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor
 from PySide6.QtCore import Qt, QTimer
 import os
 import json
@@ -53,7 +53,6 @@ class Grid(QWidget):
         super().__init__()
 
 
-
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(0)
         self.setLayout(self.grid_layout)
@@ -84,6 +83,11 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        # Draw a solid color background
+        painter.fillRect(self.rect(), QColor("lightblue"))
+        # You can also draw an image using painter.drawPixmap
 
         
     def get_item_data(self, row, column):
