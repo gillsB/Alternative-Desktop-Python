@@ -309,9 +309,9 @@ class ClickableLabel(QLabel):
         self.save_desktop_config(config)
     
 
-    #mousover icon
+    #mouseover icon
     def enterEvent(self, event):
-        if self.desktop_icon.icon_path == "assets/images/blank.png":
+        if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "":
             self.set_icon_path("assets/images/add.png")
 
     #mouseover leaves the icon
