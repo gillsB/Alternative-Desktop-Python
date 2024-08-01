@@ -14,13 +14,13 @@ from run_menu_dialog import RunMenuDialog
 
 
 MAX_LABELS = None
-MAX_ROWS = 10 #only used for now to get max_labels
-MAX_COLS = 20
+MAX_ROWS = 20 #only used for now to get max_labels
+MAX_COLS = 40
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-LABEL_SIZE = 200
-LABEL_VERT_PAD = 200
+LABEL_SIZE = 32
+LABEL_VERT_PAD = 32
 DEFAULT_BORDER = "border 0px"
 CONTEXT_OPEN = False
 
@@ -52,7 +52,9 @@ class Grid(QWidget):
     def __init__(self):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(0.95)
+        self.setWindowOpacity(1.0)
+
+        
 
 
         self.grid_layout = QGridLayout()
@@ -85,11 +87,18 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
+
+    #whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
     def paintEvent(self, event):
+
         painter = QPainter(self)
-        #whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
-        color = QColor(173, 216, 230) 
-        painter.fillRect(self.rect(), color)
+        if os.path.exists("background.png"):
+            self.background_pixmap = QPixmap("background.png")
+            painter.drawPixmap(self.rect(), self.background_pixmap)
+        else:
+            
+            color = QColor(173, 216, 230) 
+            painter.fillRect(self.rect(), color)
 
         
     def get_item_data(self, row, column):
