@@ -51,6 +51,8 @@ DEFAULT_DESKTOP =  {
 class Grid(QWidget):
     def __init__(self):
         super().__init__()
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowOpacity(0.95)
 
 
         self.grid_layout = QGridLayout()
@@ -85,9 +87,9 @@ class Grid(QWidget):
             self.grid_layout.addWidget(label, row, col)
     def paintEvent(self, event):
         painter = QPainter(self)
-        # Draw a solid color background
-        painter.fillRect(self.rect(), QColor("lightblue"))
-        # You can also draw an image using painter.drawPixmap
+        #whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
+        color = QColor(173, 216, 230) 
+        painter.fillRect(self.rect(), color)
 
         
     def get_item_data(self, row, column):
