@@ -214,6 +214,8 @@ class ClickableLabel(QLabel):
             for i, name in enumerate(action_names, start=0):
                 action = QAction(name, self)
                 action.triggered.connect(lambda checked, pos=i: self.launch_triggered(pos))
+                action.setCheckable(True)
+                action.setChecked(i ==  self.desktop_icon.launch_option)
                 launch_options_sm.addAction(action)
 
             context_menu.addMenu(launch_options_sm)
