@@ -1,7 +1,7 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu
-from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip
+from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor
+from PySide6.QtCore import Qt, QTimer, QEvent
 import os
 import json
 import subprocess
@@ -149,7 +149,12 @@ class ClickableLabel(QLabel):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
         
-        self.timer = QTimer()
+        #timer for right click on an icon (to not trigger launch programs on next left click)
+        self.timer_right_click = QTimer()
+        #timer for delaying a QToolTip on hovering over a desktop icon's name label
+        self.timer_hover = QTimer()
+        self.timer_hover.setSingleShot(True)
+        self.timer_hover.timeout.connect(self.show_tooltip)
         
         self.desktop_icon = desktop_icon
         self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
@@ -169,6 +174,9 @@ class ClickableLabel(QLabel):
         self.text_label.setWordWrap(True)
         self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.text_label.setStyleSheet(LABEL_TEXT_STYLESHEET)
+
+        # give it an EventFilter to detect mouseover
+        self.text_label.installEventFilter(self)
         
 
         layout = QVBoxLayout(self)
@@ -269,14 +277,14 @@ class ClickableLabel(QLabel):
     def context_menu_closed(self):
         print("Context menu closed without selecting any action")
         self.normal_mode_icon()
-        self.timer.timeout.connect(self.context_close)
-        self.timer.start(100) 
+        self.timer_right_click.timeout.connect(self.context_close)
+        self.timer_right_click.start(100) 
 
     def context_close(self):
         global CONTEXT_OPEN
         CONTEXT_OPEN = False
-        self.timer.stop()
-        self.timer.timeout.disconnect(self.context_close)
+        self.timer_right_click.stop()
+        self.timer_right_click.timeout.disconnect(self.context_close)
 
     def edit_triggered(self):
 
@@ -317,6 +325,16 @@ class ClickableLabel(QLabel):
         if self.desktop_icon.icon_path == "assets/images/add.png":
             self.set_icon_path("assets/images/blank.png")
     
+    #mouseover the desktop_icon name
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Enter:
+            self.timer_hover.start(1000)
+        elif event.type() == QEvent.Leave:
+            self.timer_hover.stop()
+            QToolTip.hideText()
+        return super().eventFilter(obj, event)
+    def show_tooltip(self):
+        QToolTip.showText(QCursor.pos(), self.desktop_icon.name, self)
         
     def selected_border(self, percent):
         self.icon_label.setStyleSheet(f"border: {LABEL_SIZE * (percent/100)}px solid red;")
