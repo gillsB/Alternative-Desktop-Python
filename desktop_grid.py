@@ -23,6 +23,7 @@ LABEL_SIZE = 32
 LABEL_VERT_PAD = 32
 DEFAULT_BORDER = "border 0px"
 CONTEXT_OPEN = False
+LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
 
 
 
@@ -171,6 +172,7 @@ class ClickableLabel(QLabel):
         self.text_label.setAlignment(Qt.AlignCenter)
         self.text_label.setWordWrap(True)
         self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.text_label.setStyleSheet(LABEL_TEXT_STYLESHEET)
         
 
         layout = QVBoxLayout(self)
