@@ -19,8 +19,8 @@ MAX_COLS = 40
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-LABEL_SIZE = 32
-LABEL_VERT_PAD = 32
+LABEL_SIZE = 64
+LABEL_VERT_PAD = 64
 DEFAULT_BORDER = "border 0px"
 CONTEXT_OPEN = False
 LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
@@ -55,9 +55,6 @@ class Grid(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
 
-        
-
-
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(0)
         self.setLayout(self.grid_layout)
@@ -88,7 +85,6 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
-
     #whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
     def paintEvent(self, event):
 
@@ -100,7 +96,6 @@ class Grid(QWidget):
             
             color = QColor(173, 216, 230) 
             painter.fillRect(self.rect(), color)
-
         
     def get_item_data(self, row, column):
         for item in JSON:
@@ -111,7 +106,7 @@ class Grid(QWidget):
                     'executable_path': item.get('executable_path', ""),
                     'command_args': item.get('command_args', ""),
                     'website_link': item.get('website_link', ""),
-                    'launch_option': item.get('launch_option', "")
+                    'launch_option': item.get('launch_option', 0)
                 }
         return {
             'icon_path': "",
@@ -157,7 +152,7 @@ class ClickableLabel(QLabel):
         self.timer = QTimer()
         
         self.desktop_icon = desktop_icon
-        self.setFixedSize(LABEL_SIZE, LABEL_SIZE* 2)
+        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
         self.setAlignment(Qt.AlignCenter)
         
         
@@ -165,13 +160,14 @@ class ClickableLabel(QLabel):
         self.icon_label.setStyleSheet(DEFAULT_BORDER)
         self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
         self.icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.set_icon(self.desktop_icon.icon_path)
-
+        
         self.text_label = QLabel(text)
         self.text_label.setAlignment(Qt.AlignCenter)
         self.text_label.setWordWrap(True)
-        self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.text_label.setStyleSheet(LABEL_TEXT_STYLESHEET)
         
 
