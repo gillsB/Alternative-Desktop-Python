@@ -31,6 +31,8 @@ class Menu(QDialog):
         ROW = self.parent().get_row()
         COL = self.parent().get_col()
 
+        self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
+
         main_layout = QVBoxLayout()
 
         self.tabs = QTabWidget()
@@ -38,7 +40,7 @@ class Menu(QDialog):
         self.basic_tab = QWidget()
         self.basic_tab_layout = QFormLayout()
 
-        self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]")
+        
 
         self.name_le = QLineEdit()
         self.icon_path_le = QLineEdit()
@@ -109,6 +111,7 @@ class Menu(QDialog):
                 LAUNCH_OPTIONS = item['launch_option']
                 break
 
+        self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]: {self.name_le.text()}")
 
         self.parent().edit_mode_icon()
 
