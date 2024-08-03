@@ -1,5 +1,7 @@
-from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QMessageBox, QTabWidget, QComboBox
+from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, 
+                               QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from PySide6.QtCore import QSize, Qt
 from thumbnail_gen.extract_ico_file import has_ico_file
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 from thumbnail_gen.exe_to_image import exe_to_image
@@ -43,16 +45,32 @@ class Menu(QDialog):
         self.exec_path_le = QLineEdit()
         self.web_link_le = QLineEdit()
         self.parent().selected_border(10)
-        icon_path = ""
 
         self.setAcceptDrops(True)
+
+        icon_folder_button = QPushButton(self)
+        icon_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
+        icon_folder_button.setIconSize(QSize(16,16))
+        icon_folder_button.setFocusPolicy(Qt.NoFocus)
+        icon_folder_button.clicked.connect(self.icon_folder_button_clicked)
         
+        exec_folder_button = QPushButton(self)
+        exec_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
+        exec_folder_button.setIconSize(QSize(16,16))
+        exec_folder_button.setFocusPolicy(Qt.NoFocus)
+        exec_folder_button.clicked.connect(self.exec_folder_button_clicked)
 
+        icon_folder_layout = QHBoxLayout()
+        icon_folder_layout.addWidget(self.icon_path_le)
+        icon_folder_layout.addWidget(icon_folder_button)
 
+        exec_folder_layout = QHBoxLayout()
+        exec_folder_layout.addWidget(self.exec_path_le)
+        exec_folder_layout.addWidget(exec_folder_button)
 
         self.basic_tab_layout.addRow("Name: ", self.name_le)
-        self.basic_tab_layout.addRow("Icon Path: ", self.icon_path_le)
-        self.basic_tab_layout.addRow("Executable Path: ", self.exec_path_le)
+        self.basic_tab_layout.addRow("Icon Path: ", icon_folder_layout)
+        self.basic_tab_layout.addRow("Executable Path: ", exec_folder_layout)
         self.basic_tab_layout.addRow("Website Link: ", self.web_link_le)
 
         self.basic_tab.setLayout(self.basic_tab_layout)
@@ -311,6 +329,18 @@ class Menu(QDialog):
             if not extension:
                 break
         return file_name
+    
+    def exec_folder_button_clicked(self):
+        file_dialog = QFileDialog()
+        if file_dialog.exec():
+            selected_file = file_dialog.selectedFiles()[0]
+            self.exec_path_le.setText(selected_file)
+
+    def icon_folder_button_clicked(self):
+        file_dialog = QFileDialog()
+        if file_dialog.exec():
+            selected_file = file_dialog.selectedFiles()[0]
+            self.icon_path_le.setText(selected_file)
 
     def text_changed(self):
         ...
