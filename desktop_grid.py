@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip
-from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor
+from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie
 from PySide6.QtCore import Qt, QTimer, QEvent
 import os
 import json
@@ -94,7 +94,7 @@ class Grid(QWidget):
             painter.drawPixmap(self.rect(), self.background_pixmap)
         else:
             
-            color = QColor(173, 216, 230) 
+            color = QColor(32, 32, 32) 
             painter.fillRect(self.rect(), color)
         
     def get_item_data(self, row, column):
@@ -190,8 +190,14 @@ class ClickableLabel(QLabel):
         if os.path.isfile(icon_path) == False:
             if entry_exists(self.desktop_icon.row, self.desktop_icon.col) and is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
                 icon_path = "assets/images/unknown.png"
-        pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.icon_label.setPixmap(pixmap)
+
+        elif icon_path.lower().endswith('.gif'):
+            movie = QMovie(icon_path)
+            self.icon_label.setMovie(movie)
+            movie.start()
+        else:
+            pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.icon_label.setPixmap(pixmap)
 
     def mousePressEvent(self, event):
         global CONTEXT_OPEN
