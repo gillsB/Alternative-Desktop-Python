@@ -193,6 +193,7 @@ class ClickableLabel(QLabel):
 
         elif icon_path.lower().endswith('.gif'):
             movie = QMovie(icon_path)
+            movie.setScaledSize(self.icon_label.size())
             self.icon_label.setMovie(movie)
             movie.start()
         else:
