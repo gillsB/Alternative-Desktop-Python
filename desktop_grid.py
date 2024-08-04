@@ -1,7 +1,10 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGridLayout, QVBoxLayout, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip
+from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QGridLayout, QVBoxLayout,  
+                               QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
 from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie
-from PySide6.QtCore import Qt, QTimer, QEvent
+from PySide6.QtCore import Qt, QTimer, QEvent, QUrl
+from PySide6.QtMultimedia import QMediaPlayer
+from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
 import json
 import subprocess
@@ -55,17 +58,38 @@ class Grid(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
 
+        #main layout
+        self.main_layout = QGridLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+
+        #QGraphicsView and QGraphicsScene
+        self.view = QGraphicsView(self)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setStyleSheet("background: transparent;")
+        self.scene = QGraphicsScene(self)
+        self.view.setScene(self.scene)
+
+        self.video_item = QGraphicsVideoItem()
+        self.scene.addItem(self.video_item)
+        self.media_player = QMediaPlayer()
+        self.media_player.setVideoOutput(self.video_item)
+
+        self.main_layout.addWidget(self.view, 0, 0)
+
+        # grid_layout
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(0)
-        self.setLayout(self.grid_layout)
+        self.main_layout.addLayout(self.grid_layout, 0, 0)
 
         self.labels = []
 
-        #set MAX_LABELS to the maximum amount of items you would need based on rows/cols
+        # Set MAX_LABELS to the maximum amount of items you would need based on rows/cols
         MAX_LABELS = MAX_ROWS * MAX_COLS
 
         check_for_new_config()
-        #use MAX_COLS to diffrentiate when to add a new row.
+        # Use MAX_COLS to differentiate when to add a new row.
         for i in range(MAX_LABELS):
             row = i // MAX_COLS
             col = i % MAX_COLS
@@ -85,7 +109,10 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
-    #whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
+        
+        self.set_video_source("background.mp4")
+
+    
     def paintEvent(self, event):
 
         painter = QPainter(self)
@@ -93,7 +120,7 @@ class Grid(QWidget):
             self.background_pixmap = QPixmap("background.png")
             painter.drawPixmap(self.rect(), self.background_pixmap)
         else:
-            
+            # whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
             color = QColor(32, 32, 32) 
             painter.fillRect(self.rect(), color)
         
@@ -116,10 +143,20 @@ class Grid(QWidget):
             'website_link': "",
             'launch_option': 0
         }
+    def set_video_source(self, video_path):
+        self.media_player.setSource(QUrl.fromLocalFile(video_path))
+        self.media_player.play()
     
+    def check_video_status(self):
+        if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
+            self.media_player.setPosition(0)
+            self.media_player.play()
     
     def resizeEvent(self,event):
         super().resizeEvent(event)
+        self.view.setGeometry(self.rect())
+        self.scene.setSceneRect(self.rect())
+        self.video_item.setSize(self.size())
         self.draw_labels()
 
     def draw_labels(self):
@@ -726,7 +763,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     widget = Grid()
     widget.setMinimumSize(100, 100)  
-    widget.resize(1920, 1000)
+    widget.resize(1760, 990)
     widget.draw_labels()
     widget.show()
     sys.exit(app.exec())
