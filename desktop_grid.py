@@ -1,8 +1,8 @@
 import sys
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QGridLayout, QVBoxLayout,  
                                QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
-from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie
-from PySide6.QtCore import Qt, QTimer, QEvent, QUrl
+from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie, QDrag
+from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
@@ -27,6 +27,8 @@ LABEL_VERT_PAD = 64
 DEFAULT_BORDER = "border 0px"
 CONTEXT_OPEN = False
 LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
+DRAG_ROW = None
+DRAG_COL = None
 
 
 
@@ -111,6 +113,43 @@ class Grid(QWidget):
             self.grid_layout.addWidget(label, row, col)
         
         self.set_video_source("background.mp4")
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        position = event.position().toPoint()
+        new_widget = event.source()
+
+        #if item dropped is ClicableLabel
+        if isinstance(new_widget, ClickableLabel):
+            #get the row and col of the item dropped
+            new_row, new_col = self.findCellAtPosition(position)
+            #get the widget that already exists in location we dropped
+            existing_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
+            if new_row is not None and new_col is not None:
+                #swap the two items (this also calls render_icon for widget)
+                new_widget.swap_items_by_position(DRAG_ROW, DRAG_COL, new_row, new_col)
+                #call render_icon for the old icon now in it's new location
+                existing_widget.render_icon()
+                event.acceptProposedAction()
+
+    #get row, col at position
+    def findCellAtPosition(self, pos):
+        for row in range(self.grid_layout.rowCount()):
+            for col in range(self.grid_layout.columnCount()):
+                item = self.grid_layout.itemAtPosition(row, col)
+                if item:
+                    item_rect = self.grid_layout.cellRect(row, col)
+                    if item_rect.contains(pos):
+                        return row, col
+        return None, None
 
     
     def paintEvent(self, event):
@@ -237,16 +276,32 @@ class ClickableLabel(QLabel):
             pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.icon_label.setPixmap(pixmap)
 
-    def mousePressEvent(self, event):
-        global CONTEXT_OPEN
+    def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             menu = Menu(parent=self)
             menu.exec()
         #if icon has an executable_path already (icon exists with path)
-        elif event.button() == Qt.LeftButton and not CONTEXT_OPEN:
-            self.run_program()
         elif event.button() == Qt.LeftButton:
+            self.run_program()
+            
+    def mousePressEvent(self, event):
+        global CONTEXT_OPEN,DRAG_ROW,DRAG_COL
+        if event.button() == Qt.LeftButton:
             CONTEXT_OPEN = False
+            DRAG_ROW = self.desktop_icon.row
+            DRAG_COL = self.desktop_icon.col
+            self.drag_start_position = event.position().toPoint()
+            
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            drag = QDrag(self)
+            mime_data = QMimeData()
+            mime_data.setText(self.text_label.text())
+            drag.setMimeData(mime_data)
+            drag.setHotSpot(event.position().toPoint() - self.rect().topLeft())
+
+            drop_action = drag.exec(Qt.MoveAction)
 
     def showContextMenu(self, pos):
             global CONTEXT_OPEN
@@ -620,6 +675,26 @@ class ClickableLabel(QLabel):
                         entry[key] = DEFAULT_DESKTOP[key]
                 break
         self.save_desktop_config(config)
+
+    #swap row/col between two desktop_icons
+    def swap_items_by_position(self, row1, col1, row2, col2):
+        config = load_desktop_config()
+        
+        # Find the items with the specified row and column values
+        item1 = next((item for item in config if item['row'] == row1 and item['column'] == col1), None)
+        item2 = next((item for item in config if item['row'] == row2 and item['column'] == col2), None)
+        
+        # Ensure both items are found
+        if item1 is None or item2 is None:
+            raise ValueError("One or both items not found")
+
+        # Swap the rows and columns of the specified items
+        item1['row'], item2['row'] = item2['row'], item1['row']
+        item1['column'], item2['column'] = item2['column'], item1['column']
+        
+        #save (this also calls .render_icon() but only for THIS desktop_icon)
+        self.save_desktop_config(config)
+
 
 
 
