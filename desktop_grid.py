@@ -77,6 +77,7 @@ class Grid(QWidget):
         self.scene.addItem(self.video_item)
         self.media_player = QMediaPlayer()
         self.media_player.setVideoOutput(self.video_item)
+        self.media_player.mediaStatusChanged.connect(self.handle_media_status_changed)
 
         self.main_layout.addWidget(self.view, 0, 0)
 
@@ -186,8 +187,8 @@ class Grid(QWidget):
         self.media_player.setSource(QUrl.fromLocalFile(video_path))
         self.media_player.play()
     
-    def check_video_status(self):
-        if self.media_player.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
+    def handle_media_status_changed(self, status):
+        if status == QMediaPlayer.EndOfMedia:
             self.media_player.setPosition(0)
             self.media_player.play()
     
