@@ -261,20 +261,33 @@ class ClickableLabel(QLabel):
         layout.addWidget(self.text_label)
         self.setLayout(layout)
         self.render_icon()
+        self.movie = None
 
     def set_icon(self, icon_path):
-        if os.path.isfile(icon_path) == False:
+        if isinstance(self.movie, QMovie):
+            self.movie.stop()
+            self.movie.deleteLater()
+            self.movie = None
+
+        if not os.path.isfile(icon_path) :
             if entry_exists(self.desktop_icon.row, self.desktop_icon.col) and is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
                 icon_path = "assets/images/unknown.png"
+            
+            return
 
-        elif icon_path.lower().endswith('.gif'):
-            movie = QMovie(icon_path)
-            movie.setScaledSize(self.icon_label.size())
-            self.icon_label.setMovie(movie)
-            movie.start()
+        if icon_path.lower().endswith('.gif'):
+            self.movie = QMovie(icon_path)
+            self.movie.setScaledSize(self.icon_label.size())
+            self.icon_label.setMovie(self.movie)
+            self.movie.start()
         else:
-            pixmap = QPixmap(icon_path).scaled(LABEL_SIZE-2, LABEL_SIZE-2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            self.icon_label.setPixmap(pixmap)
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                pixmap = pixmap.scaled(LABEL_SIZE - 2, LABEL_SIZE - 2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.icon_label.setPixmap(pixmap)
+            else:
+                # Pixmap invalid set icon to blank
+                self.icon_label.setPixmap(QPixmap("assets/images/blank.png").scaled(LABEL_SIZE - 2, LABEL_SIZE - 2, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
