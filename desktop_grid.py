@@ -140,6 +140,11 @@ class Grid(QWidget):
                 #call render_icon for the old icon now in it's new location
                 existing_widget.render_icon()
                 event.acceptProposedAction()
+        else:
+            new_row, new_col = self.findCellAtPosition(position)
+            widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
+            widget.edit_triggered()
+        
 
     #get row, col at position
     def findCellAtPosition(self, pos):
