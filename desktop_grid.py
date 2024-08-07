@@ -270,11 +270,10 @@ class ClickableLabel(QLabel):
             self.movie.deleteLater()
             self.movie = None
 
-        if not os.path.isfile(icon_path) :
+        if not os.path.isfile(icon_path):
             if entry_exists(self.desktop_icon.row, self.desktop_icon.col) and is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
                 icon_path = "assets/images/unknown.png"
             
-            return
 
         if icon_path.lower().endswith('.gif'):
             self.movie = QMovie(icon_path)
@@ -430,7 +429,7 @@ class ClickableLabel(QLabel):
 
     #mouseover icon
     def enterEvent(self, event):
-        if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "":
+        if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "" and is_default(self.desktop_icon.row, self.desktop_icon.col):
             self.set_icon_path("assets/images/add.png")
 
     #mouseover leaves the icon
