@@ -697,13 +697,23 @@ class ClickableLabel(QLabel):
         item1 = next((item for item in config if item['row'] == row1 and item['column'] == col1), None)
         item2 = next((item for item in config if item['row'] == row2 and item['column'] == col2), None)
         
-        # Ensure both items are found
-        if item1 is None or item2 is None:
-            raise ValueError("One or both items not found")
-
-        # Swap the rows and columns of the specified items
-        item1['row'], item2['row'] = item2['row'], item1['row']
-        item1['column'], item2['column'] = item2['column'], item1['column']
+        # if neither icons in desktop.json
+        if item1 is None and item2 is None:
+            print("Moved undefined desktop icon with another undefined desktop icon")
+            return
+        #if only 2nd icon(icon dragged on top of) is in .json
+        elif item1 is None:
+            item2['row'] = row1
+            item2['column'] =  col1
+        #if only item dragged is in .json
+        elif item2 is None:
+            item1['row'] = row2
+            item1['column'] =  col2
+        #when both items are in .json
+        else:
+            # Swap the rows and columns of the specified items
+            item1['row'], item2['row'] = item2['row'], item1['row']
+            item1['column'], item2['column'] = item2['column'], item1['column']
         
         #save (this also calls .render_icon() but only for THIS desktop_icon)
         self.save_desktop_config(config)
