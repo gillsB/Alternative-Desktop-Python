@@ -20,10 +20,10 @@ LAUNCH_OPTIONS = 0
 
 
 class Menu(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, urls, parent=None):
         super().__init__(parent)
 
-
+        
         global ROW 
         global COL 
 
@@ -112,6 +112,8 @@ class Menu(QDialog):
                 break
 
         self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]: {self.name_le.text()}")
+        if urls != None:
+            self.get_drop(urls)
 
         self.parent().edit_mode_icon()
 
@@ -290,7 +292,11 @@ class Menu(QDialog):
     def dropEvent(self, event: QDropEvent):
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()
-            if urls:
+            self.get_drop(urls)
+            event.acceptProposedAction()
+    
+    def get_drop(self, urls):
+        if urls:
                 file_path = urls[0].toLocalFile()
                 file_name = file_path.split('/')[-1]
                 file_extension = file_path.split('.')[-1].lower()
@@ -307,7 +313,6 @@ class Menu(QDialog):
                 #only change name line edit if the name is empty (i.e. take the name of the first drag and drop or do not overwrite a name already existing)
                 if self.name_le.text() == "":
                     self.name_le.setText(self.remove_file_extentions(file_name))
-                event.acceptProposedAction()
     
     def handle_selection_change(self, index):
         global LAUNCH_OPTIONS

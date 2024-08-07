@@ -128,7 +128,7 @@ class Grid(QWidget):
         position = event.position().toPoint()
         new_widget = event.source()
 
-        #if item dropped is ClicableLabel
+        #if item dropped is ClickableLabel
         if isinstance(new_widget, ClickableLabel):
             #get the row and col of the item dropped
             new_row, new_col = self.findCellAtPosition(position)
@@ -141,9 +141,11 @@ class Grid(QWidget):
                 existing_widget.render_icon()
                 event.acceptProposedAction()
         else:
-            new_row, new_col = self.findCellAtPosition(position)
-            widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
-            widget.edit_triggered()
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()
+                new_row, new_col = self.findCellAtPosition(position)
+                label_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
+                label_widget.drop_file_to_edit(urls)
         
 
     #get row, col at position
@@ -404,9 +406,11 @@ class ClickableLabel(QLabel):
         self.timer_right_click.timeout.disconnect(self.context_close)
 
     def edit_triggered(self):
-
-            menu = Menu(parent=self)
-            menu.exec()
+        menu = Menu(None, parent=self)
+        menu.exec()
+    def drop_file_to_edit(self, urls):
+        menu = Menu(urls, parent=self)
+        menu.exec()
     def path_triggered(self, path):
         if not os.path.exists(path):
             QMessageBox.warning(self, "Path does not exist",
