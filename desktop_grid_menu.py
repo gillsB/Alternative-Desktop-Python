@@ -5,6 +5,7 @@ from PySide6.QtCore import QSize, Qt
 from thumbnail_gen.extract_ico_file import has_ico_file
 from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
 from thumbnail_gen.exe_to_image import exe_to_image
+from thumbnail_gen.url_to_image import extract_icon_from_url
 from thumbnail_gen.icon_selection import select_icon_from_paths
 
 
@@ -175,15 +176,15 @@ class Menu(QDialog):
         ico_file = False
         lnk_file = False
         exe_file = False
+        url_file = False
         path_ico_icon = ""
         path_exe_icon = ""
         path_lnk_icon = ""
+        path_url_icon = ""
 
         if has_ico_file(self.exec_path_le.text(), data_path):
             ico_file = True
             path_ico_icon = os.path.join(data_path, "icon.png")
-
-
 
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
 
@@ -194,23 +195,37 @@ class Menu(QDialog):
             if path_ico_icon != None:
                 ico_file = True
             
-        
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
             path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path)  
             if path_exe_icon != None:
                 exe_file = True
+        
+        if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
+
+            path_ico_icon = extract_icon_from_url(self.exec_path_le.text(), data_path)
+
+            if path_ico_icon != None:
+                ico_file = True
+
 
         
         if ico_file and lnk_file:
             self.icon_path_le.setText(select_icon_from_paths(path_ico_icon, path_lnk_icon))
         elif ico_file and exe_file:
             self.icon_path_le.setText(select_icon_from_paths(path_ico_icon, path_exe_icon))
+        #this is currently not possible as I am Just assuming that an internet shortcut (.url) will have a valid ico file as defined by the shortcut itself.
+        #for programs like steam it stores all the .ico files in a single folder, thus would have you choose between like 50 different .ico files
+        #so I just assume that the one they link to in the shortcut is correct and use that, if not it sets it to nothing.
+        #elif ico_file and url_file:
+        #    self.icon_path_le.setText(select_icon_from_paths(path_ico_icon, path_url_icon))
         elif ico_file:
             self.icon_path_le.setText(path_ico_icon)
         elif lnk_file:
             self.icon_path_le.setText(path_lnk_icon)
         elif exe_file:
             self.icon_path_le.setText(path_exe_icon)
+        elif url_file:
+            self.icon_path_le.setText(path_url_icon)
 
 
 
