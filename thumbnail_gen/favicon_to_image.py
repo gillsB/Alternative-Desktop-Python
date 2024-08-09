@@ -2,6 +2,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
+from PIL import Image
 
 
 def favicon_to_image(url, output_path):
@@ -49,6 +50,10 @@ def save_favicon(favicon_url, save_path):
             for chunk in response.iter_content(1024):
                 file.write(chunk)
         print(f"Favicon saved as {save_path}")
+        image = Image.open(save_path)
+        resized_image = image.resize((128,128), Image.Resampling.LANCZOS)
+
+        resized_image.save(save_path)
         return save_path
     except requests.exceptions.RequestException as e:
         print(f"Error downloading the favicon: {e}")
