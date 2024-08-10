@@ -298,7 +298,7 @@ class ClickableLabel(QLabel):
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
-            menu = Menu(parent=self)
+            menu = Menu(None, parent=self)
             menu.exec()
         #if icon has an executable_path already (icon exists with path)
         elif event.button() == Qt.LeftButton:
