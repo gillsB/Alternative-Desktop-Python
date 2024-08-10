@@ -777,16 +777,23 @@ def save_config_to_file(config):
 
 def is_default(row, col):
     config = load_desktop_config()
+    
+    # Assume the item is not found and thus is default
+    is_default_value = True
+    
     for item in config:
         if item['row'] == row and item['column'] == col:
-            if (item.get('name', "") == DEFAULT_DESKTOP['name'] and
-                item.get('icon_path', "") == DEFAULT_DESKTOP['icon_path'] and
-                item.get('executable_path', "") == DEFAULT_DESKTOP['executable_path'] and
-                item.get('command_args', "") == DEFAULT_DESKTOP['command_args'] and
-                item.get('website_link', "") == DEFAULT_DESKTOP['website_link'] and
-                item.get('launch_option', 1) == DEFAULT_DESKTOP['launch_option']):
-                return True
-    return False
+            # If the item is found, check if it has non-default values
+            if (item.get('name', "") != DEFAULT_DESKTOP['name'] or
+                item.get('icon_path', "") != DEFAULT_DESKTOP['icon_path'] or
+                item.get('executable_path', "") != DEFAULT_DESKTOP['executable_path'] or
+                item.get('command_args', "") != DEFAULT_DESKTOP['command_args'] or
+                item.get('website_link', "") != DEFAULT_DESKTOP['website_link'] or
+                item.get('launch_option', 0) != DEFAULT_DESKTOP['launch_option']):
+                is_default_value = False
+            break
+
+    return is_default_value
 
 
 
