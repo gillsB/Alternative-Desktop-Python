@@ -311,17 +311,18 @@ class ClickableLabel(QLabel):
             DRAG_ROW = self.desktop_icon.row
             DRAG_COL = self.desktop_icon.col
             self.drag_start_position = event.position().toPoint()
-            
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            drag = QDrag(self)
-            mime_data = QMimeData()
-            mime_data.setText(self.text_label.text())
-            drag.setMimeData(mime_data)
-            drag.setHotSpot(event.position().toPoint() - self.rect().topLeft())
+            #only drag if icon is not default
+            if not (is_default(self.desktop_icon.row, self.desktop_icon.col)):
+                drag = QDrag(self)
+                mime_data = QMimeData()
+                mime_data.setText(self.text_label.text())
+                drag.setMimeData(mime_data)
+                drag.setHotSpot(event.position().toPoint() - self.rect().topLeft())
 
-            drop_action = drag.exec(Qt.MoveAction)
+                drop_action = drag.exec(Qt.MoveAction)
 
     def showContextMenu(self, pos):
             global CONTEXT_OPEN
