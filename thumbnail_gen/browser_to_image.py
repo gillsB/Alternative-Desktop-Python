@@ -17,7 +17,7 @@ def get_icon(path, output_path):
     try:
         extractor = IconExtractor(path)
 
-        output_path = os.path.join(output_path, "icon4.png")
+        output_path = os.path.join(output_path, "icon3.png")
 
         # Export the first group icon to a .ico file
         extractor.export_icon(output_path, num=0)

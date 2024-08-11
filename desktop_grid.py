@@ -54,8 +54,8 @@ DEFAULT_DESKTOP =  {
 #default icon saves:
 # icon.png extract_ico_file, url_to_image (unique, getting image from .url file does not check for .ico files in location)
 # icon2.png exe_to_image, lnk_to_image (both share the same executable_path input so one or the other.)
-# icon3.png favicon_to_image (gets favicon from website)
-# icon4.png default web browser image (fallback for no other icons and has a website link (opens in browser))
+# icon3.png favicon_to_image (gets favicon from website, fallback to default browser icon if no favicon found)
+
 
 
 
