@@ -304,8 +304,10 @@ class ClickableLabel(QLabel):
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
+            self.parent().media_player.pause()
             menu = Menu(None, parent=self)
             menu.exec()
+            self.parent().media_player.play()
         #if icon has an executable_path already (icon exists with path)
         elif event.button() == Qt.LeftButton:
             self.run_program()
@@ -413,11 +415,15 @@ class ClickableLabel(QLabel):
         self.timer_right_click.timeout.disconnect(self.context_close)
 
     def edit_triggered(self):
+        self.parent().media_player.pause()
         menu = Menu(None, parent=self)
         menu.exec()
+        self.parent().media_player.play()
     def drop_file_to_edit(self, urls):
+        self.parent().media_player.pause()
         menu = Menu(urls, parent=self)
         menu.exec()
+        self.parent().media_player.play()
     def path_triggered(self, path):
         if not os.path.exists(path):
             QMessageBox.warning(self, "Path does not exist",
