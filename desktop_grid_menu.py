@@ -8,7 +8,7 @@ from thumbnail_gen.exe_to_image import exe_to_image
 from thumbnail_gen.url_to_image import extract_icon_from_url
 from thumbnail_gen.icon_selection import select_icon_from_paths
 from thumbnail_gen.favicon_to_image import favicon_to_image
-
+from thumbnail_gen.browser_to_image import browser_to_image
 
 import json
 import os
@@ -179,11 +179,13 @@ class Menu(QDialog):
         exe_file = False
         url_file = False
         fav_file = False
+        browser_file = False
         path_ico_icon = ""
         path_exe_icon = ""
         path_lnk_icon = ""
         path_url_icon = ""
         path_fav_icon = ""
+        path_browser_icon = ""
 
         if self.exec_path_le.text() != "" and has_ico_file(self.exec_path_le.text(), data_path):
             ico_file = True
@@ -212,6 +214,11 @@ class Menu(QDialog):
             if path_fav_icon != None:
                 fav_file = True
 
+            #fallback create a default browser icon for links
+            path_browser_icon = browser_to_image(data_path)
+            if path_browser_icon != None:
+                browser_file = True
+
 
         
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
@@ -235,6 +242,9 @@ class Menu(QDialog):
             self.icon_path_le.setText(path_url_icon)
         elif fav_file:
             self.icon_path_le.setText(path_fav_icon)
+        # default browser icon only shows if no other icons and has a website link.
+        elif path_browser_icon:
+            self.icon_path_le.setText(path_browser_icon)
 
     def has_multiple_icons(self, *variables):
 
