@@ -237,8 +237,8 @@ class Menu(QDialog):
             self.icon_path_le.setText(path_fav_icon)
 
     def has_multiple_icons(self, *variables):
-        
-        non_empty_count = sum(1 for arg in variables if arg != "")
+
+        non_empty_count = sum(1 for arg in variables if arg is not None and arg != "")
         return non_empty_count >= 2
 
 
