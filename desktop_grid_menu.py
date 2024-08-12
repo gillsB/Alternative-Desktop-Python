@@ -162,6 +162,9 @@ class Menu(QDialog):
             
             
             self.handle_save()
+        # if icon already set, do not auto_gen_icon
+        elif self.icon_path_le.text() != "":
+            self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
         elif self.check_valid_path(self.exec_path_le.text()) or self.web_link_le != "":
             self.auto_gen_icon()
