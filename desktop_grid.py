@@ -308,6 +308,11 @@ class ClickableLabel(QLabel):
         if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
             self.parent().media_player.pause()
             menu = Menu(None, parent=self)
+            main_window_size = self.parent().size()
+            dialog_width = main_window_size.width() / 2
+            dialog_height = main_window_size.height() / 2
+            menu.resize(dialog_width, dialog_height)
+            
             menu.exec()
             self.parent().media_player.play()
         #if icon has an executable_path already (icon exists with path)
@@ -419,11 +424,19 @@ class ClickableLabel(QLabel):
     def edit_triggered(self):
         self.parent().media_player.pause()
         menu = Menu(None, parent=self)
+        main_window_size = self.parent().size()
+        dialog_width = main_window_size.width() / 2
+        dialog_height = main_window_size.height() / 2
+        menu.resize(dialog_width, dialog_height)
         menu.exec()
         self.parent().media_player.play()
     def drop_file_to_edit(self, urls):
         self.parent().media_player.pause()
         menu = Menu(urls, parent=self)
+        main_window_size = self.parent().size()
+        dialog_width = main_window_size.width() / 2
+        dialog_height = main_window_size.height() / 2
+        menu.resize(dialog_width, dialog_height)
         menu.exec()
         self.parent().media_player.play()
     def path_triggered(self, path):
@@ -893,7 +906,7 @@ if __name__ == "__main__":
     create_config_path()
     create_data_path()
     app = QApplication(sys.argv)
-    apply_stylesheet(app, theme='dark_teal.xml')
+    apply_stylesheet(app, theme='dark_teal.xml', invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
     widget = Grid()
     widget.setMinimumSize(100, 100)  
     widget.resize(1760, 990)
