@@ -5,7 +5,7 @@ from thumbnail_gen.extract_ico_file import has_ico_file
 
 
 
-def exe_to_image(lnk_path, output_path):
+def exe_to_image(lnk_path, output_path, icon_size):
 
 
     try:
@@ -21,7 +21,7 @@ def exe_to_image(lnk_path, output_path):
 
         #from PIL import Image
         im = Image.open(data)
-        img_resized = im.resize((256, 256), Image.Resampling.LANCZOS)
+        img_resized = im.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
 
         # Save the resized image to the output path
         img_resized.save(output_path)

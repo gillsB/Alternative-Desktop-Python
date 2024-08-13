@@ -29,6 +29,7 @@ CONTEXT_OPEN = False
 LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
 DRAG_ROW = None
 DRAG_COL = None
+AUTOGEN_ICON_SIZE = 128
 
 
 
@@ -510,6 +511,9 @@ class ClickableLabel(QLabel):
             os.makedirs(data_path)
         print(f"get_data_icon_path: {data_path}")
         return data_path
+    
+    def get_autogen_icon_size(self):
+        return AUTOGEN_ICON_SIZE
         
 
 

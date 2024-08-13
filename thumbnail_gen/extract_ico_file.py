@@ -7,7 +7,7 @@ import ctypes
 
 
 
-def has_ico_file(source_file, target_dir):
+def has_ico_file(source_file, target_dir, icon_size):
 
     found = False
     # Ensure target directory exists, create if it doesn't
@@ -40,7 +40,7 @@ def has_ico_file(source_file, target_dir):
                 print(f"Error: File not found after copying to data directory error: {e}")
 
             image = Image.open(target_ico_file)
-            resized_image = image.resize((256,256), Image.Resampling.LANCZOS)
+            resized_image = image.resize((icon_size,icon_size), Image.Resampling.LANCZOS)
 
             resized_image.save(target_ico_file)
             found = True

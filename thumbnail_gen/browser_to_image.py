@@ -3,7 +3,11 @@ import os
 from PIL import Image
 from icoextract import IconExtractor, IconExtractorError
 
-def browser_to_image(output_path):
+ICON_SIZE = 0
+
+def browser_to_image(output_path, icon_size):
+    global ICON_SIZE
+    ICON_SIZE = icon_size
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice") as key:
         prog_id = winreg.QueryValueEx(key, 'ProgId')[0]
     
@@ -11,7 +15,7 @@ def browser_to_image(output_path):
         command = winreg.QueryValueEx(key, None)[0]
     
     path = command.split('"')[1]
-    return get_icon(path, output_path)
+    return get_icon(path, output_path, icon_size)
 
 def get_icon(path, output_path):
     try:
@@ -27,7 +31,7 @@ def get_icon(path, output_path):
 
         #from PIL import Image
         im = Image.open(data)
-        img_resized = im.resize((256, 256), Image.Resampling.LANCZOS)
+        img_resized = im.resize((ICON_SIZE, ICON_SIZE), Image.Resampling.LANCZOS)
 
         # Save the resized image to the output path
         img_resized.save(output_path)

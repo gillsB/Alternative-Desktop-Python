@@ -4,7 +4,7 @@ from thumbnail_gen.exe_to_image import exe_to_image
 from thumbnail_gen.extract_ico_file import has_ico_file
 
 
-def extract_icon_from_lnk(lnk_path, output_path):
+def extract_icon_from_lnk(lnk_path, output_path, icon_size):
     # Read the .lnk file
     lnk = pylnk3.parse(lnk_path)
 
@@ -18,7 +18,7 @@ def extract_icon_from_lnk(lnk_path, output_path):
         ico_path = os.path.join(output_path, "icon.png")
         print("Copying .ico file directly")
 
-    new_path = exe_to_image(target_path, output_path)
+    new_path = exe_to_image(target_path, output_path, icon_size)
 
     return ico_path, new_path
     

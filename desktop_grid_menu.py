@@ -176,6 +176,7 @@ class Menu(QDialog):
     def auto_gen_icon(self):
 
         data_path = self.parent().get_data_icon_dir()
+        icon_size = self.parent().get_autogen_icon_size()
 
         ico_file = False
         lnk_file = False
@@ -188,13 +189,13 @@ class Menu(QDialog):
         path_url_icon = ""
         path_fav_icon = ""
 
-        if self.exec_path_le.text() != "" and has_ico_file(self.exec_path_le.text(), data_path):
+        if self.exec_path_le.text() != "" and has_ico_file(self.exec_path_le.text(), data_path, icon_size):
             ico_file = True
             path_ico_icon = os.path.join(data_path, "icon.png")
 
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
 
-            path_ico_icon, path_lnk_icon = extract_icon_from_lnk(self.exec_path_le.text(), data_path)
+            path_ico_icon, path_lnk_icon = extract_icon_from_lnk(self.exec_path_le.text(), data_path, icon_size)
 
             if path_lnk_icon != None:
                 lnk_file = True
@@ -202,7 +203,7 @@ class Menu(QDialog):
                 ico_file = True
             
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
-            path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path)  
+            path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path, icon_size)  
             if path_exe_icon != None:
                 exe_file = True
 
@@ -211,13 +212,13 @@ class Menu(QDialog):
             if not url.startswith(('http://', 'https://')):
                 url = 'http://' + url
             
-            path_fav_icon = favicon_to_image(url, data_path)
+            path_fav_icon = favicon_to_image(url, data_path, icon_size)
             if path_fav_icon != None:
                 fav_file = True
             #if it fails to create a favicon fallback
             else:
                 #create a default browser icon for links
-                path_fav_icon = browser_to_image(data_path)
+                path_fav_icon = browser_to_image(data_path, icon_size)
                 if path_fav_icon != None:
                     fav_file = True
 
@@ -225,7 +226,7 @@ class Menu(QDialog):
         
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
 
-            path_ico_icon = extract_icon_from_url(self.exec_path_le.text(), data_path)
+            path_ico_icon = extract_icon_from_url(self.exec_path_le.text(), data_path, icon_size)
 
             if path_ico_icon != None:
                 ico_file = True

@@ -5,10 +5,15 @@ import shutil
 import stat
 from thumbnail_gen.extract_ico_file import remove_hidden_attribute
 
+ICON_SIZE = 0
 
-def extract_icon_from_url(url_path, output_path):
+def extract_icon_from_url(url_path, output_path, icon_size):
+    global ICON_SIZE
+    ICON_SIZE = icon_size
+
     config = configparser.ConfigParser()
     config.read(url_path)
+
     
     ico_path = None
     
@@ -53,7 +58,7 @@ def get_ico_file(source_file, target_dir):
             print(f"Error: File not found after copying to data directory. Error: {e}")
 
         image = Image.open(target_ico_file)
-        resized_image = image.resize((256, 256), Image.Resampling.LANCZOS)
+        resized_image = image.resize((ICON_SIZE, ICON_SIZE), Image.Resampling.LANCZOS)
         resized_image.save(target_ico_file)
         found = True
         print(f"Copied {source_file} to {target_dir}")
