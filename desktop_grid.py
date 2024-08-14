@@ -11,7 +11,6 @@ import subprocess
 import shlex
 from desktop_grid_menu import Menu
 from run_menu_dialog import RunMenuDialog
-from qt_material import apply_stylesheet
 
 
 
@@ -67,6 +66,8 @@ class Grid(QWidget):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
+        create_config_path()
+        create_data_path()
 
         #main layout
         self.main_layout = QGridLayout(self)
@@ -903,10 +904,7 @@ if __name__ == "__main__":
 
 
     ###
-    create_config_path()
-    create_data_path()
     app = QApplication(sys.argv)
-    apply_stylesheet(app, theme='dark_teal.xml', invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
     widget = Grid()
     widget.setMinimumSize(100, 100)  
     widget.resize(1760, 990)

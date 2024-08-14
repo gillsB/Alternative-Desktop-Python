@@ -5,6 +5,8 @@ import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 from settingsMenu import SettingsDialog
+from qt_material import apply_stylesheet
+from desktop_grid import Grid
 
 
 
@@ -21,8 +23,8 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        self.label = QLabel("Overlay Desktop", self)
-        self.label.setStyleSheet("font-size: 20px;")
+        self.grid_widget = Grid()
+        layout.addWidget(self.grid_widget)
 
         settings_button = QPushButton("Settings")
         settings_button.clicked.connect(self.show_settings)
@@ -32,7 +34,6 @@ class OverlayWidget(QWidget):
         self.closeButton.clicked.connect(self.close)
         
 
-        layout.addWidget(self.label)
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
         self.listener = None
@@ -78,7 +79,10 @@ class OverlayWidget(QWidget):
 
 def main():
     app = QApplication(sys.argv)
+    apply_stylesheet(app, theme='dark_teal.xml', invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
     overlay = OverlayWidget()
+    overlay.setMinimumSize(100, 100)  
+    overlay.resize(1760, 990)
     overlay.show()
     sys.exit(app.exec())
 
