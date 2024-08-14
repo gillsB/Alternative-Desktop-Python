@@ -125,6 +125,7 @@ class Grid(QWidget):
         self.set_video_source("background.mp4")
         self.setAcceptDrops(True)
 
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
             event.acceptProposedAction()
@@ -134,40 +135,58 @@ class Grid(QWidget):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
-        position = event.position().toPoint()
+        position = self.mapFromParent(event.position().toPoint())
         new_widget = event.source()
 
-        #if item dropped is ClickableLabel
-        if isinstance(new_widget, ClickableLabel):
-            #get the row and col of the item dropped
-            new_row, new_col = self.findCellAtPosition(position)
-            #get the widget that already exists in location we dropped
+        print(f"Drop position: {position}")
+        print(f"Widget size: {self.size()}")
+
+        new_row, new_col = self.findCellAtPosition(position)
+        if new_row == None or new_col == None:
+            QMessageBox.warning(self, "Drop Error",
+                                    f"Error dropping item at position {position}.",
+                                    QMessageBox.Ok)
+            return
+        print(f"Dropped at cell: ({new_row}, {new_col})")
+
+        if isinstance(new_widget, ClickableLabel) and new_row is not None and new_col is not None:
             existing_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
-            if new_row is not None and new_col is not None:
-                #swap the two items (this also calls render_icon for widget)
+            if existing_widget:
                 new_widget.swap_items_by_position(DRAG_ROW, DRAG_COL, new_row, new_col)
-                #call render_icon for the old icon now in it's new location
                 existing_widget.render_icon()
                 event.acceptProposedAction()
-        else:
-            if event.mimeData().hasUrls():
-                urls = event.mimeData().urls()
-                new_row, new_col = self.findCellAtPosition(position)
+        elif event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if new_row is not None and new_col is not None:
                 label_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
-                label_widget.drop_file_to_edit(urls)
+                if label_widget:
+                    label_widget.drop_file_to_edit(urls)
+
+        self.updateGeometries()
+                
         
 
     #get row, col at position
     def findCellAtPosition(self, pos):
-        for row in range(self.grid_layout.rowCount()):
-            for col in range(self.grid_layout.columnCount()):
-                item = self.grid_layout.itemAtPosition(row, col)
-                if item:
-                    item_rect = self.grid_layout.cellRect(row, col)
-                    if item_rect.contains(pos):
-                        return row, col
-        return None, None
+        visible_labels = [label for label in self.labels if not label.isHidden()]
+        if not visible_labels:
+            return None, None
 
+        widget_rect = self.rect()
+        visible_rows = max(label.desktop_icon.row for label in visible_labels) + 1
+        visible_cols = max(label.desktop_icon.col for label in visible_labels) + 1
+
+        cell_width = widget_rect.width() / visible_cols
+        cell_height = widget_rect.height() / visible_rows
+
+        row = int(pos.y() / cell_height)
+        col = int(pos.x() / cell_width)
+
+        for label in visible_labels:
+            if label.desktop_icon.row == row and label.desktop_icon.col == col:
+                return row, col
+
+        return None, None
     
     def paintEvent(self, event):
 
@@ -219,21 +238,30 @@ class Grid(QWidget):
         window_width = self.frameGeometry().width()
         window_height = self.frameGeometry().height()
 
-        num_columns = max(1, window_width // LABEL_SIZE)
-        num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
+        self.num_columns = max(1, window_width // LABEL_SIZE)
+        self.num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
 
         print(f"window dimensions : {window_width}x{window_height}")
-        print(f"window num_rows : {num_rows}")
-        print(f"window num_cols : {num_columns}")
+        print(f"window num_rows : {self.num_rows}")
+        print(f"window num_cols : {self.num_columns}")
 
         for label in self.labels:
             row = label.desktop_icon.row
             col = label.desktop_icon.col
 
-            if col < num_columns and row < num_rows:
+            if col < self.num_columns and row < self.num_rows:
                 label.show()
             else:
                 label.hide()
+    
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.updateGeometries()
+
+    def updateGeometries(self):
+        self.grid_layout.update()
+        self.updateGeometry()
+        self.draw_labels()
 
     def pause_video(self):
         QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
