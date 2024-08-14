@@ -59,6 +59,7 @@ class OverlayWidget(QWidget):
                 self.showMaximized()
             else:
                 self.showNormal()
+            #self.grid_widget.play_video()
         else:
             # Save the current state before minimizing
             if self.isFullScreen():
@@ -68,6 +69,7 @@ class OverlayWidget(QWidget):
             else:
                 self.last_visible_state = Qt.WindowNoState
             self.showMinimized()
+            #self.grid_widget.pause_video()
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
             if not self.isMinimized():

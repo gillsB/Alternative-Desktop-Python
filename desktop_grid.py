@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QGridLayout, QVBoxLayout,  
                                QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
 from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie, QDrag
-from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData
+from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData, QMetaObject
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
@@ -235,6 +235,10 @@ class Grid(QWidget):
             else:
                 label.hide()
 
+    def pause_video(self):
+        QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
+    def play_video(self):
+        QMetaObject.invokeMethod(self.media_player, "play", Qt.QueuedConnection)
 
 class ClickableLabel(QLabel):
     def __init__(self, desktop_icon, text, parent=None):
