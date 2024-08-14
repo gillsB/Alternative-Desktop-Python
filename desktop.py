@@ -7,6 +7,7 @@ from settings import get_setting, set_setting, load_settings, save_settings, add
 from settingsMenu import SettingsDialog
 from qt_material import apply_stylesheet
 from desktop_grid import Grid
+from hotkey_handler import HotkeyHandler
 
 
 
@@ -36,45 +37,50 @@ class OverlayWidget(QWidget):
 
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
-        self.listener = None
-        self.set_hotkey()
+
+        self.hotkey_handler = HotkeyHandler(self)
+        self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
 
     def show_settings(self):
         dialog = SettingsDialog(parent=self)
         dialog.exec()
     
-    def set_hotkey(self):
-        def on_activate():
-            if not self.isMinimized:
-                self.showMinimized()
-                self.isMinimized = True
-            else:
-                self.showNormal()
-                self.isMinimized = False
-        
-        def for_canonical(f):
-            return lambda k: f(self.listener.canonical(k))
-        
-        if self.listener is not None:
-            self.listener.stop()
-            self.listener.join()
-        
-        # Create the HotKey object with the current hotkey setting
-        self.hotkey = keyboard.HotKey(
-            keyboard.HotKey.parse(add_angle_brackets(get_setting("toggle_overlay_keybind"))),
-            on_activate
-        )
-        # Create a listener for the HotKey
-        self.listener = keyboard.Listener(
-            on_press=for_canonical(self.hotkey.press),
-            on_release=for_canonical(self.hotkey.release)
-        )
-        
-        self.listener.start()
     def change_opacity(self ,i):
         print("change_opacity = ")
         print(float(i/100))
         self.setWindowOpacity(float(i/100))
+
+    def toggle_window_state(self):
+        if self.isMinimized():
+            # Restore to the last visible state
+            if self.last_visible_state == Qt.WindowFullScreen:
+                self.showFullScreen()
+            elif self.last_visible_state == Qt.WindowMaximized:
+                self.showMaximized()
+            else:
+                self.showNormal()
+        else:
+            # Save the current state before minimizing
+            if self.isFullScreen():
+                self.last_visible_state = Qt.WindowFullScreen
+            elif self.isMaximized():
+                self.last_visible_state = Qt.WindowMaximized
+            else:
+                self.last_visible_state = Qt.WindowNoState
+            self.showMinimized()
+    def changeEvent(self, event):
+        if event.type() == QEvent.WindowStateChange:
+            if not self.isMinimized():
+                # Update last_visible_state when window state changes (except for minimization)
+                if self.isFullScreen():
+                    self.last_visible_state = Qt.WindowFullScreen
+                elif self.isMaximized():
+                    self.last_visible_state = Qt.WindowMaximized
+                else:
+                    self.last_visible_state = Qt.WindowNoState
+        super().changeEvent(event)
+    def set_hotkey(self):
+        self.hotkey_handler.set_hotkey()
     
 
 def main():
