@@ -38,28 +38,6 @@ class OverlayWidget(QWidget):
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
 
-        self.theme_selector = QComboBox()
-        self.theme_selector.addItems(['dark_amber.xml',
-            'dark_blue.xml',
-            'dark_cyan.xml',
-            'dark_lightgreen.xml',
-            'dark_pink.xml',
-            'dark_purple.xml',
-            'dark_red.xml',
-            'dark_teal.xml',
-            'dark_yellow.xml',
-            'light_amber.xml',
-            'light_blue.xml',
-            'light_cyan.xml',
-            'light_cyan_500.xml',
-            'light_lightgreen.xml',
-            'light_pink.xml',
-            'light_purple.xml',
-            'light_red.xml',
-            'light_teal.xml',
-            'light_yellow.xml'])
-        self.theme_selector.currentIndexChanged.connect(self.on_theme_change)
-        layout.addWidget(self.theme_selector)
 
         self.hotkey_handler = HotkeyHandler(self)
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
@@ -68,14 +46,11 @@ class OverlayWidget(QWidget):
         self.grid_widget.pause_video()
         QApplication.processEvents()
         if theme_name.startswith("dark"):
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': '#7f8994'})
         else:
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True, extra={'primaryTextColor': '#000000'})
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)#, extra={'primaryTextColor': '#000000'})
         self.grid_widget.play_video()
 
-    def on_theme_change(self, index):
-        theme_name = self.theme_selector.itemText(index)
-        self.change_theme(theme_name)
 
     def show_settings(self):
         dialog = SettingsDialog(parent=self)

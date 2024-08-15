@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox
 from PySide6.QtCore import Qt, QEvent, QKeyCombination
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
@@ -40,12 +40,36 @@ class SettingsDialog(QDialog):
         
         layout.addRow("Overlay Opacity", self.window_opacity_slider)
 
+        self.category_selector = QComboBox()
+        self.color_selector = QComboBox()
 
-        
+        # Add category options
+        self.category_selector.addItems(['Dark', 'Light'])
+
+        # Add color options
+        self.colors = ['amber', 'blue', 'cyan', 'lightgreen', 'pink', 'purple', 'red', 'teal', 'yellow']
+        self.color_selector.addItems(self.colors)
+
+        # Connect signals
+        self.category_selector.currentIndexChanged.connect(self.update_theme)
+        self.color_selector.currentIndexChanged.connect(self.update_theme)
+
+        layout.addRow("Theme", self.category_selector)
+        layout.addRow("", self.color_selector)
+
+
+
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
+
+    def update_theme(self):
+        category = self.category_selector.currentText().lower()
+        color = self.color_selector.currentText().lower()
+        theme = f"{category}_{color}.xml"
+        print(f"Selected theme: {theme}")
+        self.parent().change_theme(theme)
 
     def value_changed(self, i):
         self.set_changed()
