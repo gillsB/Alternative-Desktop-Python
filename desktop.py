@@ -42,6 +42,12 @@ class OverlayWidget(QWidget):
         self.hotkey_handler = HotkeyHandler(self)
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
 
+        start_theme= get_setting("theme")
+        if start_theme.startswith("dark"):
+            apply_stylesheet(QApplication.instance(), theme=start_theme, invert_secondary=False, extra={'secondaryColor': '#7f8994'})
+        else:
+            apply_stylesheet(QApplication.instance(), theme=start_theme, invert_secondary=True)
+
     def change_theme(self, theme_name):
         self.grid_widget.pause_video()
         QApplication.processEvents()
@@ -99,7 +105,6 @@ class OverlayWidget(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    apply_stylesheet(app, theme='dark_teal.xml', invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
     overlay = OverlayWidget()
     overlay.setMinimumSize(100, 100)  
     overlay.resize(1760, 990)

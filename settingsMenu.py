@@ -40,21 +40,27 @@ class SettingsDialog(QDialog):
         
         layout.addRow("Overlay Opacity", self.window_opacity_slider)
 
-        self.category_selector = QComboBox()
+        self.theme_selector = QComboBox()
         self.color_selector = QComboBox()
 
-        # Add category options
-        self.category_selector.addItems(['Dark', 'Light'])
+        # Add theme options
+        self.theme_selector.addItems(['Dark', 'Light'])
 
         # Add color options
         self.colors = ['amber', 'blue', 'cyan', 'lightgreen', 'pink', 'purple', 'red', 'teal', 'yellow']
         self.color_selector.addItems(self.colors)
 
-        # Connect signals
-        self.category_selector.currentIndexChanged.connect(self.update_theme)
+        self.set_theme = get_setting("theme")
+        split_theme = self.set_theme.rsplit('.', 1)[0]
+        theme, color = split_theme.split('_', 1)
+
+        self.theme_selector.setCurrentText(theme)
+        self.color_selector.setCurrentText(color)
+
+        self.theme_selector.currentIndexChanged.connect(self.update_theme)
         self.color_selector.currentIndexChanged.connect(self.update_theme)
 
-        layout.addRow("Theme", self.category_selector)
+        layout.addRow("Theme", self.theme_selector)
         layout.addRow("", self.color_selector)
 
 
@@ -65,11 +71,12 @@ class SettingsDialog(QDialog):
         layout.addWidget(save_button)
 
     def update_theme(self):
-        category = self.category_selector.currentText().lower()
+        category = self.theme_selector.currentText().lower()
         color = self.color_selector.currentText().lower()
         theme = f"{category}_{color}.xml"
         print(f"Selected theme: {theme}")
         self.parent().change_theme(theme)
+        self.is_changed = True
 
     def value_changed(self, i):
         self.set_changed()
@@ -92,6 +99,7 @@ class SettingsDialog(QDialog):
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
         settings["window_opacity"] = self.window_opacity_slider.value()
+        settings["theme"] = f"{self.theme_selector.currentText().lower()}_{self.color_selector.currentText().lower()}.xml"
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
@@ -120,6 +128,7 @@ class SettingsDialog(QDialog):
         save_settings(settings)
         window_opacity = get_setting("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
+        self.parent().change_theme(self.set_theme)
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)

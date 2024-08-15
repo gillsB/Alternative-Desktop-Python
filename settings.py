@@ -6,7 +6,8 @@ DIRECTORY = None
 DEFUALT_SETTINGS = {
         "update_on_launch": True,
         "toggle_overlay_keybind": "Alt+d",
-        "window_opacity": 100
+        "window_opacity": 100,
+        "theme" : "dark_cyan.xml"
 }
 
     
