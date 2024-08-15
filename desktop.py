@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox
 from PySide6.QtCore import Qt, QEvent, QKeyCombination
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
@@ -38,8 +38,44 @@ class OverlayWidget(QWidget):
         layout.addWidget(settings_button)
         layout.addWidget(self.closeButton)
 
+        self.theme_selector = QComboBox()
+        self.theme_selector.addItems(['dark_amber.xml',
+            'dark_blue.xml',
+            'dark_cyan.xml',
+            'dark_lightgreen.xml',
+            'dark_pink.xml',
+            'dark_purple.xml',
+            'dark_red.xml',
+            'dark_teal.xml',
+            'dark_yellow.xml',
+            'light_amber.xml',
+            'light_blue.xml',
+            'light_cyan.xml',
+            'light_cyan_500.xml',
+            'light_lightgreen.xml',
+            'light_pink.xml',
+            'light_purple.xml',
+            'light_red.xml',
+            'light_teal.xml',
+            'light_yellow.xml'])
+        self.theme_selector.currentIndexChanged.connect(self.on_theme_change)
+        layout.addWidget(self.theme_selector)
+
         self.hotkey_handler = HotkeyHandler(self)
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
+
+    def change_theme(self, theme_name):
+        self.grid_widget.pause_video()
+        QApplication.processEvents()
+        if theme_name.startswith("dark"):
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True, extra={'primaryTextColor': '#FFFFFF'})
+        else:
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True, extra={'primaryTextColor': '#000000'})
+        self.grid_widget.play_video()
+
+    def on_theme_change(self, index):
+        theme_name = self.theme_selector.itemText(index)
+        self.change_theme(theme_name)
 
     def show_settings(self):
         dialog = SettingsDialog(parent=self)
@@ -59,7 +95,7 @@ class OverlayWidget(QWidget):
                 self.showMaximized()
             else:
                 self.showNormal()
-            #self.grid_widget.play_video()
+            self.grid_widget.play_video()
         else:
             # Save the current state before minimizing
             if self.isFullScreen():
@@ -69,7 +105,7 @@ class OverlayWidget(QWidget):
             else:
                 self.last_visible_state = Qt.WindowNoState
             self.showMinimized()
-            #self.grid_widget.pause_video()
+            self.grid_widget.pause_video()
     def changeEvent(self, event):
         if event.type() == QEvent.WindowStateChange:
             if not self.isMinimized():
@@ -83,6 +119,7 @@ class OverlayWidget(QWidget):
         super().changeEvent(event)
     def set_hotkey(self):
         self.hotkey_handler.set_hotkey()
+        
     
 
 def main():
