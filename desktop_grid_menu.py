@@ -119,6 +119,10 @@ class Menu(QDialog):
 
         self.parent().edit_mode_icon()
 
+        auto_gen_icon_button = QPushButton("Auto generate icon")
+        auto_gen_icon_button.clicked.connect(self.auto_gen_button)
+        main_layout.addWidget(auto_gen_icon_button)
+
         save_button = QPushButton("Save")
         
         save_button.clicked.connect(self.save_config)
@@ -172,6 +176,16 @@ class Menu(QDialog):
         # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
         else:
             QMessageBox.warning(self,"Error: File Path", "Error: Executable path, item at path does not exist", QMessageBox.Ok | QMessageBox.Cancel)
+
+    def auto_gen_button(self):
+        if self.icon_path_le.text() != "":
+            ret = QMessageBox.warning(self,"Icon Path exists", "You already have an Icon Path set. Would you like to discard this Icon Path to generate a new one?", QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:
+                return
+            self.icon_path_le.setText("")
+        self.auto_gen_icon()
+        self.parent().set_icon_path(self.icon_path_le.text())
+        self.parent().edit_mode_icon()
 
     def auto_gen_icon(self):
 
