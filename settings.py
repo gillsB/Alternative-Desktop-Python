@@ -7,8 +7,16 @@ DEFUALT_SETTINGS = {
         "update_on_launch": True,
         "toggle_overlay_keybind": "Alt+d",
         "window_opacity": 100,
-        "theme" : "dark_cyan.xml"
+        "theme" : "dark_cyan.xml",
+        "background_source": "first_found"
 }
+
+#background_source arguments:
+# first_found = First Found
+# both = Both
+# video_only = Video
+# image_only = Image
+# none = None
 
     
 def load_settings():

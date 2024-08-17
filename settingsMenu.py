@@ -69,7 +69,9 @@ class SettingsDialog(QDialog):
         layout.addRow("Theme", self.theme_selector)
         layout.addRow("", self.color_selector)
 
-
+        self.background_selector = QComboBox()
+        self.background_selector.addItems(['First Found', "Both", "Video only", "Image only", "None"])
+        layout.addRow("Background sourcing:", self.background_selector)
 
 
         save_button = QPushButton("Save")
@@ -106,6 +108,7 @@ class SettingsDialog(QDialog):
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
         settings["window_opacity"] = self.window_opacity_slider.value()
         settings["theme"] = f"{self.theme_selector.currentText().lower()}_{self.color_selector.currentText().lower()}.xml"
+        settings["background_source"] = self.background_selector.currentText().lower().replace(" ", "_")
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
