@@ -47,15 +47,21 @@ class SettingsDialog(QDialog):
         self.theme_selector.addItems(['Dark', 'Light'])
 
         # Add color options
-        self.colors = ['amber', 'blue', 'cyan', 'lightgreen', 'pink', 'purple', 'red', 'teal', 'yellow']
+        self.colors = ['Amber', 'Blue', 'Cyan', 'Lightgreen', 'Pink', 'Purple', 'Red', 'Teal', 'Yellow']
         self.color_selector.addItems(self.colors)
 
         self.set_theme = get_setting("theme")
-        split_theme = self.set_theme.rsplit('.', 1)[0]
-        theme, color = split_theme.split('_', 1)
+        if '_' in self.set_theme:
+            split_theme = self.set_theme.rsplit('.', 1)[0]
+            theme, color = split_theme.split('_', 1)
 
-        self.theme_selector.setCurrentText(theme)
-        self.color_selector.setCurrentText(color)
+            if theme.capitalize() in ['Dark', 'Light']:
+                self.theme_selector.setCurrentText(theme.capitalize())
+
+            if color.capitalize() in self.colors:
+                self.color_selector.setCurrentText(color.capitalize())
+        else:
+            print("Theme format is invalid. Themes will be set to default.")
 
         self.theme_selector.currentIndexChanged.connect(self.update_theme)
         self.color_selector.currentIndexChanged.connect(self.update_theme)
