@@ -70,9 +70,13 @@ class SettingsDialog(QDialog):
         layout.addRow("", self.color_selector)
 
         self.background_selector = QComboBox()
-        self.background_selector.addItems(['First Found', "Both", "Video only", "Image only", "None"])
+        background_options = ['First found', "Both", "Video only", "Image only", "None"]
+        self.background_selector.addItems(background_options)
         layout.addRow("Background sourcing:", self.background_selector)
-
+        
+        set_bg_option = get_setting("background_source")
+        # format for background_source is no capitalize and "_" instead of " " therefore revert both
+        self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -112,6 +116,7 @@ class SettingsDialog(QDialog):
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
+            self.parent().grid_widget.render_bg()
         self.accept()
     def closeEvent(self, event):
         # Function to run before closing the dialog

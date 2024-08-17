@@ -12,10 +12,10 @@ DEFUALT_SETTINGS = {
 }
 
 #background_source arguments:
-# first_found = First Found
+# first_found = First found
 # both = Both
-# video_only = Video
-# image_only = Image
+# video_only = Video only
+# image_only = Image only
 # none = None
 
     

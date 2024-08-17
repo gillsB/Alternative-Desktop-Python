@@ -11,6 +11,7 @@ import subprocess
 import shlex
 from desktop_grid_menu import Menu
 from run_menu_dialog import RunMenuDialog
+from settings import get_setting
 
 
 
@@ -74,6 +75,8 @@ class Grid(QWidget):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
+        self.load_video, self.load_image = self.background_setting()
+
         #QGraphicsView and QGraphicsScene
         self.view = QGraphicsView(self)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -121,10 +124,36 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
-        
-        self.set_video_source("background.mp4")
+
+        self.render_bg()
         self.setAcceptDrops(True)
 
+    def background_setting(self):
+        bg_setting = get_setting("background_source")
+        exists_video = os.path.exists("background.mp4")
+        exists_image = os.path.exists("background.png")
+        if bg_setting == "first_found":
+            if exists_video:
+                return True, False
+            elif exists_image:
+                return False, True
+            return False, False
+        elif bg_setting == "both":
+            return exists_video, exists_image
+        elif bg_setting == "video_only":
+            return exists_video, False
+        elif bg_setting == "image_only":
+            return False, exists_image
+
+        return False, False
+    
+    def render_bg(self):
+        self.load_video, self.load_image = self.background_setting()
+        if self.load_video:
+            self.set_video_source("background.mp4")
+        else:
+            self.media_player.stop()  # Stop the playback
+            self.media_player.setSource(QUrl())  # Clear the media source
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
@@ -191,7 +220,7 @@ class Grid(QWidget):
     def paintEvent(self, event):
 
         painter = QPainter(self)
-        if os.path.exists("background.png"):
+        if self.load_image:
             self.background_pixmap = QPixmap("background.png")
             painter.drawPixmap(self.rect(), self.background_pixmap)
         else:
