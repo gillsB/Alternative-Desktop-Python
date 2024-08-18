@@ -8,7 +8,9 @@ DEFUALT_SETTINGS = {
         "toggle_overlay_keybind": "Alt+d",
         "window_opacity": 100,
         "theme" : "dark_cyan.xml",
-        "background_source": "first_found"
+        "background_source": "first_found",
+        "background_video": "",
+        "background_image": ""
 }
 
 #background_source arguments:

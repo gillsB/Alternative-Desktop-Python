@@ -4,7 +4,8 @@ from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
-
+from desktop_grid_menu import ClearableLineEdit
+import os
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -78,6 +79,16 @@ class SettingsDialog(QDialog):
         # format for background_source is no capitalize and "_" instead of " " therefore revert both
         self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
 
+        self.background_video = ClearableLineEdit()
+        self.background_video.setText(settings.get("background_video", ""))
+        layout.addRow("Background Video path:", self.background_video)
+
+
+        self.background_image = ClearableLineEdit()
+        self.background_image.setText(settings.get("background_image", ""))
+        layout.addRow("Background Image path:", self.background_image)
+
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
@@ -107,16 +118,36 @@ class SettingsDialog(QDialog):
         print("Released")
 
     def save_settings(self):
+
+        #cleanup background paths
+        self.cleanup_bg_paths()
+        if self.background_video.text() != "" and os.path.exists(self.background_video.text()) == False:
+            ret = QMessageBox.warning(self, "Video does not exist",
+                                    f"Video at path: {self.background_video.text()} Does Not Exist. Are you sure you want to save with an incorrect video file?",
+                                    QMessageBox.Ok| QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:   
+                return
+        if self.background_image.text() != "" and os.path.exists(self.background_image.text())  == False:
+            ret = QMessageBox.warning(self, "Image does not exist",
+                                    f"Image at path: {self.background_image.text()} Does Not Exist. Are you sure you want to save with an incorrect image file?",
+                                    QMessageBox.Ok| QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:   
+                return
+
+
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
         settings["window_opacity"] = self.window_opacity_slider.value()
         settings["theme"] = f"{self.theme_selector.currentText().lower()}_{self.color_selector.currentText().lower()}.xml"
         settings["background_source"] = self.background_selector.currentText().lower().replace(" ", "_")
+        settings["background_video"] = self.background_video.text()
+        settings["background_image"] = self.background_image.text()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
+            self.parent().grid_widget.set_bg(self.background_video.text(), self.background_image.text())
         self.accept()
     def closeEvent(self, event):
         # Function to run before closing the dialog
@@ -136,6 +167,20 @@ class SettingsDialog(QDialog):
     def set_changed(self):
         print("Settings changed")
         self.is_changed = True
+
+    def cleanup_bg_paths(self):
+
+        #cleanup background_video
+        if self.background_video.text().startswith("file:///"):
+            self.background_video.setText(self.background_video.text()[8:])  # remove "file:///"
+        elif self.background_video.text().startswith("file://"):
+            self.background_video.setText(self.background_video.text()[7:])  # Remove 'file://' prefix
+
+        #cleanup background_image
+        if self.background_image.text().startswith("file:///"):
+            self.background_image.setText(self.background_image.text()[8:])  # remove "file:///"
+        elif self.background_image.text().startswith("file://"):
+            self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
 
     def on_close(self):
         settings = load_settings()

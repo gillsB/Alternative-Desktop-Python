@@ -31,6 +31,8 @@ LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
 DRAG_ROW = None
 DRAG_COL = None
 AUTOGEN_ICON_SIZE = 128
+BACKGROUND_VIDEO = ""
+BACKGROUND_IMAGE = ""
 
 
 
@@ -105,8 +107,8 @@ class Grid(QWidget):
 
     def background_setting(self):
         bg_setting = get_setting("background_source")
-        exists_video = os.path.exists("background.mp4")
-        exists_image = os.path.exists("background.png")
+        exists_video = os.path.exists(BACKGROUND_VIDEO)
+        exists_image = os.path.exists(BACKGROUND_IMAGE)
         if bg_setting == "first_found":
             if exists_video:
                 return True, False
@@ -125,10 +127,16 @@ class Grid(QWidget):
     def render_bg(self):
         self.load_video, self.load_image = self.background_setting()
         if self.load_video:
-            self.set_video_source("background.mp4")
+            self.set_video_source(BACKGROUND_VIDEO)
         else:
             self.media_player.stop()  # Stop the playback
             self.media_player.setSource(QUrl())  # Clear the media source
+    
+    def set_bg(self, background_video, background_image):
+        global BACKGROUND_VIDEO, BACKGROUND_IMAGE
+        BACKGROUND_VIDEO = background_video
+        BACKGROUND_IMAGE = background_image
+        self.render_bg()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
@@ -197,7 +205,7 @@ class Grid(QWidget):
 
         painter = QPainter(self)
         if self.load_image:
-            self.background_pixmap = QPixmap("background.png")
+            self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
             painter.drawPixmap(self.rect(), self.background_pixmap)
         else:
             # whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
