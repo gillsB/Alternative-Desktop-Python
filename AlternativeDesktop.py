@@ -8,7 +8,7 @@ import zipfile
 import json
 from updater import check_for_updates
 from settings import load_settings, set_dir, get_setting, set_setting
-from desktop import main as desktop_main
+from desktop import main as desktop
 
 CURRENT_VERSION = "v0.0.014"
 GITHUB_REPO = "gillsb/Alternative-Desktop" 
@@ -41,4 +41,4 @@ if __name__ == '__main__':
     if settings.get("update_on_launch", True):
        check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)
     
-    desktop_main()
+    desktop()

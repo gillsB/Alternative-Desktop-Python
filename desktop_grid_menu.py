@@ -9,8 +9,7 @@ from thumbnail_gen.url_to_image import extract_icon_from_url
 from thumbnail_gen.icon_selection import select_icon_from_paths
 from thumbnail_gen.favicon_to_image import favicon_to_image
 from thumbnail_gen.browser_to_image import browser_to_image
-
-import json
+from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file)
 import os
 
 
@@ -29,7 +28,6 @@ class Menu(QDialog):
         global ROW 
         global COL 
 
-        config = self.parent().load_config()
         ROW = self.parent().get_row()
         COL = self.parent().get_col()
 
@@ -100,18 +98,19 @@ class Menu(QDialog):
         main_layout.addWidget(self.tabs)
 
         global LAUNCH_OPTIONS
+
         ## load already saved data for desktop_icon into fields in this menu
-        for item in config:
-            
-            if item['row'] == ROW and item['column'] == COL:
-                self.name_le.setText(item['name'])
-                self.icon_path_le.setText(item['icon_path'])
-                self.exec_path_le.setText(item['executable_path'])
-                self.web_link_le.setText(item['website_link'])
-                self.command_args_le.setText(item['command_args'])
-                self.launch_option_cb.setCurrentIndex(item['launch_option'])
-                LAUNCH_OPTIONS = item['launch_option']
-                break
+        entry = get_entry(ROW, COL)
+        if entry:
+            self.name_le.setText(entry['name'])
+            self.icon_path_le.setText(entry['icon_path'])
+            self.exec_path_le.setText(entry['executable_path'])
+            self.web_link_le.setText(entry['website_link'])
+            self.command_args_le.setText(entry['command_args'])
+            self.launch_option_cb.setCurrentIndex(entry['launch_option'])
+            LAUNCH_OPTIONS = entry['launch_option']
+
+
 
         self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]: {self.name_le.text()}")
         if urls != None:
@@ -163,7 +162,6 @@ class Menu(QDialog):
 
         # if exec_path is empty -> save file
         if self.exec_path_le.text() == "" and self.web_link_le == "":
-            
             
             self.handle_save()
         # if icon already set, do not auto_gen_icon
@@ -288,16 +286,15 @@ class Menu(QDialog):
                 
 
     def save(self):
-        config = self.parent().load_config()
+        config = load_desktop_config()
 
-
-        if self.entry_exists(config) == True:
+        if entry_exists(ROW, COL) == True:
             new_config = self.edit_entry(config)
         else:
             new_config = self.add_entry(config)
 
 
-        self.parent().save_desktop_config(new_config)
+        save_config_to_file(new_config)
         self.close()
 
         
@@ -318,7 +315,6 @@ class Menu(QDialog):
 
 
     def edit_entry(self, config):
-        
         for item in config:
             if item['row'] == ROW and item['column'] == COL:
                 item['name'] = self.name_le.text()
@@ -330,11 +326,6 @@ class Menu(QDialog):
                 break
         return config
         
-    def entry_exists(self, config):
-        for item in config:
-            if item['row'] == ROW and item['column'] == COL:
-                return True
-        return False
 
 
 
