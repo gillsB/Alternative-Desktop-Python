@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox
-from PySide6.QtCore import Qt, QEvent, QKeyCombination
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog
+from PySide6.QtCore import Qt, QEvent, QKeyCombination, QSize
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
@@ -79,15 +79,36 @@ class SettingsDialog(QDialog):
         # format for background_source is no capitalize and "_" instead of " " therefore revert both
         self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
 
+
+        # background path clearable line edits
         self.background_video = ClearableLineEdit()
-        self.background_video.setText(settings.get("background_video", ""))
-        layout.addRow("Background Video path:", self.background_video)
-
-
         self.background_image = ClearableLineEdit()
+        self.background_video.setText(settings.get("background_video", ""))
         self.background_image.setText(settings.get("background_image", ""))
-        layout.addRow("Background Image path:", self.background_image)
 
+
+        # folder buttons to open path in fileDialog
+        video_folder_button = QPushButton(self)
+        video_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
+        video_folder_button.setIconSize(QSize(16,16))
+        video_folder_button.setFocusPolicy(Qt.NoFocus)
+        video_folder_button.clicked.connect(self.video_folder_button_clicked)
+        image_folder_button = QPushButton(self)
+        image_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
+        image_folder_button.setIconSize(QSize(16,16))
+        image_folder_button.setFocusPolicy(Qt.NoFocus)
+        image_folder_button.clicked.connect(self.image_folder_button_clicked)
+    
+        # layouts to add folder buttons
+        video_folder_layout = QHBoxLayout()
+        video_folder_layout.addWidget(self.background_video)
+        video_folder_layout.addWidget(video_folder_button)
+        image_folder_layout = QHBoxLayout()
+        image_folder_layout.addWidget(self.background_image)
+        image_folder_layout.addWidget(image_folder_button)
+
+        layout.addRow("Background Video path:", video_folder_layout)
+        layout.addRow("Background Image path:", image_folder_layout)
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -191,6 +212,18 @@ class SettingsDialog(QDialog):
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
+
+    def video_folder_button_clicked(self):
+        file_dialog = QFileDialog()
+        if file_dialog.exec():
+            selected_file = file_dialog.selectedFiles()[0]
+            self.background_video.setText(selected_file)
+
+    def image_folder_button_clicked(self):
+        file_dialog = QFileDialog()
+        if file_dialog.exec():
+            selected_file = file_dialog.selectedFiles()[0]
+            self.background_image.setText(selected_file)
 
 class KeybindButton(QPushButton):
     def __init__(self, parent=None):
