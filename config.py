@@ -209,3 +209,26 @@ def change_launch(new_launch_value, row, col):
             entry['launch_option'] = new_launch_value
             break
     save_config_to_file(config)
+
+def update_folder( new_row, new_col):
+    config = load_desktop_config()
+
+    for entry in config:
+        if entry.get('row') == new_row and entry.get('column') == new_col:
+            new_dir = os.path.join(DATA_DIRECTORY, f'[{new_row}, {new_col}]')
+            if entry['icon_path'].startswith(DATA_DIRECTORY):
+                filename = ""
+
+                last_backslash_index = entry['icon_path'].rfind('\\')
+
+                # Extract everything after the last backslash
+                if last_backslash_index != -1:
+                    filename = entry['icon_path'][last_backslash_index + 1:]
+                entry['icon_path'] = os.path.join(new_dir, filename)
+    
+    save_config_to_file(config)
+            
+
+def set_data_directory(data_path):
+    global DATA_DIRECTORY
+    DATA_DIRECTORY = data_path

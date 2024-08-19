@@ -12,7 +12,7 @@ import shlex
 from desktop_grid_menu import Menu
 from run_menu_dialog import RunMenuDialog
 from settings import get_setting
-from config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry,
+from config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
                     set_entry_to_default, is_default, swap_items_by_position, change_launch)
 
 
@@ -165,6 +165,7 @@ class Grid(QWidget):
             existing_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
             if existing_widget:
                 swap_items_by_position(DRAG_ROW, DRAG_COL, new_row, new_col)
+                self.swap_folders(new_widget, existing_widget)
                 new_widget.render_icon()
                 existing_widget.render_icon()
                 event.acceptProposedAction()
@@ -176,6 +177,20 @@ class Grid(QWidget):
                     label_widget.drop_file_to_edit(urls)
 
         self.updateGeometries()
+
+    def swap_folders(self, new_widget, existing_widget):
+        new_dir = new_widget.get_data_icon_dir()
+        exist_dir = existing_widget.get_data_icon_dir()
+        if os.path.exists(new_dir) and os.path.exists(exist_dir):
+            # Swap folder names using temporary folder
+            temp_folder = new_dir + '_temp'
+            os.rename(new_dir, temp_folder)
+            os.rename(exist_dir, new_dir)
+            os.rename(temp_folder, exist_dir)
+        else:
+            print("One or both folders do not exist")
+        update_folder(existing_widget.desktop_icon.row, existing_widget.desktop_icon.col)
+        update_folder(new_widget.desktop_icon.row, new_widget.desktop_icon.col)
                 
         
 
@@ -756,3 +771,4 @@ def create_data_path():
         os.makedirs(data_path)
     
     DATA_DIRECTORY = data_path
+    set_data_directory(DATA_DIRECTORY)
