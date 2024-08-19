@@ -161,6 +161,10 @@ class Grid(QWidget):
             return
         print(f"Dropped at cell: ({new_row}, {new_col})")
 
+        # returns if item dropped is same as item dropped on. (no changes)
+        if new_row == DRAG_ROW and new_col == DRAG_COL:
+            return
+
         if isinstance(new_widget, ClickableLabel) and new_row is not None and new_col is not None:
             existing_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
             if existing_widget:
@@ -184,6 +188,8 @@ class Grid(QWidget):
         if os.path.exists(new_dir) and os.path.exists(exist_dir):
             # Swap folder names using temporary folder
             temp_folder = new_dir + '_temp'
+            temp_folder = self.get_unique_folder_name(temp_folder)
+            print(f"making new folder name = {temp_folder}")
             os.rename(new_dir, temp_folder)
             os.rename(exist_dir, new_dir)
             os.rename(temp_folder, exist_dir)
@@ -191,6 +197,17 @@ class Grid(QWidget):
             print("One or both folders do not exist")
         update_folder(existing_widget.desktop_icon.row, existing_widget.desktop_icon.col)
         update_folder(new_widget.desktop_icon.row, new_widget.desktop_icon.col)
+
+    def get_unique_folder_name(self, folder_path):
+        counter = 1
+        new_folder = folder_path
+        while os.path.exists(new_folder):
+            QMessageBox.warning(self, "Failed cleanup",
+                                    f"Temp file found: {new_folder}\n which was not removed after the last cleanup. Check the file if it contains anything important and delete it after. \nIf this pops up again in a repeatable way (after deleting the _temp folder) please contact the dev.",
+                                    QMessageBox.Ok)
+            new_folder = f"{folder_path}{counter}"
+            counter += 1
+        return new_folder
                 
         
 
