@@ -14,6 +14,7 @@ from run_menu_dialog import RunMenuDialog
 from settings import get_setting
 from config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
                     set_entry_to_default, is_default, swap_items_by_position, change_launch)
+from qt_material import get_theme
 
 
 
@@ -234,15 +235,29 @@ class Grid(QWidget):
         return None, None
     
     def paintEvent(self, event):
-
         painter = QPainter(self)
+
         if self.load_image:
             self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
             painter.drawPixmap(self.rect(), self.background_pixmap)
         else:
-            # whole program is affected by setWindowOpacity() thus color does not need to be anything specific to be transparent.
-            color = QColor(32, 32, 32) 
+            # Access the color from the parent class
+            secondary_color = self.parent().secondary_color or '#202020'  # Default if None
+
+
+            #dark mode set background to secondary_color
+            if secondary_color == '#4c5559':
+                # Convert the color to QColor
+                color = QColor(secondary_color)
+            else: #light mode lets set background to a shade of primary color
+                #primary light color is still eye-burningly vivid so lets lighten it up a bit
+                bright_color = QColor(self.parent().primary_light_color)
+                lighter_color = bright_color.lighter(int(1.2 * 100))
+                color =QColor(lighter_color)
+
+            # Paint the background with the selected color
             painter.fillRect(self.rect(), color)
+    
         
     def set_video_source(self, video_path):
         self.media_player.setSource(QUrl.fromLocalFile(video_path))

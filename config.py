@@ -72,24 +72,24 @@ def create_config_path():
 
 
 def get_item_data(row, column):
-        for item in JSON:
-            if item['row'] == row and item['column'] == column:
-                return {
-                    'icon_path': item.get('icon_path', ""),
-                    'name': item.get('name', ""),
-                    'executable_path': item.get('executable_path', ""),
-                    'command_args': item.get('command_args', ""),
-                    'website_link': item.get('website_link', ""),
-                    'launch_option': item.get('launch_option', 0)
-                }
-        return {
-            'icon_path': "",
-            'name': "",
-            'executable_path': "",
-            'command_args': "",
-            'website_link': "",
-            'launch_option': 0
-        }
+    for item in JSON:
+        if item['row'] == row and item['column'] == column:
+            return {
+                'icon_path': item.get('icon_path', ""),
+                'name': item.get('name', ""),
+                'executable_path': item.get('executable_path', ""),
+                'command_args': item.get('command_args', ""),
+                'website_link': item.get('website_link', ""),
+                'launch_option': item.get('launch_option', 0)
+            }
+    return {
+        'icon_path': "",
+        'name': "",
+        'executable_path': "",
+        'command_args': "",
+        'website_link': "",
+        'launch_option': 0
+    }
 
 def get_json():
     return JSON

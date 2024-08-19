@@ -5,9 +5,12 @@ import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 from settingsMenu import SettingsDialog
+import qt_material
 from qt_material import apply_stylesheet
 from desktop_grid import Grid
 from hotkey_handler import HotkeyHandler
+import os
+import xml.etree.ElementTree as ET
 
 
 
@@ -43,19 +46,66 @@ class OverlayWidget(QWidget):
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
 
         start_theme= get_setting("theme")
-        if start_theme.startswith("dark"):
-            apply_stylesheet(QApplication.instance(), theme=start_theme, invert_secondary=False, extra={'secondaryColor': '#7f8994'})
+        self.apply_theme(start_theme)
+
+    def apply_theme(self, theme_name):
+        try:
+            # load_theme_colors excpects no file extention. so remove it before calling
+            no_ext = theme_name.replace('.xml', '')
+            
+            self.theme_colors = self.load_theme_colors(no_ext)
+            print("Theme Colors Found:", self.theme_colors)
+            #save all colors to variables to be able to access them from child grid
+            self.primary_color = self.theme_colors.get('primaryColor')
+            self.primary_light_color = self.theme_colors.get('primaryLightColor')
+            self.secondary_color = self.theme_colors.get('secondaryColor')
+            self.secondary_light_color = self.theme_colors.get('secondaryLightColor')
+            self.secondary_dark_color = self.theme_colors.get('secondaryDarkColor')
+            self.primary_text_color = self.theme_colors.get('primaryTextColor')
+            self.secondary_text_color = self.theme_colors.get('secondaryTextColor')
+
+        except FileNotFoundError as e:
+            print(e)
+        if theme_name.startswith("dark"):
+            #these two color overrides make certain fields way more readable on dark mode (when not selected) than the base themes while still maintaining a good look.
+            #for instance lineEdits with black text on a dark gray (secondary color) is hard to tell if there is anything in the line edit at all without clicking on it.
+            self.secondary_color = '#4c5559'  
+            self.secondary_dark_color = '#2c3135'
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': self.secondary_color, 'secondaryDarkColor': self.secondary_dark_color})
         else:
-            apply_stylesheet(QApplication.instance(), theme=start_theme, invert_secondary=True)
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)
 
     def change_theme(self, theme_name):
         self.grid_widget.pause_video()
         QApplication.processEvents()
-        if theme_name.startswith("dark"):
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': '#7f8994'})
-        else:
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)#, extra={'primaryTextColor': '#000000'})
+
+        # Apply the new theme
+        self.apply_theme(theme_name)
+
         self.grid_widget.play_video()
+
+    def load_theme_colors(self, theme_name):
+        # Construct the file path for the XML file (qt_material/themes)
+        theme_path = os.path.join(os.path.dirname(qt_material.__file__), 'themes', f'{theme_name}.xml')
+        
+        if not os.path.exists(theme_path):
+            raise FileNotFoundError(f"Theme file '{theme_name}.xml' not found at {theme_path}")
+
+        # Parse the XML file
+        tree = ET.parse(theme_path)
+        root = tree.getroot()
+
+        # Initialize a dictionary to store theme colors
+        theme_colors = {}
+
+        # Extract color properties from the XML
+        for color in root.findall("color"):
+            color_name = color.get("name")
+            color_value = color.text
+            theme_colors[color_name] = color_value
+
+        return theme_colors
+
 
 
     def show_settings(self):
