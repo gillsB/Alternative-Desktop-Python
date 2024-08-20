@@ -274,6 +274,8 @@ class Menu(QDialog):
         
         #join it to data path for full save location
         output_path = os.path.join(data_path, file_name)
+        #ensure that it has a unique file name to not overwrite if named icon.png etc.
+        output_path = self.get_unique_folder_name(output_path)
         
         try:
             print(f"Trying to copy {icon_path} to {output_path}")
@@ -283,6 +285,19 @@ class Menu(QDialog):
         except Exception as e:
             print(f"Error copying file: {e}")
             return None
+        
+    #takes output path and injects _local before the file extention
+    #if a copy with the same name already exists it becomes _local1, _local2, _local3 etc.
+    def get_unique_folder_name(self, folder_path):
+        base, ext = os.path.splitext(folder_path)
+        counter = 1
+        new_folder = f"{base}_local{ext}"
+        
+        while os.path.exists(new_folder):
+            new_folder = f"{base}_local{counter}{ext}"
+            counter += 1
+            
+        return new_folder
 
     #last minute checks before saving
     def handle_save(self):
