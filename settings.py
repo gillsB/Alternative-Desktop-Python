@@ -10,7 +10,8 @@ DEFUALT_SETTINGS = {
         "theme" : "dark_cyan.xml",
         "background_source": "first_found",
         "background_video": "",
-        "background_image": ""
+        "background_image": "",
+        "local_icons": True
 }
 
 #background_source arguments:

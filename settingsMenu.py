@@ -110,6 +110,11 @@ class SettingsDialog(QDialog):
         layout.addRow("Background Video path:", video_folder_layout)
         layout.addRow("Background Image path:", image_folder_layout)
 
+        self.local_icons_cb = QCheckBox()
+        self.local_icons_cb.setChecked(settings.get("local_icons", True))
+        self.local_icons_cb.clicked.connect(self.set_changed)
+        layout.addRow("Save icons locally", self.local_icons_cb)
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
@@ -164,6 +169,7 @@ class SettingsDialog(QDialog):
         settings["background_source"] = self.background_selector.currentText().lower().replace(" ", "_")
         settings["background_video"] = self.background_video.text()
         settings["background_image"] = self.background_image.text()
+        settings["local_icons"] = self.local_icons_cb.isChecked()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()

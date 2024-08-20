@@ -10,6 +10,7 @@ from thumbnail_gen.icon_selection import select_icon_from_paths
 from thumbnail_gen.favicon_to_image import favicon_to_image
 from thumbnail_gen.browser_to_image import browser_to_image
 from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
+from settings import get_setting
 import os
 import shutil
 
@@ -305,12 +306,13 @@ class Menu(QDialog):
         #ensure clean paths for icon_path and executable_path
         self.cleanup_path()
 
-        #making a local copy of the icon (stored in data_directory\[row, col])
-        data_directory = get_data_directory()
-        # if icon does not start with the default data directory
-        if not self.icon_path_le.text().startswith(data_directory):
-            new_dir = self.make_local_icon(self.icon_path_le.text())
-            self.icon_path_le.setText(new_dir)
+        if get_setting("local_icons"):
+            
+            data_directory = get_data_directory()
+            # if icon does not start with the default data directory
+            if not self.icon_path_le.text().startswith(data_directory):
+                new_dir = self.make_local_icon(self.icon_path_le.text())
+                self.icon_path_le.setText(new_dir)
 
         #.lnks do not have command line arguments supported (possible but annoying to implement)
         if self.exec_path_le.text().endswith(".lnk") and self.command_args_le.text() != "":
