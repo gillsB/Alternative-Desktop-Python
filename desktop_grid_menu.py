@@ -9,9 +9,9 @@ from thumbnail_gen.url_to_image import extract_icon_from_url
 from thumbnail_gen.icon_selection import select_icon_from_paths
 from thumbnail_gen.favicon_to_image import favicon_to_image
 from thumbnail_gen.browser_to_image import browser_to_image
-from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file)
+from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 import os
-
+import shutil
 
 
 
@@ -263,13 +263,39 @@ class Menu(QDialog):
         non_empty_count = sum(1 for arg in variables if arg is not None and arg != "")
         return non_empty_count >= 2
 
-
+    def make_local_icon(self, icon_path):
+        #ensure datapath for [row, col] exists
+        data_path = self.parent().get_data_icon_dir()
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+            
+        #get original image name
+        file_name = os.path.basename(icon_path)
+        
+        #join it to data path for full save location
+        output_path = os.path.join(data_path, file_name)
+        
+        try:
+            print(f"Trying to copy {icon_path} to {output_path}")
+            shutil.copy(icon_path, output_path)
+            return output_path
+        
+        except Exception as e:
+            print(f"Error copying file: {e}")
+            return None
 
     #last minute checks before saving
     def handle_save(self):
 
         #ensure clean paths for icon_path and executable_path
         self.cleanup_path()
+
+        #making a local copy of the icon (stored in data_directory\[row, col])
+        data_directory = get_data_directory()
+        # if icon does not start with the default data directory
+        if not self.icon_path_le.text().startswith(data_directory):
+            new_dir = self.make_local_icon(self.icon_path_le.text())
+            self.icon_path_le.setText(new_dir)
 
         #.lnks do not have command line arguments supported (possible but annoying to implement)
         if self.exec_path_le.text().endswith(".lnk") and self.command_args_le.text() != "":

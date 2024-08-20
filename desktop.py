@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, Q
 from PySide6.QtCore import Qt, QEvent, QKeyCombination
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
-from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 from settingsMenu import SettingsDialog
 import qt_material

@@ -232,3 +232,6 @@ def update_folder( new_row, new_col):
 def set_data_directory(data_path):
     global DATA_DIRECTORY
     DATA_DIRECTORY = data_path
+
+def get_data_directory():
+    return DATA_DIRECTORY
