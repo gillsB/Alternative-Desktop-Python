@@ -49,6 +49,10 @@ class Grid(QWidget):
         create_config_path()
         create_data_path()
 
+        global LABEL_SIZE, LABEL_VERT_PAD
+        LABEL_SIZE = get_setting("icon_size", 100)
+        LABEL_VERT_SIZE = get_setting("icon_size", 100)
+
         #main layout
         self.main_layout = QGridLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)

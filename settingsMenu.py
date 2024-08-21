@@ -115,13 +115,13 @@ class SettingsDialog(QDialog):
         self.local_icons_cb.clicked.connect(self.set_changed)
         layout.addRow("Save icons locally", self.local_icons_cb)
 
-        self.label_size_slider = QSlider(Qt.Orientation.Horizontal)
-        self.label_size_slider.setMinimum(30)
-        self.label_size_slider.setMaximum(256)
-        self.label_size_slider.setSingleStep(1)
-        self.label_size_slider.setSliderPosition(64)
-        self.label_size_slider.valueChanged.connect(self.label_size_changed)
-        layout.addRow("Desktop Icon Size: ", self.label_size_slider)
+        self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.icon_size_slider.setMinimum(30)
+        self.icon_size_slider.setMaximum(256)
+        self.icon_size_slider.setSingleStep(1)
+        self.icon_size_slider.setSliderPosition(settings.get("icon_size", 100))
+        self.icon_size_slider.valueChanged.connect(self.label_size_changed)
+        layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
 
         save_button = QPushButton("Save")
@@ -182,6 +182,7 @@ class SettingsDialog(QDialog):
         settings["background_video"] = self.background_video.text()
         settings["background_image"] = self.background_image.text()
         settings["local_icons"] = self.local_icons_cb.isChecked()
+        settings["icon_size"] = self.icon_size_slider.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
