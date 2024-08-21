@@ -6,15 +6,16 @@ from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData, QMetaObject
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
-
+import shutil
 import subprocess
 import shlex
 from desktop_grid_menu import Menu
 from run_menu_dialog import RunMenuDialog
 from settings import get_setting
 from config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
-                    set_entry_to_default, is_default, swap_items_by_position, change_launch)
+                    get_data_directory, set_entry_to_default, is_default, swap_items_by_position, change_launch)
 from qt_material import get_theme
+import send2trash
 
 
 
@@ -534,7 +535,21 @@ class ClickableLabel(QLabel):
                                     QMessageBox.Ok| QMessageBox.Cancel)
         if ret == QMessageBox.Ok:   
             set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
+            self.delete_folder_items()
             self.render_icon()
+    
+    def delete_folder_items(self):
+        # Check if the directory exists
+        data_directory = get_data_directory()
+        folder_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+        if os.path.exists(folder_path) and os.path.isdir(folder_path):
+            # Loop through all the items in the directory
+            for item in os.listdir(folder_path):
+                item_path = os.path.join(folder_path, item)
+                print(f"Deleting ITEM = {item_path}")
+                send2trash.send2trash(item_path)
+        else:
+            print(f"{folder_path} does not exist or is not a directory.")
 
     
 

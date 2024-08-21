@@ -38,7 +38,8 @@ Pyside6 	(Qt for Python, pip install PySide6)
 pylnk3		(for getting icons from .lnk files, pip install pylnk3)   
 PIL 		(Python Imaging Library, pip install pillow)   
 icoextract  (Extracting icons from .exe, pip install icoextract)  
-qt-material (stylesheets, pip install qt-material)
+qt-material (stylesheets, pip install qt-material)  
+send2trash (recycle bin instead of outright deletion of icons, pip install send2trash)  
 
 ### Step 1: Building .exe
 open command prompt
