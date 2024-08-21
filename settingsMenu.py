@@ -115,6 +115,15 @@ class SettingsDialog(QDialog):
         self.local_icons_cb.clicked.connect(self.set_changed)
         layout.addRow("Save icons locally", self.local_icons_cb)
 
+        self.label_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.label_size_slider.setMinimum(30)
+        self.label_size_slider.setMaximum(256)
+        self.label_size_slider.setSingleStep(1)
+        self.label_size_slider.setSliderPosition(64)
+        self.label_size_slider.valueChanged.connect(self.label_size_changed)
+        layout.addRow("Desktop Icon Size: ", self.label_size_slider)
+
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
@@ -133,6 +142,9 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().change_opacity(i)
         self.setWindowOpacity(1.0)
+
+    def label_size_changed(self, i):
+        self.parent().grid_widget.update_label_size(i)
 
     def slider_position(self, p):
         print("position", p)

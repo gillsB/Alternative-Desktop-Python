@@ -293,8 +293,19 @@ class Grid(QWidget):
 
             if col < self.num_columns and row < self.num_rows:
                 label.show()
+                label.set_size()
+                label.render_icon()
             else:
                 label.hide()
+
+    def update_label_size(self, label_size):
+
+        print("here")
+        global LABEL_SIZE, LABEL_VERT_PAD
+        LABEL_SIZE = label_size
+        LABEL_VERT_PAD = label_size
+        print(f"Label size = {label_size}")
+        self.draw_labels()
     
     def showEvent(self, event):
         super().showEvent(event)
@@ -324,13 +335,13 @@ class ClickableLabel(QLabel):
         self.timer_hover.timeout.connect(self.show_tooltip)
         
         self.desktop_icon = desktop_icon
-        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
+
         self.setAlignment(Qt.AlignCenter)
         
         
         self.icon_label = QLabel(self)
         self.icon_label.setStyleSheet(DEFAULT_BORDER)
-        self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
+        self.set_size()
         self.icon_label.setAlignment(Qt.AlignCenter)
         self.icon_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -353,6 +364,14 @@ class ClickableLabel(QLabel):
         self.setLayout(layout)
         self.render_icon()
         self.movie = None
+
+    def set_size(self):
+        """Set the size of the label."""
+        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
+        self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
+        # Optionally, update the layout if needed
+        if self.parent():
+            self.parent().updateGeometry()
 
     def set_icon(self, icon_path):
         if isinstance(self.movie, QMovie):
