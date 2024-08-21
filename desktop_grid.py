@@ -131,12 +131,18 @@ class Grid(QWidget):
         return False, False
     
     def render_bg(self):
+        self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
         if self.load_video:
             self.set_video_source(BACKGROUND_VIDEO)
         else:
             self.media_player.stop()  # Stop the playback
             self.media_player.setSource(QUrl())  # Clear the media source
+        
+    def load_bg_from_settings(self):
+        global BACKGROUND_VIDEO, BACKGROUND_IMAGE
+        BACKGROUND_VIDEO = get_setting("background_video")
+        BACKGROUND_IMAGE = get_setting("background_image")
     
     def set_bg(self, background_video, background_image):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
