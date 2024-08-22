@@ -9,6 +9,7 @@ from thumbnail_gen.url_to_image import extract_icon_from_url
 from thumbnail_gen.icon_selection import select_icon_from_paths
 from thumbnail_gen.favicon_to_image import favicon_to_image
 from thumbnail_gen.browser_to_image import browser_to_image
+from thumbnail_gen.default_icon_to_image import get_file_icon
 from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 from settings import get_setting
 import os
@@ -196,11 +197,13 @@ class Menu(QDialog):
         exe_file = False
         url_file = False
         fav_file = False
+        default_file = False
         path_ico_icon = ""
         path_exe_icon = ""
         path_lnk_icon = ""
         path_url_icon = ""
         path_fav_icon = ""
+        path_default_file_icon = ""
 
         if self.exec_path_le.text() != "" and has_ico_file(self.exec_path_le.text(), data_path, icon_size):
             ico_file = True
@@ -219,6 +222,11 @@ class Menu(QDialog):
             path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path, icon_size)  
             if path_exe_icon != None:
                 exe_file = True
+
+        elif self.icon_path_le.text() == "":
+            path_default_file_icon = get_file_icon(self.exec_path_le.text(), data_path, icon_size)
+            if path_default_file_icon != None:
+                default_file = True
 
         if self.web_link_le.text() != "":
             url = self.web_link_le.text()
@@ -245,8 +253,8 @@ class Menu(QDialog):
                 ico_file = True
 
 
-        if self.has_multiple_icons(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon):
-            icon_selected = select_icon_from_paths(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon)
+        if self.has_multiple_icons(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon, path_default_file_icon):
+            icon_selected = select_icon_from_paths(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon, path_default_file_icon)
             self.icon_path_le.setText(icon_selected)
         elif ico_file:
             self.icon_path_le.setText(path_ico_icon)
@@ -258,6 +266,8 @@ class Menu(QDialog):
             self.icon_path_le.setText(path_url_icon)
         elif fav_file:
             self.icon_path_le.setText(path_fav_icon)
+        elif default_file:
+            self.icon_path_le.setText(path_default_file_icon)
 
     def has_multiple_icons(self, *variables):
 
