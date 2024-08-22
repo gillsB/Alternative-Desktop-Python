@@ -144,6 +144,7 @@ class SettingsDialog(QDialog):
         self.setWindowOpacity(1.0)
 
     def label_size_changed(self, i):
+        self.set_changed()
         self.parent().grid_widget.update_label_size(i)
 
     def slider_position(self, p):
@@ -190,8 +191,6 @@ class SettingsDialog(QDialog):
             self.parent().grid_widget.set_bg(self.background_video.text(), self.background_image.text())
         self.accept()
     def closeEvent(self, event):
-        # Function to run before closing the dialog
-        settings = load_settings()
         
         if self.is_changed == False:
             print("no changes made in settings")
@@ -223,11 +222,10 @@ class SettingsDialog(QDialog):
             self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
 
     def on_close(self):
-        settings = load_settings()
-        save_settings(settings)
         window_opacity = get_setting("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
+        self.parent().grid_widget.update_label_size(get_setting("icon_size"))
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
