@@ -41,7 +41,7 @@ shell32 = ctypes.windll.shell32
 user32 = ctypes.windll.user32
 gdi32 = ctypes.windll.gdi32
 
-def get_file_icon(file_path, output_path, icon_size):
+def default_icon_to_image(file_path, output_path, icon_size):
     shfileinfo = SHFILEINFO()
     flags = SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES
     

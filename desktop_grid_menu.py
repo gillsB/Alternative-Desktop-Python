@@ -2,14 +2,14 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLa
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
-from icon_gen.extract_ico_file import has_ico_file
-from icon_gen.lnk_to_image import extract_icon_from_lnk
+from icon_gen.extract_ico_file import extract_ico_file
+from icon_gen.lnk_to_image import lnk_to_image
 from icon_gen.exe_to_image import exe_to_image
-from icon_gen.url_to_image import extract_icon_from_url
+from icon_gen.url_to_image import url_to_image
 from icon_gen.icon_selection import select_icon_from_paths
 from icon_gen.favicon_to_image import favicon_to_image
 from icon_gen.browser_to_image import browser_to_image
-from icon_gen.default_icon_to_image import get_file_icon
+from icon_gen.default_icon_to_image import default_icon_to_image
 from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 from settings import get_setting
 import os
@@ -205,13 +205,13 @@ class Menu(QDialog):
         path_fav_icon = ""
         path_default_file_icon = ""
 
-        if self.exec_path_le.text() != "" and has_ico_file(self.exec_path_le.text(), data_path, icon_size):
+        if self.exec_path_le.text() != "" and extract_ico_file(self.exec_path_le.text(), data_path, icon_size):
             ico_file = True
             path_ico_icon = os.path.join(data_path, "icon.png")
 
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
 
-            path_ico_icon, path_lnk_icon = extract_icon_from_lnk(self.exec_path_le.text(), data_path, icon_size)
+            path_ico_icon, path_lnk_icon = lnk_to_image(self.exec_path_le.text(), data_path, icon_size)
 
             if path_lnk_icon != None:
                 lnk_file = True
@@ -224,7 +224,7 @@ class Menu(QDialog):
                 exe_file = True
 
         elif self.icon_path_le.text() == "":
-            path_default_file_icon = get_file_icon(self.exec_path_le.text(), data_path, icon_size)
+            path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), data_path, icon_size)
             if path_default_file_icon != None:
                 default_file = True
 
@@ -247,7 +247,7 @@ class Menu(QDialog):
         
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
 
-            path_ico_icon = extract_icon_from_url(self.exec_path_le.text(), data_path, icon_size)
+            path_ico_icon = url_to_image(self.exec_path_le.text(), data_path, icon_size)
 
             if path_ico_icon != None:
                 ico_file = True
@@ -421,7 +421,7 @@ class Menu(QDialog):
         
         print(f"DATA PATH: {data_path}")
         print(f"FILE PATH: {file_path}")
-        upscaled_icon = has_ico_file(file_path, data_path)
+        upscaled_icon = extract_ico_file(file_path, data_path)
         if(upscaled_icon):
             print("UPSCALED .ICO FILE")
             data_path = os.path.join(data_path, "icon.png")

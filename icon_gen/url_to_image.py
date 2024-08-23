@@ -7,7 +7,7 @@ from icon_gen.extract_ico_file import remove_hidden_attribute
 
 ICON_SIZE = 0
 
-def extract_icon_from_url(url_path, output_path, icon_size):
+def url_to_image(url_path, output_path, icon_size):
     global ICON_SIZE
     ICON_SIZE = icon_size
 

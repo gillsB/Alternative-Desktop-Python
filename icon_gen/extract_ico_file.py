@@ -6,8 +6,8 @@ import ctypes
 
 
 
-
-def has_ico_file(source_file, target_dir, icon_size):
+#Returns true if found and copied to target_dir, returns false if no .ico found
+def extract_ico_file(source_file, target_dir, icon_size):
 
     found = False
     # Ensure target directory exists, create if it doesn't
