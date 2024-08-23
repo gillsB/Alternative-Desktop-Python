@@ -3,7 +3,7 @@ import configparser
 from PIL import Image
 import shutil
 import stat
-from thumbnail_gen.extract_ico_file import remove_hidden_attribute
+from icon_gen.extract_ico_file import remove_hidden_attribute
 
 ICON_SIZE = 0
 

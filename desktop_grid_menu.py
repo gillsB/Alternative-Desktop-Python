@@ -2,14 +2,14 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLa
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
-from thumbnail_gen.extract_ico_file import has_ico_file
-from thumbnail_gen.lnk_to_image import extract_icon_from_lnk
-from thumbnail_gen.exe_to_image import exe_to_image
-from thumbnail_gen.url_to_image import extract_icon_from_url
-from thumbnail_gen.icon_selection import select_icon_from_paths
-from thumbnail_gen.favicon_to_image import favicon_to_image
-from thumbnail_gen.browser_to_image import browser_to_image
-from thumbnail_gen.default_icon_to_image import get_file_icon
+from icon_gen.extract_ico_file import has_ico_file
+from icon_gen.lnk_to_image import extract_icon_from_lnk
+from icon_gen.exe_to_image import exe_to_image
+from icon_gen.url_to_image import extract_icon_from_url
+from icon_gen.icon_selection import select_icon_from_paths
+from icon_gen.favicon_to_image import favicon_to_image
+from icon_gen.browser_to_image import browser_to_image
+from icon_gen.default_icon_to_image import get_file_icon
 from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 from settings import get_setting
 import os

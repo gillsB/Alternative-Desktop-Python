@@ -1,7 +1,7 @@
 from icoextract import IconExtractor, IconExtractorError
 from PIL import Image
 import os
-from thumbnail_gen.extract_ico_file import has_ico_file
+from icon_gen.extract_ico_file import has_ico_file
 
 
 

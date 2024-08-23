@@ -1,7 +1,7 @@
 import pylnk3
 import os
-from thumbnail_gen.exe_to_image import exe_to_image
-from thumbnail_gen.extract_ico_file import has_ico_file
+from icon_gen.exe_to_image import exe_to_image
+from icon_gen.extract_ico_file import has_ico_file
 
 
 def extract_icon_from_lnk(lnk_path, output_path, icon_size):
