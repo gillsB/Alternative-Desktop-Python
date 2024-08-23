@@ -310,7 +310,6 @@ class Grid(QWidget):
 
     def update_label_size(self, label_size):
 
-        print("here")
         global LABEL_SIZE, LABEL_VERT_PAD
         LABEL_SIZE = label_size
         LABEL_VERT_PAD = label_size
