@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, QEvent, QKeyCombination
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
-from settingsMenu import SettingsDialog
+from settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
 from desktop_grid import Grid
