@@ -20,8 +20,8 @@ class OverlayWidget(QWidget):
         window_opacity = get_setting("window_opacity", -1)
         window_opacity = float(window_opacity/100)
         self.setWindowOpacity(window_opacity)
-        self.setWindowTitle("Alternative Desktop V0.0.014")
-        self.setGeometry(300, 300, 400, 200)
+        self.setWindowTitle("Alternative Desktop V0.0.015")
+        self.showMaximized()
 
         layout = QVBoxLayout(self)
         self.setLayout(layout)
@@ -156,7 +156,6 @@ def main():
     app = QApplication(sys.argv)
     overlay = OverlayWidget()
     overlay.setMinimumSize(100, 100)  
-    overlay.resize(1760, 990)
     overlay.show()
     sys.exit(app.exec())
 

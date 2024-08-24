@@ -4,28 +4,28 @@ import os
 import sys
 
 
-def check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL):
+def check_for_updates(CURRENT_VERSION, RELEASES_URL):
     try:
         response = requests.get(RELEASES_URL)
         response.raise_for_status()
         latest_release = response.json()
         latest_version = latest_release["tag_name"]
-        
-          # Replace with the current version of your app
 
+        # Replace with the current version of your app
         if latest_version > CURRENT_VERSION:
             print(f"New version available: {latest_version}")
             download_url = latest_release["assets"][0]["browser_download_url"]
-            print("new download link = " + download_url)
+            print("New download link: " + download_url)
             download_and_update(download_url, latest_version)
         else:
             print("You are running the latest version.")
     except requests.RequestException as e:
         print(f"Error checking for updates: {e}")
 
+
 def download_and_update(download_url, latest_version):
-    home_directory = os.path.expanduser("~")
-    local_filename = os.path.join(home_directory, f"update_{latest_version}.exe")
+    temp_directory = os.getenv('TEMP') 
+    local_filename = os.path.join(temp_directory, f"update_{latest_version}.exe")
     with requests.get(download_url, stream=True) as r:
         r.raise_for_status()
         with open(local_filename, "wb") as f:
@@ -33,6 +33,7 @@ def download_and_update(download_url, latest_version):
                 f.write(chunk)
     print(f"Downloaded {local_filename}")
     run_installer(local_filename)
+
 
 def run_installer(installer_path):
     try:
@@ -44,3 +45,11 @@ def run_installer(installer_path):
         print(f"Permission error: {e}")
     except subprocess.CalledProcessError as e:
         print(f"Failed to run the installer: {e}")
+    finally:
+        # Delete the installer after it's run
+        if os.path.exists(installer_path):
+            try:
+                os.remove(installer_path)
+                print(f"Deleted installer: {installer_path}")
+            except OSError as e:
+                print(f"Error deleting installer: {e}")
