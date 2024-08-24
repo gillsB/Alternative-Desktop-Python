@@ -60,6 +60,6 @@ if __name__ == '__main__':
     settings = load_settings()
     print(settings)
     if settings.get("update_on_launch", True):
-        check_for_updates(CURRENT_VERSION, GITHUB_REPO, RELEASES_URL)
+        check_for_updates(CURRENT_VERSION, RELEASES_URL)
     
     desktop.main()
