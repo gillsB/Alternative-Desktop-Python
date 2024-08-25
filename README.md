@@ -1,32 +1,58 @@
 # Alternative-Desktop
 
-Alternative Desktop
+A very modifiable Alternative to the base Windows desktop.
 
-# All current development is based on desktop_grid.py
+## Features:  
+Keybind to minimize/maximize  
+Opacity setting  
+Themes  
+Video, and static backgrounds.  
+Automatically generate Icons from Files or Website  
+Renaming icons  
+Custom icon images  
+Executable and Website link in one icon  
+Run functions, Double click to run the executable, the website link, or a menu to ask which to launch.  
+Add command line arguments to your executable path.  
 
-I am making sure desktop_grid.py is good before adding it to the base application (AlternativeDesktop.py)
-To run this file:   
-```py desktop_grid.py```
+### Installing: 
+Check Releases on the right side then download and run **Alternative.Desktop.Installer.exe** 
 
-Will probably not do a new release until desktop_grid.py is added to the base application.
-
-previews so far: 
-
-Adding a new icon: Left click any + on the screen, and you can drag and drop any file or manually enter the fields.
-If it is an .lnk (shortcut file) or a .exe it will auto generate an image so long as you leave the icon path empty
-![adding a new icon](readme/new_icon.gif)
+### Uninstall: 
+Uninstall through Platform default or by launching unins000.exe wherever you installed it  
+(default directory: C:\Program Files (x86)\Alternative Desktop))
 
 
-To edit an icon you can right click an existing icon
-![editng an icon](readme/edit.gif)
+
+### Example features:
+
+Create an Icon: Either double click any + icon or right click -> edit icon to begin editing an icon.  
+![Create_icon](readme/create_icon.gif)
+
+Easily drag and drop any file onto the desktop into an icon area. To instead begin an icon with the executable set.  
+Upon saving with no custom icon set it will even Automatically generate an Icon from the file you dropped.  
+![Drag_and_drop](readme/drag_and_drop_create.gif)
+
+Setting a custom Icon? You can drag it directly to start an icon with the custom image. You can even drag it on an existing icon to overrite its existing icon.  
+![Setting_icon](readme/setting_icon.gif)
+
+Edit an icon at any time by right click -> edit icon. Add a website and you can even Auto generate an icon from a website. Choose from all found icons the one you like best.  
+![Edit_icon](readme/edit_icon.gif)
+
+In the right click menu you can set the default launch option (double click), You can even just select to run the application or open the website. Or open the file paths for the exectuable or icon path. And even Delete the icon.
+![Right_click](readme/right_click.gif)
+
+Want to move the desktop icon? Just click and drag it!
+![drag](readme/drag.gif)  
 
 
-icon row, column, name, icon_path, and executable_path are all saved at:   
-```C:/Users/UserName/AppData/Roaming/AlternativeDesktop/config/desktop.json```   
-I am still working on a lot of error catching and implementation so if the program fails to start check here first.   
 
-auto generated icons are stored at:   
-```C:/Users/UserName/AppData/Roaming/AlternativeDesktop/data```   
+
+
+
+
+
+
+## Developer stuff below:
 
 ### Base Requirements: 
 Python  
@@ -40,6 +66,7 @@ PIL 		(Python Imaging Library, pip install pillow)
 icoextract  (Extracting icons from .exe, pip install icoextract)  
 qt-material (stylesheets, pip install qt-material)  
 send2trash (recycle bin instead of outright deletion of icons, pip install send2trash)  
+pywin32     (dealing with some windows functions, pip install pywin32 (can be somewhat annoying to install, if not working try: python -m pip install pywin32) or after installation: python Scripts/pywin32_postinstall.py -install)
 
 ### Step 1: Building .exe
 open command prompt
@@ -61,11 +88,6 @@ Replace **GUID** in the Example file with the generated GUID
 ### Step 3: To make this into installer
 Click Build -> compile, To get the Installer exe
 
-### Install: 
-run **Alternative Desktop Installer.exe** (or whatever you rename it)
 
-### Uninstall: 
-Uninstall through Platform default or by launching unins000.exe wherever you installed it  
-(default directory: C:\Program Files (x86)\Alternative Desktop))
 
 

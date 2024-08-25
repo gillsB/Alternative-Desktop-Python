@@ -223,7 +223,7 @@ class Menu(QDialog):
             if path_exe_icon != None:
                 exe_file = True
 
-        elif self.icon_path_le.text() == "":
+        elif self.icon_path_le.text() == "" and self.exec_path_le.text() != "":
             path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), data_path, icon_size)
             if path_default_file_icon != None:
                 default_file = True

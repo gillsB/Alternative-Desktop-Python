@@ -20,7 +20,7 @@ class OverlayWidget(QWidget):
         window_opacity = get_setting("window_opacity", -1)
         window_opacity = float(window_opacity/100)
         self.setWindowOpacity(window_opacity)
-        self.setWindowTitle("Alternative Desktop V0.0.015")
+        self.setWindowTitle("Alternative Desktop V0.1.000")
         self.showMaximized()
 
         layout = QVBoxLayout(self)
