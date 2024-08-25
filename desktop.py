@@ -155,7 +155,7 @@ class OverlayWidget(QWidget):
 def main():
     app = QApplication(sys.argv)
     overlay = OverlayWidget()
-    overlay.setWindowIcon(QIcon('assets/images/alt.ico'))
+    overlay.setWindowIcon(QIcon('alt.ico'))
     overlay.setMinimumSize(100, 100)  
     overlay.show()
     sys.exit(app.exec())
