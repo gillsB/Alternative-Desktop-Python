@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox
 from PySide6.QtCore import Qt, QEvent, QKeyCombination
-from PySide6.QtGui import QIcon, QKeySequence
+from PySide6.QtGui import QIcon, QKeySequence, QIcon
 import sys
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 from settings_menu import SettingsDialog
@@ -155,6 +155,7 @@ class OverlayWidget(QWidget):
 def main():
     app = QApplication(sys.argv)
     overlay = OverlayWidget()
+    overlay.setWindowIcon(QIcon('assets/images/alt.ico'))
     overlay.setMinimumSize(100, 100)  
     overlay.show()
     sys.exit(app.exec())
