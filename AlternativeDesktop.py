@@ -36,7 +36,7 @@ from updater import check_for_updates
 from settings import load_settings, set_dir, get_setting, set_setting
 from desktop import main as desktop_main
 
-CURRENT_VERSION = "v0.1.000"
+CURRENT_VERSION = "V0.1.000"
 GITHUB_REPO = "gillsb/Alternative-Desktop"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None

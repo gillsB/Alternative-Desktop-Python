@@ -12,7 +12,7 @@ def check_for_updates(CURRENT_VERSION, RELEASES_URL):
         latest_version = latest_release["tag_name"]
 
         # Replace with the current version of your app
-        if latest_version > CURRENT_VERSION:
+        if latest_version.lower() > CURRENT_VERSION.lower():
             print(f"New version available: {latest_version}")
             download_url = latest_release["assets"][0]["browser_download_url"]
             print("New download link: " + download_url)
