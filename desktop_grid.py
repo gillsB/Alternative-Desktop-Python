@@ -248,26 +248,34 @@ class Grid(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
 
-        if self.load_image:
-            self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
-            painter.drawPixmap(self.rect(), self.background_pixmap)
-        else:
-            # Access the color from the parent class
-            secondary_color = self.parent().secondary_color or '#202020'  # Default if None
+        try:
+            if self.load_image:
+                # Load the background image and draw it
+                self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
+                painter.drawPixmap(self.rect(), self.background_pixmap)
+            else:
+                # Access colors from the parent class
+                secondary_color = getattr(self.parent(), 'secondary_color', '#202020')  # Default if None
 
+                # Set background based on secondary_color (dark mode)
+                if secondary_color == '#4c5559':
+                    color = QColor(secondary_color)
+                # No 'secondary_color' in parent class (None Theme)
+                elif secondary_color == '#202020':
+                    color = QColor(secondary_color)
+                else:
+                    # Light mode: set background to a lighter shade of primary color
+                    # Primary light color is still eye-burningly vivid so lets lighten it up a bit
+                    bright_color = QColor(self.parent().primary_light_color)
+                    lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
+                    color = QColor(lighter_color)
 
-            #dark mode set background to secondary_color
-            if secondary_color == '#4c5559':
-                # Convert the color to QColor
-                color = QColor(secondary_color)
-            else: #light mode lets set background to a shade of primary color
-                #primary light color is still eye-burningly vivid so lets lighten it up a bit
-                bright_color = QColor(self.parent().primary_light_color)
-                lighter_color = bright_color.lighter(int(1.2 * 100))
-                color =QColor(lighter_color)
+                # Paint the background with the selected color
+                painter.fillRect(self.rect(), color)
 
-            # Paint the background with the selected color
-            painter.fillRect(self.rect(), color)
+        finally:
+            # Painter should always be closed after running
+            painter.end()
     
         
     def set_video_source(self, video_path):
