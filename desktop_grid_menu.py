@@ -137,6 +137,14 @@ class Menu(QDialog):
     def closeEvent(self, event):
         print("closed edit menu")
         self.parent().normal_mode_icon()
+        super().closeEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            print("Escape key pressed")
+            self.close()  # This will trigger the closeEvent
+        else:
+            super().keyPressEvent(event)
 
     def check_valid_path(self, path):
         return os.path.isfile(path)
