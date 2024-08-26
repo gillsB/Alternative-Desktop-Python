@@ -44,31 +44,37 @@ class SettingsDialog(QDialog):
         self.theme_selector = QComboBox()
         self.color_selector = QComboBox()
 
-        # Add theme options
-        self.theme_selector.addItems(['Dark', 'Light'])
+        # Add theme options including 'None'
+        self.theme_selector.addItems(['None', 'Dark', 'Light'])
 
         # Add color options
         self.colors = ['Amber', 'Blue', 'Cyan', 'Lightgreen', 'Pink', 'Purple', 'Red', 'Teal', 'Yellow']
         self.color_selector.addItems(self.colors)
 
+        # Retrieve and set theme from settings
         self.set_theme = get_setting("theme")
         if '_' in self.set_theme:
             split_theme = self.set_theme.rsplit('.', 1)[0]
             theme, color = split_theme.split('_', 1)
 
-            if theme.capitalize() in ['Dark', 'Light']:
+            if theme.capitalize() in ['None', 'Dark', 'Light']:
                 self.theme_selector.setCurrentText(theme.capitalize())
 
             if color.capitalize() in self.colors:
                 self.color_selector.setCurrentText(color.capitalize())
         else:
             print("Theme format is invalid. Themes will be set to default.")
+            self.theme_selector.setCurrentText("None")  # Set default to 'None'
 
+        # Connect signals for theme and color selection
         self.theme_selector.currentIndexChanged.connect(self.update_theme)
         self.color_selector.currentIndexChanged.connect(self.update_theme)
 
+        # Add to layout
         layout.addRow("Theme", self.theme_selector)
         layout.addRow("", self.color_selector)
+
+        self.display_theme()
 
         self.background_selector = QComboBox()
         background_options = ['First found', "Both", "Video only", "Image only", "None"]
@@ -128,7 +134,16 @@ class SettingsDialog(QDialog):
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
 
+    def display_theme(self):
+        selected_theme = self.theme_selector.currentText()
+        
+        if selected_theme == 'None':
+            self.color_selector.hide()  # Hide color selector if 'None' is selected
+        else:
+            self.color_selector.show()  # Show color selector for other themes
+
     def update_theme(self):
+        self.display_theme()
         category = self.theme_selector.currentText().lower()
         color = self.color_selector.currentText().lower()
         theme = f"{category}_{color}.xml"

@@ -11,6 +11,8 @@ from hotkey_handler import HotkeyHandler
 import os
 import xml.etree.ElementTree as ET
 
+APP = None
+
 
 
 class OverlayWidget(QWidget):
@@ -48,6 +50,11 @@ class OverlayWidget(QWidget):
         self.apply_theme(start_theme)
 
     def apply_theme(self, theme_name):
+        if theme_name.startswith("none"):
+            global APP
+            APP.setStyleSheet("")
+            
+
         try:
             # load_theme_colors excpects no file extention. so remove it before calling
             no_ext = theme_name.replace('.xml', '')
@@ -75,6 +82,7 @@ class OverlayWidget(QWidget):
             apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)
 
     def change_theme(self, theme_name):
+        print(f"Theme name = {theme_name}")
         self.grid_widget.pause_video()
         QApplication.processEvents()
 
@@ -150,15 +158,20 @@ class OverlayWidget(QWidget):
     def set_hotkey(self):
         self.hotkey_handler.set_hotkey()
         
-    
+
+
+def create_app():
+    global APP
+    if APP is None:
+        APP = QApplication(sys.argv)
 
 def main():
-    app = QApplication(sys.argv)
+    create_app()
     overlay = OverlayWidget()
     overlay.setWindowIcon(QIcon('alt.ico'))
     overlay.setMinimumSize(100, 100)  
     overlay.show()
-    sys.exit(app.exec())
+    sys.exit(APP.exec())
 
 if __name__ == "__main__":
     main()
