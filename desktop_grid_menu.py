@@ -1,3 +1,4 @@
+import logging
 from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QToolButton,
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
@@ -16,7 +17,7 @@ import os
 import shutil
 
 
-
+logger = logging.getLogger(__name__)
 COL = -1
 ROW = -1
 LAUNCH_OPTIONS = 0
@@ -135,13 +136,13 @@ class Menu(QDialog):
 
 
     def closeEvent(self, event):
-        print("closed edit menu")
+        logger.info("closed edit menu")
         self.parent().normal_mode_icon()
         super().closeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            print("Escape key pressed")
+            logger.info("Escape key pressed, calling closeEvent")
             self.close()  # This will trigger the closeEvent
         else:
             super().keyPressEvent(event)
@@ -297,12 +298,12 @@ class Menu(QDialog):
         output_path = self.get_unique_folder_name(output_path)
         
         try:
-            print(f"Trying to copy {icon_path} to {output_path}")
+            logger.info(f"Trying to copy {icon_path} to {output_path}")
             shutil.copy(icon_path, output_path)
             return output_path
         
         except Exception as e:
-            print(f"Error copying file: {e}")
+            logger.error(f"Error copying file: {e}")
             return None
         
     #takes output path and injects _local before the file extention
@@ -422,16 +423,16 @@ class Menu(QDialog):
     def handle_selection_change(self, index):
         global LAUNCH_OPTIONS
         LAUNCH_OPTIONS = index
-        print(f"Selected index: {index}, option: {self.launch_option_cb.currentText()}")
+        logger.info(f"Selected index: {index}, option: {self.launch_option_cb.currentText()}")
     
     def upscale_ico(self, file_path):
         data_path = self.parent().get_data_icon_dir()
         
-        print(f"DATA PATH: {data_path}")
-        print(f"FILE PATH: {file_path}")
+        logger.info(f"upscale_ico() DATA PATH: {data_path}")
+        logger.info(f"upscale_ico() FILE PATH: {file_path}")
         upscaled_icon = extract_ico_file(file_path, data_path)
         if(upscaled_icon):
-            print("UPSCALED .ICO FILE")
+            logger.info("upscaled .ICO file Success")
             data_path = os.path.join(data_path, "icon.png")
             self.icon_path_le.setText(data_path)
 
@@ -459,19 +460,19 @@ class Menu(QDialog):
         ...
 
     def cursor_position_changed(self, old, new):
-        print("old position: ",old," New position: ",new)
+        logger.debug("old position: ",old," New position: ",new)
 
 
     def editing_finished(self):
-        print("editing finished")
+        logger.debug("editing finished")
     def return_pressed(self):
-        print("return pressed")
+        logger.debug("return pressed")
 
     def selection_changed(self):
         ...
 
     def text_edited(self, new_text):
-        print("text edited, new text: ", new_text)
+        logger.debug("text edited, new text: ", new_text)
 
 
 class ClearableLineEdit(QLineEdit):
