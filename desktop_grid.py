@@ -1,3 +1,4 @@
+import logging
 import sys
 from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QGridLayout, QVBoxLayout,  
                                QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
@@ -21,6 +22,7 @@ import send2trash
 
 
 
+logger = logging.getLogger(__name__)
 MAX_LABELS = None
 MAX_ROWS = 20 #only used for now to get max_labels
 MAX_COLS = 40
@@ -40,10 +42,10 @@ BACKGROUND_IMAGE = ""
 
 
 
-
 class Grid(QWidget):
     def __init__(self):
         super().__init__()
+        logger.info("Created Grid Object")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
         create_config_path()
@@ -51,7 +53,6 @@ class Grid(QWidget):
 
         global LABEL_SIZE, LABEL_VERT_PAD
         LABEL_SIZE = get_setting("icon_size", 100)
-        LABEL_VERT_SIZE = get_setting("icon_size", 100)
 
         #main layout
         self.main_layout = QGridLayout(self)
@@ -162,8 +163,8 @@ class Grid(QWidget):
         position = self.mapFromParent(event.position().toPoint())
         new_widget = event.source()
 
-        print(f"Drop position: {position}")
-        print(f"Widget size: {self.size()}")
+        logger.info(f"Drop position: {position}")
+        logger.info(f"Widget size: {self.size()}")
 
         new_row, new_col = self.findCellAtPosition(position)
         if new_row == None or new_col == None:
@@ -171,7 +172,7 @@ class Grid(QWidget):
                                     f"Error dropping item at position {position}.",
                                     QMessageBox.Ok)
             return
-        print(f"Dropped at cell: ({new_row}, {new_col})")
+        logger.info(f"Dropped at cell: ({new_row}, {new_col})")
 
         # returns if item dropped is same as item dropped on. (no changes)
         if new_row == DRAG_ROW and new_col == DRAG_COL:
@@ -201,12 +202,12 @@ class Grid(QWidget):
             # Swap folder names using temporary folder
             temp_folder = new_dir + '_temp'
             temp_folder = self.get_unique_folder_name(temp_folder)
-            print(f"making new folder name = {temp_folder}")
+            logger.info(f"making new folder name = {temp_folder}")
             os.rename(new_dir, temp_folder)
             os.rename(exist_dir, new_dir)
             os.rename(temp_folder, exist_dir)
         else:
-            print("One or both folders do not exist")
+            logger.warning("One or both folders do not exist")
         update_folder(existing_widget.desktop_icon.row, existing_widget.desktop_icon.col)
         update_folder(new_widget.desktop_icon.row, new_widget.desktop_icon.col)
 
@@ -301,9 +302,10 @@ class Grid(QWidget):
         self.num_columns = max(1, window_width // LABEL_SIZE)
         self.num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
 
-        print(f"window dimensions : {window_width}x{window_height}")
-        print(f"window num_rows : {self.num_rows}")
-        print(f"window num_cols : {self.num_columns}")
+        logger.info(f"window dimensions : {window_width}x{window_height}")
+        logger.info(f"window num_rows : {self.num_rows}")
+        logger.info(f"window num_cols : {self.num_columns}")
+
 
         for label in self.labels:
             row = label.desktop_icon.row
@@ -321,7 +323,7 @@ class Grid(QWidget):
         global LABEL_SIZE, LABEL_VERT_PAD
         LABEL_SIZE = label_size
         LABEL_VERT_PAD = label_size
-        print(f"Label size = {label_size}")
+        logger.info(f"Label size = {label_size}")
         self.draw_labels()
     
     def showEvent(self, event):
@@ -459,7 +461,7 @@ class ClickableLabel(QLabel):
 
             # Edit Icon section
             
-            print(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}, Website Link: {self.desktop_icon.website_link}, Launch option: {self.desktop_icon.launch_option}")
+            logger.info(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}, Website Link: {self.desktop_icon.website_link}, Launch option: {self.desktop_icon.launch_option}")
             
             edit_action = QAction('Edit Icon', self)
             edit_action.triggered.connect(self.edit_triggered)
@@ -522,7 +524,7 @@ class ClickableLabel(QLabel):
 
     
     def context_menu_closed(self):
-        print("Context menu closed without selecting any action")
+        logger.debug("Context menu closed without selecting any action")
         self.normal_mode_icon()
         self.timer_right_click.timeout.connect(self.context_close)
         self.timer_right_click.start(100) 
@@ -582,10 +584,10 @@ class ClickableLabel(QLabel):
             # Loop through all the items in the directory
             for item in os.listdir(folder_path):
                 item_path = os.path.join(folder_path, item)
-                print(f"Deleting ITEM = {item_path}")
+                logger.info(f"Deleting ITEM = {item_path}")
                 send2trash.send2trash(item_path)
         else:
-            print(f"{folder_path} does not exist or is not a directory.")
+            logger.warning(f"{folder_path} does not exist or is not a directory.")
 
     
 
@@ -646,9 +648,9 @@ class ClickableLabel(QLabel):
         data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
         #make file if no file (new)
         if not os.path.exists(data_path):
-            print("makedir")
+            logger.info(f"Making directory at {data_path}")
             os.makedirs(data_path)
-        print(f"get_data_icon_path: {data_path}")
+        logger.info(f"get_data_icon_dir: {data_path}")
         return data_path
     
     def get_autogen_icon_size(self):
@@ -717,19 +719,19 @@ class ClickableLabel(QLabel):
                                     QMessageBox.Ok)
     
     def launch_first_found(self):
-        print("launch option = 0")
+        logger.info("launch option = 0")
         return self.run_executable() or self.run_website_link()
     def launch_prio_web_link(self):
-        print("launch option = 1")
+        logger.info("launch option = 1")
         return self.run_website_link() or self.run_executable()
     def launch_ask_upon_launching(self):
-        print("launch option = 2")
+        logger.info("launch option = 2")
         return self.choose_launch()
     def launch_exec_only(self):
-        print("launch option = 3")
+        logger.info("launch option = 3")
         return self.run_executable()
     def launch_web_link_only(self):
-        print("launch option = 4")
+        logger.info("launch option = 4")
         return self.run_website_link()
 
     def run_executable(self):
@@ -784,15 +786,15 @@ class ClickableLabel(QLabel):
                 #kill the connection between this process and the subprocess we just launched.
                 #this will not kill the subprocess but just set it free from the connection
                 except Exception as e:
-                    print("killing connection to new subprocess")
+                    logger.info("killing connection to new subprocess")
                     process.kill()
 
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
         return running
         
     def run_website_link(self):
-        print("run_web_link attempted")
+        logger.info("run_web_link attempted")
         running = True
         url = self.desktop_icon.website_link
 
@@ -805,22 +807,22 @@ class ClickableLabel(QLabel):
             url = 'http://' + url
         
         os.startfile(url)
-        print(running)
+        logger.info(f"Run website link running status = {running}")
         return running
 
     
     def choose_launch(self):
         
-        print("Choose_launch called")
+        logger.info("Choose_launch called")
         self.run_menu_dialog = RunMenuDialog()
         if self.run_menu_dialog.exec() == QDialog.Accepted:
             result = self.run_menu_dialog.get_result()
             if result == 'run_executable':
-                print("Run Executable button was clicked")
+                logger.info("Run Executable button was clicked")
                 return self.run_executable()
 
             elif result == 'open_website_link':
-                print("Open Website Link button was clicked")
+                logger.info("Open Website Link button was clicked")
                 return self.run_website_link()
         return True
         
@@ -850,7 +852,7 @@ def create_data_path():
     # Append /config/data.json to the AppData path
     data_path = os.path.join(app_data_path, 'data')
     if not os.path.exists(data_path):
-        print("makedir")
+        logger.info(f"Making directory at {data_path}")
         os.makedirs(data_path)
     
     DATA_DIRECTORY = data_path
