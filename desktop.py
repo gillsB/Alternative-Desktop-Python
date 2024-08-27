@@ -6,10 +6,12 @@ from settings import get_setting, set_setting, load_settings, save_settings, add
 from settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
-from desktop_grid import Grid
 from hotkey_handler import HotkeyHandler
 import os
 import xml.etree.ElementTree as ET
+from logs import setup_logging
+import logging
+
 
 APP = None
 
@@ -28,6 +30,8 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
+        # See commit from 8/26/2024 ~10:14pm Pacific time about this import.
+        from desktop_grid import Grid
         self.grid_widget = Grid()
         layout.addWidget(self.grid_widget)
 
@@ -166,6 +170,11 @@ def create_app():
         APP = QApplication(sys.argv)
 
 def main():
+    setup_logging()
+    # Create a logger
+    logger = logging.getLogger(__name__)
+    logger.info("Starting the application")
+    logger.debug("This is a debug message")
     create_app()
     overlay = OverlayWidget()
     overlay.setWindowIcon(QIcon('alt.ico'))
