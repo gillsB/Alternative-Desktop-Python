@@ -5,6 +5,9 @@ import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
@@ -33,9 +36,6 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.value_changed)
-        self.window_opacity_slider.sliderMoved.connect(self.slider_position)
-        self.window_opacity_slider.sliderPressed.connect(self.slider_pressed)
-        self.window_opacity_slider.sliderReleased.connect(self.slider_released)
 
         
         layout.addRow("Overlay Opacity", self.window_opacity_slider)
@@ -62,7 +62,7 @@ class SettingsDialog(QDialog):
             if color.capitalize() in self.colors:
                 self.color_selector.setCurrentText(color.capitalize())
         else:
-            print("Theme format is invalid. Themes will be set to default.")
+            logger.error("Theme format is invalid. Themes will be set to default.")
             self.theme_selector.setCurrentText("None")  # Set default to 'None'
 
         # Connect signals for theme and color selection
@@ -146,13 +146,12 @@ class SettingsDialog(QDialog):
         category = self.theme_selector.currentText().lower()
         color = self.color_selector.currentText().lower()
         theme = f"{category}_{color}.xml"
-        print(f"Selected theme: {theme}")
+        logger.info(f"Selected theme: {theme}")
         self.parent().change_theme(theme)
         self.is_changed = True
 
     def value_changed(self, i):
         self.set_changed()
-        print(i)
         if self.parent():
             self.parent().change_opacity(i)
         self.setWindowOpacity(1.0)
@@ -161,14 +160,6 @@ class SettingsDialog(QDialog):
         self.set_changed()
         self.parent().grid_widget.update_label_size(i)
 
-    def slider_position(self, p):
-        print("position", p)
-
-    def slider_pressed(self):
-        print("Pressed!")
-
-    def slider_released(self):
-        print("Released")
 
     def save_settings(self):
 
@@ -207,7 +198,7 @@ class SettingsDialog(QDialog):
     def closeEvent(self, event):
         
         if self.is_changed == False:
-            print("no changes made in settings")
+            logger.info("Called close with no changes made in settings")
             event.accept()
         else:
             ret = QMessageBox.warning(self,"Settings NOT saved", "Do you wish to discard these changes?", QMessageBox.Ok | QMessageBox.Cancel)
@@ -218,8 +209,9 @@ class SettingsDialog(QDialog):
                 event.ignore()
     
     def set_changed(self):
-        print("Settings changed")
-        self.is_changed = True
+        if not self.is_changed:
+            logger.info("Settings changed")
+            self.is_changed = True
 
     def cleanup_bg_paths(self):
 

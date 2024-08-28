@@ -1,5 +1,8 @@
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLabel
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RunMenuDialog(QDialog):
     def __init__(self):
@@ -24,10 +27,12 @@ class RunMenuDialog(QDialog):
 
     def accept_run_executable(self):
         self.result = 'run_executable'
+        logger.info("Selected run executable")
         self.accept()
 
     def accept_open_website_link(self):
         self.result = 'open_website_link'
+        logger.info("Selected open website link")
         self.accept()
 
     def get_result(self):

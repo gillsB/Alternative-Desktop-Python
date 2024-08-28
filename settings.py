@@ -1,7 +1,10 @@
 import json
 import os
 from pathlib import Path
+import logging
 
+
+logger = logging.getLogger(__name__)
 DIRECTORY = None
 DEFUALT_SETTINGS = {
         "update_on_launch": True,
@@ -28,7 +31,7 @@ def load_settings():
         with open(DIRECTORY, "r") as f:
             return json.load(f)
     else:
-        print("Error loading settings, expected file at: " + DIRECTORY )
+        logger.error("Error loading settings, expected file at: " + DIRECTORY )
         return {}
 
 def get_setting(key, default=None):
@@ -44,6 +47,7 @@ def set_setting(key, value):
 def save_settings(settings):
     with open(DIRECTORY, "w") as f:
         json.dump(settings, f, indent=4)
+        logger.info("Saved settings")
 
 
 
@@ -51,37 +55,24 @@ def set_dir(directory):
     global DIRECTORY
     DIRECTORY = directory
     if os.path.exists(DIRECTORY):
-        print("checking for new settings")
+        logger.info("checking for new settings")
         check_for_new_settings()
     else:
-        print("build new")
-        build_settings()
+        logger.info("build new")
+        save_settings(DEFUALT_SETTINGS)
 
-#100% does not work with basic install of program files (x86) could modify it to build at app_data
-#however at the same time in AlternativeDesktop.py I explicitly create the directories if they do not exist
-#in app_data so this should be redundant???
-def build_settings():
-    '''current_directory = os.getcwd()
-    config_file = os.path.join(current_directory, "config")
-    print(config_file)
-    try:
-        os.mkdir(config_file)
-    except FileExistsError:
-        print("Config file already exists")
-    except:
-        print("Error creating config file.")'''
-    save_settings(DEFUALT_SETTINGS)
+
 
 def check_for_new_settings():
     settings = load_settings()
     new_settings = False
     for key, value in DEFUALT_SETTINGS.items():
         if key not in settings:
-            print("key not in settings")
+            logger.info(f"key {key} not in settings")
             settings[key] = value
             new_settings = True
     if new_settings:
-        print("new settings")
+        logger.info(f"New settings before save: {settings}")
         save_settings(settings)
 
 

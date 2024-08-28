@@ -35,6 +35,8 @@ desktop = load_module('desktop')
 from updater import check_for_updates
 from settings import load_settings, set_dir, get_setting, set_setting
 from desktop import main as desktop_main
+import logging
+from logs import setup_logging
 
 CURRENT_VERSION = "V0.1.000"
 GITHUB_REPO = "gillsb/Alternative-Desktop"
@@ -42,6 +44,12 @@ RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None
 
 if __name__ == '__main__':
+    setup_logging()
+    # Create a logger
+    logger = logging.getLogger(__name__)
+    logger.info("Starting the application")
+    logger.debug("This is a debug message")
+
     app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
 
     if not os.path.exists(app_data_path):
@@ -52,13 +60,13 @@ if __name__ == '__main__':
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
 
-    print(f"Configuration file path: {config_path}")
+    logger.info(f"Configuration file path: {config_path}")
     SETTINGS_FILE = config_path
 
-    print(SETTINGS_FILE)
+    logger.info(f"Settings file: {SETTINGS_FILE}")
     set_dir(SETTINGS_FILE)
     settings = load_settings()
-    print(settings)
+    logger.info(f"settings: {settings}")
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, RELEASES_URL)
     

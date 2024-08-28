@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from logs import setup_logging
 import logging
 
-
+logger = logging.getLogger(__name__)
 APP = None
 
 
@@ -64,7 +64,7 @@ class OverlayWidget(QWidget):
             no_ext = theme_name.replace('.xml', '')
             
             self.theme_colors = self.load_theme_colors(no_ext)
-            print("Theme Colors Found:", self.theme_colors)
+            logger.info(f"Theme Colors Found:  {self.theme_colors}")
             #save all colors to variables to be able to access them from child grid
             self.primary_color = self.theme_colors.get('primaryColor')
             self.primary_light_color = self.theme_colors.get('primaryLightColor')
@@ -75,7 +75,7 @@ class OverlayWidget(QWidget):
             self.secondary_text_color = self.theme_colors.get('secondaryTextColor')
 
         except FileNotFoundError as e:
-            print(e)
+            logger.error(e)
         if theme_name.startswith("dark"):
             #these two color overrides make certain fields way more readable on dark mode (when not selected) than the base themes while still maintaining a good look.
             #for instance lineEdits with black text on a dark gray (secondary color) is hard to tell if there is anything in the line edit at all without clicking on it.
@@ -86,7 +86,7 @@ class OverlayWidget(QWidget):
             apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)
 
     def change_theme(self, theme_name):
-        print(f"Theme name = {theme_name}")
+        logger.info(f"Changed theme to = {theme_name}")
         self.grid_widget.pause_video()
         QApplication.processEvents()
 
@@ -124,8 +124,7 @@ class OverlayWidget(QWidget):
         dialog.exec()
     
     def change_opacity(self ,i):
-        print("change_opacity = ")
-        print(float(i/100))
+        logger.info(f"Change opacity = {float(i/100)}")
         self.setWindowOpacity(float(i/100))
 
     def toggle_window_state(self):
@@ -170,11 +169,7 @@ def create_app():
         APP = QApplication(sys.argv)
 
 def main():
-    setup_logging()
-    # Create a logger
-    logger = logging.getLogger(__name__)
-    logger.info("Starting the application")
-    logger.debug("This is a debug message")
+
     create_app()
     overlay = OverlayWidget()
     overlay.setWindowIcon(QIcon('alt.ico'))

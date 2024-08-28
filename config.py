@@ -1,8 +1,9 @@
 import json
 import os
+import logging
 
 
-
+logger = logging.getLogger(__name__)
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
@@ -55,17 +56,17 @@ def create_config_path():
     #create the /config/desktop.json if they do not exist already.
     config_dir = os.path.dirname(config_path)
     if not os.path.exists(config_dir):
-        print("makedir")
+        logger.info(f"Making directory at: {config_dir}")
         os.makedirs(config_dir)
 
-    print(f"Configuration file path: {config_path}")
+    logger.info(f"Configuration file path: {config_path}")
     DESKTOP_CONFIG_DIRECTORY = config_path
 
     if os.path.exists(DESKTOP_CONFIG_DIRECTORY) and os.path.getsize(DESKTOP_CONFIG_DIRECTORY) > 0:
         with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
             JSON = json.load(f)
     else:
-        print(f"Creating default settings at: {DESKTOP_CONFIG_DIRECTORY}")
+        logger.info(f"Creating default settings at: {DESKTOP_CONFIG_DIRECTORY}")
         JSON = [DEFAULT_DESKTOP]
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
             json.dump([DEFAULT_DESKTOP], f, indent=4)
@@ -102,7 +103,7 @@ def load_desktop_config():
             with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
                 DESKTOP_CONFIG = json.load(f)
         else:
-            print("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
+            ("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
             return {}
     return DESKTOP_CONFIG
     
@@ -128,21 +129,23 @@ def check_for_new_config():
     for entry in config:
         for key, value in DEFAULT_DESKTOP.items():
             if key not in entry:
-                print("key not in settings")
+                logger.info(f"key: {key} not in settings")
                 entry[key] = value
                 new_config = True
 
     if new_config:
-        print("new settings")
+        logger.info(f"Saving new settings {config}")
         save_config_to_file(config)
 
 def save_config_to_file(config):
-    print("ATTEMPTING TO SAVE THE DESKTOP .JSON")
+    logger.info("Attempting to save the desktop.json")
     global JSON
     with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
         json.dump(config, f, indent=4)
+        logger.info("Successfully saved desktop.json")
     with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
         JSON = json.load(f)
+        logger.info(f"reloaded JSON: {JSON}")
 
 def is_default(row, col):
     config = load_desktop_config()
@@ -185,7 +188,7 @@ def swap_items_by_position(row1, col1, row2, col2):
     
     # if neither icons in desktop.json
     if item1 is None and item2 is None:
-        print("Moved undefined desktop icon with another undefined desktop icon")
+        logger.info("Moved undefined desktop icon with another undefined desktop icon")
         return
     #if only 2nd icon(icon dragged on top of) is in .json
     elif item1 is None:
