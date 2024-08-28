@@ -103,7 +103,7 @@ def load_desktop_config():
             with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
                 DESKTOP_CONFIG = json.load(f)
         else:
-            ("Error loading settings, expected file at: " + DESKTOP_CONFIG_DIRECTORY )
+            logger.error(f"Error loading settings, expected file at: {DESKTOP_CONFIG_DIRECTORY}")
             return {}
     return DESKTOP_CONFIG
     
@@ -145,7 +145,7 @@ def save_config_to_file(config):
         logger.info("Successfully saved desktop.json")
     with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
         JSON = json.load(f)
-        logger.info(f"reloaded JSON: {JSON}")
+        logger.info(f"reloaded JSON")
 
 def is_default(row, col):
     config = load_desktop_config()

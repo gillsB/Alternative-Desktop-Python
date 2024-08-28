@@ -170,28 +170,47 @@ class Menu(QDialog):
 
 
     def save_config(self):
-
-        # if exec_path is empty -> save file
-        if self.exec_path_le.text() == "" and self.web_link_le == "":
-            
+        # if exec_path is empty and web_link is empty -> save file
+        if self.exec_path_le.text() == "" and self.web_link_le.text() == "":
+            logger.info("Called save with exec_path empty and web_link empty, Save with no auto_gen")
             self.handle_save()
         # if icon already set, do not auto_gen_icon
         elif self.icon_path_le.text() != "":
+            logger.info("Called save with existing icon_path, do not auto_gen")
             self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
-        elif self.check_valid_path(self.exec_path_le.text()) or self.web_link_le != "":
+        elif self.check_valid_path(self.exec_path_le.text()) or self.web_link_le.text() != "":
+            logger.info("Called save with existing exec_path or a web_link")
+            logger.info(f"Arguments: valid exec_path: {self.check_valid_path(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
+            if self.exec_path_le != "" and not self.check_valid_path(self.exec_path_le.text()):
+                ret = QMessageBox.warning(self,"Warning: Executable File Path", f"Warning: Executable path {self.exec_path_le.text()}, item at path does not exist. \nWould you like to continue saving with a bad exectuable path?", QMessageBox.Ok | QMessageBox.Cancel)
+                if ret == QMessageBox.Cancel:
+                    logger.info("User Chose to cancel Auto generating icon to fix the executable path.")
+                    return
+                else:
+                    logger.info("User chose to save regardless")
             self.auto_gen_icon()
             self.handle_save()
         # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
         else:
-            QMessageBox.warning(self,"Error: File Path", "Error: Executable path, item at path does not exist", QMessageBox.Ok | QMessageBox.Cancel)
+            logger.warning(f"Called with a bad exec_path and no web_link or icon_path. exec_path = {self.exec_path_le.text()}")
+            ret = QMessageBox.warning(self,"Error: File Path", f"Error: Executable path: {self.exec_path_le.text()}, item at path does not exist. \nWould you like to continue saving with a bad executable path?", QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:
+                    logger.info("User Chose to cancel saving to fix exec_path.")
+                    return
+            else:
+                logger.info("User chose to save regardless")
+                self.handle_save()
 
     def auto_gen_button(self):
         if self.icon_path_le.text() != "":
+            logger.info("Pressed Auto gen icon with an existing icon path.")
             ret = QMessageBox.warning(self,"Icon Path exists", "You already have an Icon Path set. Would you like to discard this Icon Path to generate a new one?", QMessageBox.Ok | QMessageBox.Cancel)
             if ret == QMessageBox.Cancel:
+                logger.info("User chose to keep icon path (Cancelled).")
                 return
             self.icon_path_le.setText("")
+            logger.info("User chose to overwrite icon (OK). Generating icon.")
         self.auto_gen_icon()
         self.parent().set_icon_path(self.icon_path_le.text())
         self.parent().edit_mode_icon()
@@ -214,68 +233,98 @@ class Menu(QDialog):
         path_fav_icon = ""
         path_default_file_icon = ""
 
-        if self.exec_path_le.text() != "" and extract_ico_file(self.exec_path_le.text(), data_path, icon_size):
+        logger.info(f"Auto gen icon called, data path = {data_path}, icon size = {icon_size}")
+
+        if self.exec_path_le.text() != "" and self.check_valid_path(self.exec_path_le.text()) and extract_ico_file(self.exec_path_le.text(), data_path, icon_size):
             ico_file = True
             path_ico_icon = os.path.join(data_path, "icon.png")
+            logger.info(f"Found .ico file in executable path location, saved to: {path_ico_icon}")
 
+        # If no icon path and exec is .lnk
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
-
+            logger.info(f"Exec path is an .lnk")
             path_ico_icon, path_lnk_icon = lnk_to_image(self.exec_path_le.text(), data_path, icon_size)
 
             if path_lnk_icon != None:
+                logger.info(f"Found icon from lnk target, saved to: {path_lnk_icon}")
                 lnk_file = True
             if path_ico_icon != None:
+                logger.info(f"Found .ico file from lnk target, saved to: {path_ico_icon}")
                 ico_file = True
-            
+        
+        # If no icon path and exec is .exe
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
-            path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path, icon_size)  
-            if path_exe_icon != None:
-                exe_file = True
+            logger.info("Exec path is an .exe")
+            if self.check_valid_path(self.exec_path_le.text()):
+                path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path, icon_size)  
+                if path_exe_icon != None:
+                    logger.info(f"Found icon from .exe, saved to: {path_exe_icon}")
+                    exe_file = True
+            else:
+                logger.warning(f"Auto gen icon called on non-existing executable_path ending in .exe = {self.exec_path_le.text()}, Caught and not generating an icon for executable path.")
 
+        # If no icon path and exec is a .url
+        elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
+            logger.info("Exec path is a .url")
+            path_ico_icon = url_to_image(self.exec_path_le.text(), data_path, icon_size)
+
+            if path_ico_icon != None:
+                logger.info(f"Found icon from .url, saved to: {path_ico_icon}")
+                ico_file = True
+
+        # If no icon path and exec_path exists
         elif self.icon_path_le.text() == "" and self.exec_path_le.text() != "":
-            path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), data_path, icon_size)
-            if path_default_file_icon != None:
-                default_file = True
+            logger.info(f"Exec path is not .lnk or .exe: {self.exec_path_le.text()}, generating a default icon")
+            if self.check_valid_path(self.exec_path_le.text()):
+                path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), data_path, icon_size)
+                if path_default_file_icon != None:
+                    logger.info(f"Icon created from default, saved to: {path_default_file_icon}")
+                    default_file = True
+            else:
+                logger.warning(f"Auto gen icon called on non-existing executable_path = {self.exec_path_le.text()}, Caught and not generating an icon for executable path.")
 
+        # If Web link exists
         if self.web_link_le.text() != "":
+            logger.info("Web link exists, attempting to generate icon.")
             url = self.web_link_le.text()
             if not url.startswith(('http://', 'https://')):
                 url = 'http://' + url
             
             path_fav_icon = favicon_to_image(url, data_path, icon_size)
             if path_fav_icon != None:
+                logger.info(f"Icon created from favicon, saved to {path_fav_icon}")
                 fav_file = True
             #if it fails to create a favicon fallback
             else:
                 #create a default browser icon for links
                 path_fav_icon = browser_to_image(data_path, icon_size)
                 if path_fav_icon != None:
+                    logger.info(f"Favicon not found, created default browser image instead, saved to {path_fav_icon}")
                     fav_file = True
 
 
-        
-        if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
-
-            path_ico_icon = url_to_image(self.exec_path_le.text(), data_path, icon_size)
-
-            if path_ico_icon != None:
-                ico_file = True
-
-
         if self.has_multiple_icons(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon, path_default_file_icon):
+            logger.info(f"Multiple icons detected: ico:{path_ico_icon}, exe:{path_exe_icon}, lnk:{path_lnk_icon}, url:{path_url_icon}, fav:{path_fav_icon}, default:{path_default_file_icon}")
             icon_selected = select_icon_from_paths(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon, path_default_file_icon)
+            logger.info(f"Icon selected by user: {icon_selected}")
             self.icon_path_le.setText(icon_selected)
         elif ico_file:
+            logger.info(f"Only available icon is ico_icon: {path_ico_icon}")
             self.icon_path_le.setText(path_ico_icon)
         elif lnk_file:
+            logger.info(f"Only available icon is lnk_icon: {path_lnk_icon}")
             self.icon_path_le.setText(path_lnk_icon)
         elif exe_file:
+            logger.info(f"Only available icon is exe_icon: {path_exe_icon}")
             self.icon_path_le.setText(path_exe_icon)
         elif url_file:
+            logger.info(f"Only available icon is url_icon: {path_url_icon}")
             self.icon_path_le.setText(path_url_icon)
         elif fav_file:
+            logger.info(f"Only available icon is fav_icon: {path_fav_icon}")
             self.icon_path_le.setText(path_fav_icon)
         elif default_file:
+            logger.info(f"Only available icon is default_file_icon: {path_default_file_icon}")
             self.icon_path_le.setText(path_default_file_icon)
 
     def has_multiple_icons(self, *variables):

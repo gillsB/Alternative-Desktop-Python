@@ -48,7 +48,6 @@ if __name__ == '__main__':
     # Create a logger
     logger = logging.getLogger(__name__)
     logger.info("Starting the application")
-    logger.debug("This is a debug message")
 
     app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
 
