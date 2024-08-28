@@ -559,13 +559,26 @@ class ClickableLabel(QLabel):
         menu.exec()
         self.parent().media_player.play()
     def path_triggered(self, path):
-        if not os.path.exists(path):
-            QMessageBox.warning(self, "Path does not exist",
-                                    f"File at location: {path}\n does not exist, please check the location.",
+        normalized_path = os.path.normpath(path)
+        
+        # Check if the file exists
+        if os.path.exists(normalized_path):
+            # Open the folder and highlight the file in Explorer
+            subprocess.run(['explorer', '/select,', normalized_path])
+        else:
+            # Get the parent directory
+            parent_directory = os.path.dirname(normalized_path)
+            
+            # Check if the parent directory exists
+            if os.path.exists(parent_directory):
+                # Open the parent directory in Explorer
+                subprocess.run(['explorer', parent_directory])
+            else:
+                # Show error if neither the file nor the parent directory exists
+                QMessageBox.warning(self, "Path does not exist",
+                                    f"Neither the file at {normalized_path} nor its parent directory exist. "
+                                    f"Please check the location.",
                                     QMessageBox.Ok)
-            return
-        # Open the folder and select the file in Explorer
-        subprocess.run(['explorer', '/select,', os.path.normpath(path)])
     
     def delete_triggered(self):
         ret = QMessageBox.warning(self, "Delete Icon",
