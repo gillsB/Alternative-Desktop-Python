@@ -38,13 +38,9 @@ class OverlayWidget(QWidget):
         settings_button = QPushButton("Settings")
         settings_button.clicked.connect(self.show_settings)
         
-
-        self.closeButton = QPushButton("Close", self)
-        self.closeButton.clicked.connect(self.close)
         
 
         layout.addWidget(settings_button)
-        layout.addWidget(self.closeButton)
 
 
         self.hotkey_handler = HotkeyHandler(self)
