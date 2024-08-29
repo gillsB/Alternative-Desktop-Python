@@ -128,11 +128,20 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
         layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
+
+        # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
+        self.redraw_request = False
+
         self.max_rows_sb = QSpinBox()
         self.max_rows_sb.setValue(settings.get("max_rows", 20))
         self.max_rows_sb.setRange(0, 100)
-        self.max_rows_sb.valueChanged.connect(self.max_rows_update)
+        self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
         layout.addRow("Max rows: ", self.max_rows_sb)
+        self.max_cols_sb = QSpinBox()
+        self.max_cols_sb.setValue(settings.get("max_cols", 40))
+        self.max_cols_sb.setRange(0, 100)
+        self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
+        layout.addRow("Max Columns: ", self.max_cols_sb)
 
 
 
@@ -140,8 +149,10 @@ class SettingsDialog(QDialog):
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
 
-    def max_rows_update(self, i):
+    # Only called when a setting which requires redrawing of desktop icons is changed.
+    def redraw_setting_changed(self):
         self.set_changed()
+        self.redraw_request = True
             
 
     def display_theme(self):
@@ -201,12 +212,17 @@ class SettingsDialog(QDialog):
         settings["local_icons"] = self.local_icons_cb.isChecked()
         settings["icon_size"] = self.icon_size_slider.value()
         settings["max_rows"] = self.max_rows_sb.value()
+        settings["max_cols"] = self.max_cols_sb.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
             self.parent().grid_widget.set_bg(self.background_video.text(), self.background_image.text())
-            self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
+
+            # Can be a quite heavy impact so only redraw when these values have changed.
+            if self.redraw_request:
+                self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
+                self.parent().grid_widget.change_max_cols(self.max_cols_sb.value())
         self.accept()
     def closeEvent(self, event):
         

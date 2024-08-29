@@ -373,6 +373,13 @@ class Grid(QWidget):
         logger.info(f"Changed MAX_ROWS to {MAX_ROWS} new MAX_LABELS = {MAX_LABELS}")
         self.add_labels()
         self.draw_labels()
+    def change_max_cols(self, i):
+        global MAX_ROWS, MAX_COLS, MAX_LABELS
+        MAX_COLS = i
+        MAX_LABELS = MAX_ROWS * MAX_COLS
+        logger.info(f"Changed MAX_COLS to {MAX_COLS} new MAX_LABELS = {MAX_LABELS}")
+        self.add_labels()
+        self.draw_labels()
 
 class ClickableLabel(QLabel):
     def __init__(self, desktop_icon, text, parent=None):
