@@ -15,7 +15,9 @@ DEFUALT_SETTINGS = {
         "background_video": "",
         "background_image": "",
         "local_icons": True,
-        "icon_size": 100
+        "icon_size": 100,
+        "max_rows": 20,
+        "max_cols": 40
 }
 
 #background_source arguments:

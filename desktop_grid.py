@@ -24,8 +24,8 @@ import send2trash
 
 logger = logging.getLogger(__name__)
 MAX_LABELS = None
-MAX_ROWS = 20 #only used for now to get max_labels
-MAX_COLS = 40
+MAX_ROWS = None 
+MAX_COLS = None
 DATA_DIRECTORY = None
 LABEL_SIZE = 64
 LABEL_VERT_PAD = 64
@@ -46,6 +46,8 @@ class Grid(QWidget):
     def __init__(self):
         super().__init__()
         logger.info("Created Grid Object")
+
+        global MAX_COLS, MAX_LABELS, MAX_ROWS
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
         create_config_path()
@@ -85,10 +87,24 @@ class Grid(QWidget):
         self.labels = []
 
         # Set MAX_LABELS to the maximum amount of items you would need based on rows/cols
+        MAX_ROWS = get_setting("max_rows", 20)
+        MAX_COLS = get_setting("max_cols", 40)
         MAX_LABELS = MAX_ROWS * MAX_COLS
 
+
         check_for_new_config()
+        self.add_labels()
+
+        self.render_bg()
+        self.setAcceptDrops(True)
+
+    def add_labels(self):
+        # Remove existing labels before adding new ones
+        self.remove_labels()
+        logger.info("Adding labels to grid object")
         # Use MAX_COLS to differentiate when to add a new row.
+        global MAX_LABELS, MAX_COLS, MAX_ROWS
+
         for i in range(MAX_LABELS):
             row = i // MAX_COLS
             col = i % MAX_COLS
@@ -108,9 +124,19 @@ class Grid(QWidget):
             label = ClickableLabel(desktop_icon, data['name'])
             self.labels.append(label)
             self.grid_layout.addWidget(label, row, col)
+        logger.info("Finished adding labels to grid object")
 
-        self.render_bg()
-        self.setAcceptDrops(True)
+    def remove_labels(self):
+        logger.info("Removing labels from grid object")
+        # Remove all widgets from the grid layout
+        while self.grid_layout.count():
+            widget_item = self.grid_layout.takeAt(0)
+            widget = widget_item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Clear the list of labels
+        self.labels.clear()
 
     def background_setting(self):
         bg_setting = get_setting("background_source")
@@ -303,8 +329,8 @@ class Grid(QWidget):
         self.num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
 
         logger.info(f"window dimensions : {window_width}x{window_height}")
-        logger.info(f"window num_rows : {self.num_rows}")
-        logger.info(f"window num_cols : {self.num_columns}")
+        logger.info(f"window max rows that fit in window : {self.num_rows}")
+        logger.info(f"window max cols that fit in window : {self.num_columns}")
 
 
         for label in self.labels:
@@ -339,6 +365,14 @@ class Grid(QWidget):
         QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
     def play_video(self):
         QMetaObject.invokeMethod(self.media_player, "play", Qt.QueuedConnection)
+
+    def change_max_rows(self, i):
+        global MAX_ROWS, MAX_COLS, MAX_LABELS
+        MAX_ROWS = i
+        MAX_LABELS = MAX_ROWS * MAX_COLS
+        logger.info(f"Changed MAX_ROWS to {MAX_ROWS} new MAX_LABELS = {MAX_LABELS}")
+        self.add_labels()
+        self.draw_labels()
 
 class ClickableLabel(QLabel):
     def __init__(self, desktop_icon, text, parent=None):
@@ -524,7 +558,7 @@ class ClickableLabel(QLabel):
 
     
     def context_menu_closed(self):
-        logger.debug("Context menu closed without selecting any action")
+        logger.debug("Context menu closed")
         self.normal_mode_icon()
         self.timer_right_click.timeout.connect(self.context_close)
         self.timer_right_click.start(100) 

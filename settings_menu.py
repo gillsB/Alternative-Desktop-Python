@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QToolButton, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QToolButton, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox
 from PySide6.QtCore import Qt, QEvent, QKeyCombination, QSize
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
@@ -128,10 +128,21 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
         layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
+        self.max_rows_sb = QSpinBox()
+        self.max_rows_sb.setValue(settings.get("max_rows", 20))
+        self.max_rows_sb.setRange(0, 100)
+        self.max_rows_sb.valueChanged.connect(self.max_rows_update)
+        layout.addRow("Max rows: ", self.max_rows_sb)
+
+
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
+
+    def max_rows_update(self, i):
+        self.set_changed()
+            
 
     def display_theme(self):
         selected_theme = self.theme_selector.currentText()
@@ -189,11 +200,13 @@ class SettingsDialog(QDialog):
         settings["background_image"] = self.background_image.text()
         settings["local_icons"] = self.local_icons_cb.isChecked()
         settings["icon_size"] = self.icon_size_slider.value()
+        settings["max_rows"] = self.max_rows_sb.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
             self.parent().grid_widget.set_bg(self.background_video.text(), self.background_image.text())
+            self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
         self.accept()
     def closeEvent(self, event):
         

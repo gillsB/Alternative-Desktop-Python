@@ -30,7 +30,7 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        # See commit from 8/26/2024 ~10:14pm Pacific time about this import.
+        # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
         from desktop_grid import Grid
         self.grid_widget = Grid()
         layout.addWidget(self.grid_widget)
