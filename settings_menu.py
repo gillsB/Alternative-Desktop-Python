@@ -25,11 +25,15 @@ class SettingsDialog(QDialog):
         self.update_on_launch_cb.setChecked(settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
+    
 
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
-        self.toggle_overlay_keybind_button.setFocusPolicy(Qt.NoFocus)
+        self.toggle_overlay_keybind_button.setFocusPolicy(Qt.ClickFocus)
+        self.toggle_overlay_keybind_button.setAutoDefault(False)
+        self.toggle_overlay_keybind_button.setDefault(False)
+        
 
         self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
         self.window_opacity_slider.setMinimum(30)
@@ -37,6 +41,7 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.value_changed)
+        
 
         
         layout.addRow("Overlay Opacity", self.window_opacity_slider)
@@ -149,7 +154,8 @@ class SettingsDialog(QDialog):
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
-        save_button.setFocusPolicy(Qt.NoFocus)
+        save_button.setAutoDefault(False)
+        save_button.setDefault(False)
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
     def redraw_setting_changed(self):
@@ -203,6 +209,9 @@ class SettingsDialog(QDialog):
                 return
 
 
+        # Double check keybind is set to something. Changes it to last saved setting if not. (i.e. click button but don't press anything then hit save)
+        self.good_keybind()
+
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
@@ -226,6 +235,12 @@ class SettingsDialog(QDialog):
                 self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
                 self.parent().grid_widget.change_max_cols(self.max_cols_sb.value())
         self.accept()
+
+    def good_keybind(self):
+        if self.toggle_overlay_keybind_button.get_keybind() == "Press a key":
+            logger.error("Attempted to save keybind while changing keybind")
+            self.toggle_overlay_keybind_button.set_keybind()
+
     def closeEvent(self, event):
         
         if self.is_changed == False:
@@ -281,20 +296,24 @@ class SettingsDialog(QDialog):
 
 class KeybindButton(QPushButton):
     def __init__(self, parent=None):
-        super().__init__( parent)
+        super().__init__(parent)
+        logger.info("Keybind button initialized")
         self.listening = False
         self.clicked.connect(self.enable_listening)
         self.installEventFilter(self)
+
     def enable_listening(self):
+        logger.info("Enable listening called")
         self.listening = True
         self.setText("Press a key")
 
     def keyPressEvent(self, event):
         if self.listening and event.key() <= 16000000:
+            logger.info(f"Key press event: {event}")
             self.listening = False
             key = event.key()
             modifiers = event.modifiers()
-
+            
             key_name = QKeySequence(key).toString()
             modifier_names = []
 
@@ -308,6 +327,7 @@ class KeybindButton(QPushButton):
                 modifier_names.append("Meta")
 
             full_key_name = "+".join(modifier_names + [key_name])
+            logger.info(f"Full key name: {full_key_name}")
             self.parent().set_changed()
             self.setText(full_key_name)
         else:
@@ -315,12 +335,19 @@ class KeybindButton(QPushButton):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and self.listening:
+            logger.info(f"Key press detected by event filter: {event}")
             self.keyPressEvent(event)
             return True
         return super().eventFilter(source, event)
-    
+
     def get_keybind(self):
         return self.text()
+
+    def set_keybind(self):
+        logger.error("Resetting keybind to last keybind saved")
+        settings = load_settings()
+        self.setText(settings.get("toggle_overlay_keybind", "alt+d"))
+
 
     
 class ClearableLineEdit(QLineEdit):
