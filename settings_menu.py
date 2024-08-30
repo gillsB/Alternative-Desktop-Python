@@ -29,6 +29,7 @@ class SettingsDialog(QDialog):
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
+        self.toggle_overlay_keybind_button.setFocusPolicy(Qt.NoFocus)
 
         self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
         self.window_opacity_slider.setMinimum(30)
@@ -148,6 +149,7 @@ class SettingsDialog(QDialog):
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
+        save_button.setFocusPolicy(Qt.NoFocus)
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
     def redraw_setting_changed(self):
