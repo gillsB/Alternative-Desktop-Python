@@ -1,10 +1,11 @@
 from PySide6.QtCore import Signal, QObject
 from pynput import keyboard
 from settings import add_angle_brackets, get_setting
+from display_warning import display_bad_overlay_keybind_warning
+import logging
 
 
-
-
+logger = logging.getLogger(__name__)
 
 
 class HotkeyHandler(QObject):
@@ -25,10 +26,18 @@ class HotkeyHandler(QObject):
         if self.listener is not None:
             self.listener.stop()
 
-        self.hotkey = keyboard.HotKey(
-            keyboard.HotKey.parse(add_angle_brackets(get_setting("toggle_overlay_keybind"))),
-            on_activate
-        )
+        try: # Try setting the hotkey 
+            hotkey_str = get_setting("toggle_overlay_keybind")
+            parsed_hotkey = keyboard.HotKey.parse(add_angle_brackets(hotkey_str))
+            # Hotkey is a valid hotkey, now set it.
+            self.hotkey = keyboard.HotKey(parsed_hotkey, on_activate)
+
+        except ValueError as e:
+            # Handle invalid hotkey by setting it to default and logging the error
+            logger.error(f"Invalid hotkey '{hotkey_str}': {e}. Setting to default 'alt+d'.")
+            display_bad_overlay_keybind_warning(hotkey_str)
+            parsed_hotkey = keyboard.HotKey.parse(add_angle_brackets("alt+d"))
+            self.hotkey = keyboard.HotKey(parsed_hotkey, on_activate)
 
         self.listener = keyboard.Listener(
             on_press=for_canonical(self.hotkey.press),
