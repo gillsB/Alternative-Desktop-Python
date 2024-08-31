@@ -15,6 +15,8 @@ from run_menu_dialog import RunMenuDialog
 from settings import get_setting
 from config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
                     get_data_directory, set_entry_to_default, is_default, swap_items_by_position, change_launch)
+from display_warning import (display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_drop_error,
+                              display_failed_cleanup_warning, display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error)
 from qt_material import get_theme
 import send2trash
 
@@ -194,9 +196,8 @@ class Grid(QWidget):
 
         new_row, new_col = self.findCellAtPosition(position)
         if new_row == None or new_col == None:
-            QMessageBox.warning(self, "Drop Error",
-                                    f"Error dropping item at position {position}.",
-                                    QMessageBox.Ok)
+            logger.error(f"Problem dropping at {position}, new_row == None, or new_col == None")
+            display_drop_error(position)
             return
         logger.info(f"Dropped at cell: ({new_row}, {new_col})")
 
@@ -241,9 +242,8 @@ class Grid(QWidget):
         counter = 1
         new_folder = folder_path
         while os.path.exists(new_folder):
-            QMessageBox.warning(self, "Failed cleanup",
-                                    f"Temp file found: {new_folder}\n which was not removed after the last cleanup. Check the file if it contains anything important and delete it after. \nIf this pops up again in a repeatable way (after deleting the _temp folder) please contact the dev.",
-                                    QMessageBox.Ok)
+            logger.Error(f"Temp file seems to already exist {new_folder}, which seems to not have been removed/renamed after last cleanup.")
+            display_failed_cleanup_warning(new_folder)
             new_folder = f"{folder_path}{counter}"
             counter += 1
         return new_folder
@@ -616,16 +616,14 @@ class ClickableLabel(QLabel):
                 subprocess.run(['explorer', parent_directory])
             else:
                 # Show error if neither the file nor the parent directory exists
-                QMessageBox.warning(self, "Path does not exist",
-                                    f"Neither the file at {normalized_path} nor its parent directory exist. "
-                                    f"Please check the location.",
-                                    QMessageBox.Ok)
+                logger.warning(f"Tried to open file directory but path: {normalized_path} does not exist nor its parent: {parent_directory} exist")
+                display_path_and_parent_not_exist_warning(normalized_path)
     
     def delete_triggered(self):
-        ret = QMessageBox.warning(self, "Delete Icon",
-                                    f"Are you sure you wish to delete \"{self.desktop_icon.name}\" at: [{self.desktop_icon.row},{self.desktop_icon.col}]?",
-                                    QMessageBox.Ok| QMessageBox.Cancel)
-        if ret == QMessageBox.Ok:   
+        logger.info(f"User attempted to delete {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
+        # Show delete confirmation warning, if Ok -> delete icon. if Cancel -> do nothing.
+        if display_delete_icon_warning(self.desktop_icon.name, self.desktop_icon.row, self.desktop_icon.col) == QMessageBox.Ok:   
+            logger.info(f"User confirmed deletion for {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
             set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
             self.delete_folder_items()
             self.render_icon()
@@ -768,9 +766,8 @@ class ClickableLabel(QLabel):
         success = method()
         
         if not success:
-            QMessageBox.warning(self, "No Successful launch",
-                                    f"No Successful launch detected, please check the icon's Executable path or Website Link",
-                                    QMessageBox.Ok)
+            logger.error("No successful launch detected")
+            display_no_successful_launch_error()
     
     def launch_first_found(self):
         logger.info("launch option = 0")
@@ -807,9 +804,8 @@ class ClickableLabel(QLabel):
             if os.path.exists(file_path) == False:
                 raise FileNotFoundError
         except FileNotFoundError:
-            QMessageBox.warning(self, "Error Opening File",
-                                    f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease check that the file exists at the specified location.",
-                                    QMessageBox.Ok)
+            logger.error(f"While attempting to run the executable the file is not found at {self.desktop_icon.executable_path}")
+            display_file_not_found_error(self.desktop_icon.executable_path)
             return running
 
 
@@ -833,9 +829,8 @@ class ClickableLabel(QLabel):
                     if "is not recognized as an internal or external command" in text:
                         running = False
                         
-                        QMessageBox.warning(self, "Error Opening File",
-                                    f"The file could not be opened.\nFile path:{self.desktop_icon.executable_path}\nPlease ensure there is a default application set to open this file type.",
-                                    QMessageBox.Ok)
+                        logger.error(f"Error opening file, Seems like user does not have a default application for this file type and windows is not popping up for them to select a application to open with., path = {self.desktop_icon.executable_path}")
+                        display_no_default_type_error(self.desktop_icon.executable_path)
                     
                 #kill the connection between this process and the subprocess we just launched.
                 #this will not kill the subprocess but just set it free from the connection

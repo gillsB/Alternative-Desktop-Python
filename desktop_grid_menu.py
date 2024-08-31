@@ -13,7 +13,7 @@ from icon_gen.browser_to_image import browser_to_image
 from icon_gen.default_icon_to_image import default_icon_to_image
 from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 from settings import get_setting
-from display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning
+from display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
 import shutil
 
@@ -184,8 +184,8 @@ class Menu(QDialog):
             logger.info("Called save with existing exec_path or a web_link")
             logger.info(f"Arguments: valid exec_path: {self.check_valid_path(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
             if self.exec_path_le != "" and not self.check_valid_path(self.exec_path_le.text()):
-                ret = display_executable_file_path_warning(self.exec_path_le.text())
-                if ret == QMessageBox.Cancel:
+                # Show warning if user clicks cancel -> return and do not save, if Ok -> save
+                if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Cancel:
                     logger.info("User Chose to cancel Auto generating icon to fix the executable path.")
                     return
                 else:
@@ -195,8 +195,8 @@ class Menu(QDialog):
         # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
         else:
             logger.warning(f"Called with a bad exec_path and no web_link or icon_path. exec_path = {self.exec_path_le.text()}")
-            ret = display_executable_file_path_warning(self.exec_path_le.text())
-            if ret == QMessageBox.Cancel:
+            # Show warning if user clicks cancel -> return and do not save, if Ok -> save
+            if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Cancel:
                     logger.info("User Chose to cancel saving to fix exec_path.")
                     return
             else:
@@ -206,8 +206,8 @@ class Menu(QDialog):
     def auto_gen_button(self):
         if self.icon_path_le.text() != "":
             logger.info("Pressed Auto gen icon with an existing icon path.")
-            ret = QMessageBox.warning(self,"Icon Path exists", "You already have an Icon Path set. Would you like to discard this Icon Path to generate a new one?", QMessageBox.Ok | QMessageBox.Cancel)
-            if ret == QMessageBox.Cancel:
+            # Show warning, if user clicks cancel -> return, if Ok -> save
+            if display_icon_path_already_exists_warning() == QMessageBox.Cancel:
                 logger.info("User chose to keep icon path (Cancelled).")
                 return
             self.icon_path_le.setText("")
@@ -391,8 +391,8 @@ class Menu(QDialog):
         #this can call for save even if path for icon is wrong, so do this one last as doing it before the other error checks can result in it saving THEN displaying another warning.
         #check icon_path_le if it is NOT empty AND the path to file does NOT exist (invalid path)
         if self.icon_path_le.text() != "" and self.check_valid_path(self.icon_path_le.text()) != True:
-            ret = display_icon_path_not_exist_warning(self.icon_path_le.text())
-            if ret == QMessageBox.Ok:
+            # Show warning if user clicks cancel -> return and do not save, if Ok -> save
+            if display_icon_path_not_exist_warning(self.icon_path_le.text()) == QMessageBox.Ok:
                 self.save()
         else:
             self.save()

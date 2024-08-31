@@ -71,3 +71,52 @@ def display_executable_file_path_warning(exec_path):
         f"Warning: Executable path: '{exec_path}'\nitem does not exist. \nWould you like to continue saving with a bad exectuable path?",
         True
     )
+
+def display_icon_path_already_exists_warning():
+    return show_highlightable_message_box(
+        "Icon Path exists",
+        "You already have an Icon Path set. Would you like to discard this Icon Path to generate a new one?",
+        True
+    )
+
+def display_path_and_parent_not_exist_warning(normalized_path):
+    show_highlightable_message_box( "Path does not exist",
+        f"Neither the file at '{normalized_path}'\nnor its parent directory exist. Please check the location."
+    )
+
+def display_delete_icon_warning(name, row, col):
+    logger.info(f"Displaying delete confirmation warning for {name}, at {row},{col}")
+    return show_highlightable_message_box("Delete Icon",
+        f"Are you sure you wish to delete \"{name}\" at: [{row},{col}]?",
+        True
+    )
+
+def display_drop_error(position):
+    show_highlightable_message_box(
+        "Drop Error",
+        f"Error dropping item at position {position}."
+    )
+
+def display_failed_cleanup_warning(folder):
+    show_highlightable_message_box(
+        "Failed cleanup",
+        f"Temp file found: {folder}\n which was not removed after the last cleanup. Check the file if it contains anything important and delete it after. \nIf this pops up again in a repeatable way (after deleting the _temp folder) please contact the dev."
+    )
+
+def display_no_successful_launch_error():
+    show_highlightable_message_box(
+        "No Successful launch",
+        f"No Successful launch detected, please check the icon's Executable path or Website Link"
+        )
+    
+def display_file_not_found_error(path):
+    show_highlightable_message_box(
+        "Error Opening File",
+        f"The file could not be opened.\nFile path: ' {path} '\nPlease check that the file exists at the specified location.",
+    )
+
+def display_no_default_type_error(path):
+    show_highlightable_message_box(
+        "Error Opening File",
+        f"The file could not be opened.\nFile path:{path}\nPlease ensure there is a default application set to open this file type."
+    )
