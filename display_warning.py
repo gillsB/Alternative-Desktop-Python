@@ -1,18 +1,51 @@
-from PySide6.QtWidgets import QMessageBox
-from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QMessageBox, QLabel, QSpacerItem, QSizePolicy
+from PySide6.QtCore import QTimer, Qt
 import logging
 
 logger = logging.getLogger(__name__)
 
+def show_highlightable_message_box(title, message, cancel=False):
+    # Create a QMessageBox
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle(title)
+    msg_box.setIcon(QMessageBox.Warning)
+    if cancel:
+        msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+    else:
+        msg_box.setStandardButtons(QMessageBox.Ok)
+
+    label = QLabel(message)
+    label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+    label.setWordWrap(True)
+    label.setMinimumWidth(400)
+
+
+    # Remove default message box but get it's layout
+    layout = msg_box.layout()
+
+    # Problem: QSpacerItem horiz_size, vert_size, do not seem to matter but adding them does a bit of padding to the left of the message text
+    # which actually does what I wanted.... but should probably come back and fix this whole layout setting to be more defined.
+    left_spacer = QSpacerItem(20, 10, QSizePolicy.Expanding, QSizePolicy.Minimum)
+    layout.addItem(left_spacer, 0, 0, 1, 1)
+    layout.addWidget(label, 0, 1, 1, layout.columnCount(), Qt.AlignCenter)
+
+    for i in range(layout.count()):
+        item = layout.itemAt(i)
+        widget = item.widget()
+        if isinstance(widget, QLabel) and widget.text() == "":
+            layout.removeWidget(widget)
+            widget.deleteLater()
+            break
+
+    # Show the message box and return the user's choice
+    return msg_box.exec()
 
 def display_bad_overlay_keybind_warning(hotkey):
     def show_warning():
         logger.warning("Displaying warning: Bad Toggle Overlay Keybind")
-        QMessageBox.warning(
-            None,  # Parent widget (None means no parent)
+        show_highlightable_message_box(
             "Bad Toggle Overlay Keybind",
-            f"There was a problem assigning your toggle overlay to the keybind: '{hotkey}'. Has been reset to default: Alt+d. Please update the keybind in settings.",
-            QMessageBox.Ok
+            f"There was a problem assigning your toggle overlay to the keybind: '{hotkey}'. Has been reset to default: Alt+d. Please update the keybind in settings."
         )
     
     # QTimer to not block main thread. (Async)
@@ -20,24 +53,21 @@ def display_bad_overlay_keybind_warning(hotkey):
 
 def display_lnk_cli_args_warning():
     logger.warning("Displaying warning: LNK with CLI arguments (unsupported) warning")
-    QMessageBox.warning(
-        None,
+    show_highlightable_message_box(
         "Warning .lnk",
-        "Warning: .lnk files do not have command arguments support. Please add the command arguments to the .lnk file itself or replace the .lnk with the file it points to and add the command line arguments to that.",
-        QMessageBox.Ok)
+        "Warning: .lnk files (Shortcuts) do not have command arguments support.\n\nPlease add the command arguments to the .lnk file itself or replace the .lnk with the file it points to and add the command line arguments to that."
+    )
     
 def display_icon_path_not_exist_warning(icon_path):
-    return QMessageBox.warning(
-                None,
+    return show_highlightable_message_box(
                 "Error: Icon Path",
                 f"Error: Icon path, item at path: \n{icon_path}\ndoes not exist. \nClick OK save regardless, or Cancel to continue editing.",
-                QMessageBox.Ok |
-                QMessageBox.Cancel)
+                True
+    )
 
 def display_executable_file_path_warning(exec_path):
-    return QMessageBox.warning(
-        None,
+    return show_highlightable_message_box(
         "Warning: Executable File Path", 
-        f"Warning: Executable path: '{exec_path}'\nitem does not exist. \nWould you like to continue saving with a bad exectuable path?", 
-        QMessageBox.Ok | 
-        QMessageBox.Cancel)
+        f"Warning: Executable path: '{exec_path}'\nitem does not exist. \nWould you like to continue saving with a bad exectuable path?",
+        True
+    )
