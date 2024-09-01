@@ -221,6 +221,18 @@ class Menu(QDialog):
         data_path = self.parent().get_data_icon_dir()
         icon_size = self.parent().get_autogen_icon_size()
 
+        #default icon saves:
+        # icon.png extract_ico_file, url_to_image (unique, getting image from .url file does not check for .ico files in location)
+        # icon2.png exe_to_image, lnk_to_image (both share the same executable_path input so one or the other.)
+        # icon3.png favicon_to_image, browser_to_image (gets favicon from website, fallback to default browser icon if no favicon found)
+        # icon4.png default_icon_to_image (gets icon from default associated filetype program, only exists if exec_path is not .exe, .url, .lnk)
+
+        icon_path = os.path.join(data_path, "icon.png")
+        icon1_path = os.path.join(data_path, "icon1.png")
+        icon2_path = os.path.join(data_path, "icon2.png")
+        icon3_path = os.path.join(data_path, "icon3.png")
+        icon4_path = os.path.join(data_path, "icon4.png")
+
         ico_file = False
         lnk_file = False
         exe_file = False
@@ -236,9 +248,9 @@ class Menu(QDialog):
 
         logger.info(f"Auto gen icon called, data path = {data_path}, icon size = {icon_size}")
 
-        if self.exec_path_le.text() != "" and self.check_valid_path(self.exec_path_le.text()) and extract_ico_file(self.exec_path_le.text(), data_path, icon_size):
+        if self.exec_path_le.text() != "" and self.check_valid_path(self.exec_path_le.text()) and extract_ico_file(self.exec_path_le.text(), icon_path, icon_size):
             ico_file = True
-            path_ico_icon = os.path.join(data_path, "icon.png")
+            path_ico_icon = icon_path
             logger.info(f"Found .ico file in executable path location, saved to: {path_ico_icon}")
 
         # If no icon path and exec is .lnk
@@ -478,10 +490,12 @@ class Menu(QDialog):
     
     def upscale_ico(self, file_path):
         data_path = self.parent().get_data_icon_dir()
+        output_path = os.path.join(data_path, "icon.png")
+        icon_size = self.parent().get_autogen_icon_size()
         
-        logger.info(f"upscale_ico() DATA PATH: {data_path}")
-        logger.info(f"upscale_ico() FILE PATH: {file_path}")
-        upscaled_icon = extract_ico_file(file_path, data_path)
+        logger.info(f"upscale_ico() output_path: {data_path}")
+        logger.info(f"upscale_ico() file_path: {file_path}")
+        upscaled_icon = extract_ico_file(file_path, output_path, icon_size)
         if(upscaled_icon):
             logger.info("upscaled .ICO file Success")
             data_path = os.path.join(data_path, "icon.png")

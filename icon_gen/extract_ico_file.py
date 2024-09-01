@@ -7,14 +7,16 @@ import ctypes
 
 
 #Returns true if found and copied to target_dir, returns false if no .ico found
-def extract_ico_file(source_file, target_dir, icon_size):
+def extract_ico_file(source_file, output_path, icon_size):
 
     found = False
+    output_path_parent = os.path.dirname(output_path)
+
     # Ensure target directory exists, create if it doesn't
-    if os.path.exists(target_dir) and os.path.isfile(target_dir):
+    if os.path.exists(output_path_parent) and os.path.isfile(output_path_parent):
         ...
     else:
-        os.makedirs(target_dir, exist_ok=True)
+        os.makedirs(output_path_parent, exist_ok=True)
     
     # Extract the directory path of the source file
     source_dir = os.path.dirname(source_file)
@@ -27,24 +29,21 @@ def extract_ico_file(source_file, target_dir, icon_size):
             print(".ico file has been found")
             source_ico_file = os.path.join(source_dir, filename)
 
-            print(f"target dir = {target_dir}")
-            #name of file
-            target_ico_file = os.path.join(target_dir, "icon.png")
-            shutil.copy2(source_ico_file, target_ico_file)
+            shutil.copy2(source_ico_file, output_path)
             
             #remove permissions and remove hidden attribute from our version of the .ico
             try:
-                os.chmod(target_ico_file, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-                remove_hidden_attribute(target_ico_file)
+                os.chmod(output_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+                remove_hidden_attribute(output_path)
             except FileNotFoundError as e:
                 print(f"Error: File not found after copying to data directory error: {e}")
 
-            image = Image.open(target_ico_file)
+            image = Image.open(output_path)
             resized_image = image.resize((icon_size,icon_size), Image.Resampling.LANCZOS)
 
-            resized_image.save(target_ico_file)
+            resized_image.save(output_path)
             found = True
-            print(f"Copied {filename} to {target_dir}")
+            print(f"Copied {filename} to {output_path}")
 
     
     return found
