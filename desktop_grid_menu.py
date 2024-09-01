@@ -256,7 +256,7 @@ class Menu(QDialog):
         # If no icon path and exec is .lnk
         if self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".lnk"):
             logger.info(f"Exec path is an .lnk")
-            path_ico_icon, path_lnk_icon = lnk_to_image(self.exec_path_le.text(), data_path, icon_size)
+            path_ico_icon, path_lnk_icon = lnk_to_image(self.exec_path_le.text(), icon2_path, icon_size)
 
             if path_lnk_icon != None:
                 logger.info(f"Found icon from lnk target, saved to: {path_lnk_icon}")
@@ -269,7 +269,7 @@ class Menu(QDialog):
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
             logger.info("Exec path is an .exe")
             if self.check_valid_path(self.exec_path_le.text()):
-                path_exe_icon = exe_to_image(self.exec_path_le.text(), data_path, icon_size)  
+                path_exe_icon = exe_to_image(self.exec_path_le.text(), icon2_path, icon_size)  
                 if path_exe_icon != None:
                     logger.info(f"Found icon from .exe, saved to: {path_exe_icon}")
                     exe_file = True

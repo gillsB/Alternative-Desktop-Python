@@ -1,22 +1,19 @@
 from icoextract import IconExtractor, IconExtractorError
 from PIL import Image
 import os
-from icon_gen.extract_ico_file import extract_ico_file
 import logging
 
 
 logger = logging.getLogger(__name__)
 
-def exe_to_image(lnk_path, output_path, icon_size):
+def exe_to_image(exe_path, output_path, icon_size):
 
+    logger.info(f"Called with arguments: lnk_path = {exe_path}, output_path = {output_path}, icon_size = {icon_size}")
 
     try:
         logger.info("Attempting to extract the icon from the path")
-        extractor = IconExtractor(lnk_path)
+        extractor = IconExtractor(exe_path)
         logger.info("Extraction successful")
-
-
-        output_path = os.path.join(output_path, "icon2.png")
 
         # Export the first group icon to a .ico file
         #extractor.export_icon(output_path, num=0)
