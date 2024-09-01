@@ -22,7 +22,6 @@ def exe_to_image(exe_path, output_path, icon_size):
         data = extractor.get_icon(num=0)
         logger.info("Extracted icon loaded into buffer.")
 
-        #from PIL import Image
         im = Image.open(data)
         img_resized = im.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
         logger.info("Resized image (still in buffer).")

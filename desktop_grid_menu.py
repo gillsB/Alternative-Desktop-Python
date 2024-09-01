@@ -228,7 +228,6 @@ class Menu(QDialog):
         # icon4.png default_icon_to_image (gets icon from default associated filetype program, only exists if exec_path is not .exe, .url, .lnk)
 
         icon_path = os.path.join(data_path, "icon.png")
-        icon1_path = os.path.join(data_path, "icon1.png")
         icon2_path = os.path.join(data_path, "icon2.png")
         icon3_path = os.path.join(data_path, "icon3.png")
         icon4_path = os.path.join(data_path, "icon4.png")
@@ -279,7 +278,7 @@ class Menu(QDialog):
         # If no icon path and exec is a .url
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".url"):
             logger.info("Exec path is a .url")
-            path_ico_icon = url_to_image(self.exec_path_le.text(), data_path, icon_size)
+            path_ico_icon = url_to_image(self.exec_path_le.text(), icon_path, icon_size)
 
             if path_ico_icon != None:
                 logger.info(f"Found icon from .url, saved to: {path_ico_icon}")
@@ -289,7 +288,7 @@ class Menu(QDialog):
         elif self.icon_path_le.text() == "" and self.exec_path_le.text() != "":
             logger.info(f"Exec path is not .lnk or .exe: {self.exec_path_le.text()}, generating a default icon")
             if self.check_valid_path(self.exec_path_le.text()):
-                path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), data_path, icon_size)
+                path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), icon4_path, icon_size)
                 if path_default_file_icon != None:
                     logger.info(f"Icon created from default, saved to: {path_default_file_icon}")
                     default_file = True
@@ -303,14 +302,14 @@ class Menu(QDialog):
             if not url.startswith(('http://', 'https://')):
                 url = 'http://' + url
             
-            path_fav_icon = favicon_to_image(url, data_path, icon_size)
+            path_fav_icon = favicon_to_image(url, icon3_path, icon_size)
             if path_fav_icon != None:
                 logger.info(f"Icon created from favicon, saved to {path_fav_icon}")
                 fav_file = True
             #if it fails to create a favicon fallback
             else:
                 #create a default browser icon for links
-                path_fav_icon = browser_to_image(data_path, icon_size)
+                path_fav_icon = browser_to_image(icon3_path, icon_size)
                 if path_fav_icon != None:
                     logger.info(f"Favicon not found, created default browser image instead, saved to {path_fav_icon}")
                     fav_file = True
@@ -498,8 +497,7 @@ class Menu(QDialog):
         upscaled_icon = extract_ico_file(file_path, output_path, icon_size)
         if(upscaled_icon):
             logger.info("upscaled .ICO file Success")
-            data_path = os.path.join(data_path, "icon.png")
-            self.icon_path_le.setText(data_path)
+            self.icon_path_le.setText(output_path)
 
 
     def remove_file_extentions(self, file_name):

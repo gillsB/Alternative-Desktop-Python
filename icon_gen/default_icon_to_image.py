@@ -44,7 +44,7 @@ gdi32 = ctypes.windll.gdi32
 logger.info("Loaded shell32, user32, and gdi32 libraries.")
 
 def default_icon_to_image(file_path, output_path, icon_size, retries=5):
-    logger.info(f"Attempting to retrieve icon for {file_path}")
+    logger.info(f"Called with arguments: file_path = {file_path} output_path = {output_path}, icon_size = {icon_size} retries = {retries}")
     
     def get_icon_handle():
         shfileinfo = SHFILEINFO()
@@ -118,7 +118,6 @@ def default_icon_to_image(file_path, output_path, icon_size, retries=5):
         img = Image.frombuffer('RGBA', (width, height), buffer, 'raw', 'BGRA', 0, 1)
         img_resized = img.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
 
-        output_path = os.path.join(output_path, "icon4.png")
         img_resized.save(output_path)
         logger.info(f"Icon saved to {output_path}")
 

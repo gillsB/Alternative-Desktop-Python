@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def browser_to_image(output_path, icon_size):
-    logger.info("Attempting to get default web browser")
+    logger.info(f"Called with arguments: output_path = {output_path}, icon_size = {icon_size}")
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice") as key:
         prog_id = winreg.QueryValueEx(key, 'ProgId')[0]
     
