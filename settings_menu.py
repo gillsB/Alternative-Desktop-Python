@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
 from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
+from display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
 import os
 import logging
 
@@ -196,17 +197,19 @@ class SettingsDialog(QDialog):
         #cleanup background paths
         self.cleanup_bg_paths()
         if self.background_video.text() != "" and os.path.exists(self.background_video.text()) == False:
-            ret = QMessageBox.warning(self, "Video does not exist",
-                                    f"Video at path: {self.background_video.text()} Does Not Exist. Are you sure you want to save with an incorrect video file?",
-                                    QMessageBox.Ok| QMessageBox.Cancel)
-            if ret == QMessageBox.Cancel:   
+            logger.warning("Background Video does not exist")
+            # Display warning that bg video path does not exist, cancel save if user hits cancel otherwise save.
+            if display_bg_video_not_exist(self.background_video.text()) == QMessageBox.Cancel:   
+                logger.info("User chose to cancel saving.")
                 return
+            logger.info("User chose to save regardless")
         if self.background_image.text() != "" and os.path.exists(self.background_image.text())  == False:
-            ret = QMessageBox.warning(self, "Image does not exist",
-                                    f"Image at path: {self.background_image.text()} Does Not Exist. Are you sure you want to save with an incorrect image file?",
-                                    QMessageBox.Ok| QMessageBox.Cancel)
-            if ret == QMessageBox.Cancel:   
+            logger.warning("Background Image does not exist")
+            #display warning that bg image path does not exist, cancel save if user hits cancel otherwise save.
+            if display_bg_image_not_exist(self.background_image.text()) == QMessageBox.Cancel:   
+                logger.info("User chose to cancel saving.")
                 return
+            logger.info("User chose to save regardless")
 
 
         # Double check keybind is set to something. Changes it to last saved setting if not. (i.e. click button but don't press anything then hit save)
@@ -247,11 +250,13 @@ class SettingsDialog(QDialog):
             logger.info("Called close with no changes made in settings")
             event.accept()
         else:
-            ret = QMessageBox.warning(self,"Settings NOT saved", "Do you wish to discard these changes?", QMessageBox.Ok | QMessageBox.Cancel)
-            if ret == QMessageBox.Ok:
+            logger.info("Called close with changes in settings")
+            if display_settings_not_saved() == QMessageBox.Ok:
+                logger.info("User chose to close the settings menu and revert the changes")
                 self.on_close()
                 event.accept()
             else:
+                logger.info("User chose to cancel the close event.")
                 event.ignore()
     
     def set_changed(self):

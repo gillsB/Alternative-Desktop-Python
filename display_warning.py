@@ -120,3 +120,27 @@ def display_no_default_type_error(path):
         "Error Opening File",
         f"The file could not be opened.\nFile path:{path}\nPlease ensure there is a default application set to open this file type."
     )
+
+def display_bg_video_not_exist(bg_video_path):
+    logger.warning("Displaying warning for bg video does not exist")
+    return show_highlightable_message_box(
+        "Video does not exist",
+        f"Video at path: ' {bg_video_path} ' \nDoes Not Exist. Are you sure you want to save with an incorrect video file?",
+        True
+    )
+
+def display_bg_image_not_exist(bg_image_path):
+    logger.warning("Displaying warning for bg image does not exist")
+    return show_highlightable_message_box(
+        "BG image does not exist",
+        f"Image at path: ' {bg_image_path} '\nDoes Not Exist. Are you sure you want to save with an incorrect image file?",
+        True
+    )
+
+def display_settings_not_saved():
+    logger.warning("Displaying warning for settings not saved")
+    return show_highlightable_message_box(
+        "Settings NOT saved", 
+        "Do you wish to discard these changes?", 
+        True
+    )
