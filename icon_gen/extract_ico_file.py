@@ -4,6 +4,7 @@ from PIL import Image
 import stat
 import ctypes
 import logging
+from icon_gen.icon_utils import remove_hidden_attribute
 
 logger = logging.getLogger(__name__)
 
@@ -45,17 +46,7 @@ def extract_ico_file(source_file, output_path, icon_size):
     return found
 
 
-def remove_hidden_attribute(file_path):
-    # Define the Windows constants for attributes
-    FILE_ATTRIBUTE_HIDDEN = 0x2
 
-    # Get the current attributes of the file
-    attrs = ctypes.windll.kernel32.GetFileAttributesW(file_path)
 
-    if attrs == -1:
-        logger.error(f"File not found when removing hidden attributes: {file_path}")
-        raise FileNotFoundError(f"File not found: {file_path}")
 
-    # Remove the hidden attribute
-    new_attrs = attrs & ~FILE_ATTRIBUTE_HIDDEN
-    ctypes.windll.kernel32.SetFileAttributesW(file_path, new_attrs)
+

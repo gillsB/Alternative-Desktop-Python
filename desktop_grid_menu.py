@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLa
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
+from icon_gen.icon_utils import get_exact_img_file
 from icon_gen.extract_ico_file import extract_ico_file
 from icon_gen.lnk_to_image import lnk_to_image
 from icon_gen.exe_to_image import exe_to_image
@@ -491,10 +492,11 @@ class Menu(QDialog):
         data_path = self.parent().get_data_icon_dir()
         output_path = os.path.join(data_path, "icon.png")
         icon_size = self.parent().get_autogen_icon_size()
+
         
         logger.info(f"upscale_ico() output_path: {data_path}")
         logger.info(f"upscale_ico() file_path: {file_path}")
-        upscaled_icon = extract_ico_file(file_path, output_path, icon_size)
+        upscaled_icon = get_exact_img_file(file_path, output_path, icon_size)
         if(upscaled_icon):
             logger.info("upscaled .ICO file Success")
             self.icon_path_le.setText(output_path)
