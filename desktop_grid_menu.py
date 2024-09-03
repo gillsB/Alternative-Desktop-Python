@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLa
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
-from icon_gen.icon_utils import get_exact_img_file
+from icon_gen.icon_utils import get_exact_img_file, make_local_icon
 from icon_gen.extract_ico_file import extract_ico_file
 from icon_gen.lnk_to_image import lnk_to_image
 from icon_gen.exe_to_image import exe_to_image
@@ -345,41 +345,7 @@ class Menu(QDialog):
         non_empty_count = sum(1 for arg in variables if arg is not None and arg != "")
         return non_empty_count >= 2
 
-    def make_local_icon(self, icon_path):
-        #ensure datapath for [row, col] exists
-        data_path = self.parent().get_data_icon_dir()
-        if not os.path.exists(data_path):
-            os.makedirs(data_path)
-            
-        #get original image name
-        file_name = os.path.basename(icon_path)
-        
-        #join it to data path for full save location
-        output_path = os.path.join(data_path, file_name)
-        #ensure that it has a unique file name to not overwrite if named icon.png etc.
-        output_path = self.get_unique_folder_name(output_path)
-        
-        try:
-            logger.info(f"Trying to copy {icon_path} to {output_path}")
-            shutil.copy(icon_path, output_path)
-            return output_path
-        
-        except Exception as e:
-            logger.error(f"Error copying file: {e}")
-            return None
-        
-    #takes output path and injects _local before the file extention
-    #if a copy with the same name already exists it becomes _local1, _local2, _local3 etc.
-    def get_unique_folder_name(self, folder_path):
-        base, ext = os.path.splitext(folder_path)
-        counter = 1
-        new_folder = f"{base}_local{ext}"
-        
-        while os.path.exists(new_folder):
-            new_folder = f"{base}_local{counter}{ext}"
-            counter += 1
-            
-        return new_folder
+
 
     #last minute checks before saving
     def handle_save(self):
@@ -392,7 +358,7 @@ class Menu(QDialog):
                 data_directory = get_data_directory()
                 # if icon does not start with the default data directory
                 if not self.icon_path_le.text().startswith(data_directory):
-                    new_dir = self.make_local_icon(self.icon_path_le.text())
+                    new_dir = make_local_icon(self.icon_path_le.text(), self.parent().get_data_icon_dir())
                     self.icon_path_le.setText(new_dir)
 
         #.lnks do not have command line arguments supported (possible but annoying to implement)

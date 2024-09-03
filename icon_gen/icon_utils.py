@@ -8,7 +8,7 @@ import ctypes
 logger = logging.getLogger(__name__)
 
 
-
+# Copy exact image file to local directory and upscale it.
 def get_exact_img_file(source_file, output_path, icon_size):
     logger.info(f"get_exact_img_file called with arguments: source_file = {source_file}, output_path = {output_path}, icon_size = {icon_size}")
 
@@ -53,3 +53,39 @@ def remove_hidden_attribute(file_path):
     # Remove the hidden attribute
     new_attrs = attrs & ~FILE_ATTRIBUTE_HIDDEN
     ctypes.windll.kernel32.SetFileAttributesW(file_path, new_attrs)
+
+# Does not upscale, just a direct copy paste.
+def make_local_icon(icon_path, data_path):
+    #ensure datapath for [row, col] exists
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+        
+    #get original image name
+    file_name = os.path.basename(icon_path)
+    
+    #join it to data path for full save location
+    output_path = os.path.join(data_path, file_name)
+    #ensure that it has a unique file name to not overwrite if named icon.png etc.
+    output_path = get_unique_folder_name(output_path)
+    
+    try:
+        logger.info(f"Trying to copy {icon_path} to {output_path}")
+        shutil.copy(icon_path, output_path)
+        return output_path
+    
+    except Exception as e:
+        logger.error(f"Error copying file: {e}")
+        return None
+    
+#takes output path and injects _local before the file extention
+#if a copy with the same name already exists it becomes _local1, _local2, _local3 etc.
+def get_unique_folder_name(folder_path):
+    base, ext = os.path.splitext(folder_path)
+    counter = 1
+    new_folder = f"{base}_local{ext}"
+    
+    while os.path.exists(new_folder):
+        new_folder = f"{base}_local{counter}{ext}"
+        counter += 1
+        
+    return new_folder
