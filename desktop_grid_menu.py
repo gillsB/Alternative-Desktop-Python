@@ -1,8 +1,9 @@
 import logging
-from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QDialog, QFormLayout, QCheckBox, QToolButton,
+from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog, QFormLayout,
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
+from utils import ClearableLineEdit
 from icon_gen.icon_utils import get_exact_img_file, make_local_icon
 from icon_gen.extract_ico_file import extract_ico_file
 from icon_gen.lnk_to_image import lnk_to_image
@@ -16,7 +17,6 @@ from config import (load_desktop_config, entry_exists, get_entry, save_config_to
 from settings import get_setting
 from display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
-import shutil
 
 
 logger = logging.getLogger(__name__)
@@ -506,44 +506,3 @@ class Menu(QDialog):
         logger.debug("text edited, new text: ", new_text)
 
 
-class ClearableLineEdit(QLineEdit):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        # Create a clear button using a system default icon
-        self.clear_button = QToolButton(self)
-        self.clear_button.setIcon(self.style().standardIcon(QStyle.SP_LineEditClearButton))  
-        self.clear_button.setCursor(Qt.ArrowCursor)
-        self.clear_button.setStyleSheet("""
-                QToolButton {
-                    border: none;
-                    padding: 0px;
-                    background: transparent;  
-                }
-            """)
-
-        self.clear_button.hide()
-
-        # Setting button within frame
-        frameWidth = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
-        self.setStyleSheet(f"padding-right: {self.clear_button.sizeHint().width() + frameWidth + 1}px;")
-        self.clear_button.setFixedSize(self.sizeHint().height() - 2, self.sizeHint().height() - 2)
-
-        self.update_clear_button_position(frameWidth)
-        self.clear_button.clicked.connect(self.clear)
-        self.textChanged.connect(self.update_clear_button)
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        frameWidth = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
-        self.update_clear_button_position(frameWidth)
-
-    def update_clear_button_position(self, frameWidth):
-        height_diff = (self.height() - self.clear_button.height()) // 2
-        margin_right = 5 
-        self.clear_button.move(self.rect().right() - frameWidth - self.clear_button.sizeHint().width() - margin_right,
-                            height_diff)
-
-    def update_clear_button(self, text):
-        # Show clear button if line edit has text
-        self.clear_button.setVisible(bool(text))

@@ -1,6 +1,5 @@
 from icoextract import IconExtractor, IconExtractorError
 from PIL import Image
-import os
 import logging
 
 

@@ -1,15 +1,14 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox
-from PySide6.QtCore import Qt, QEvent, QKeyCombination
-from PySide6.QtGui import QIcon, QKeySequence, QIcon
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
+from PySide6.QtCore import Qt, QEvent
+from PySide6.QtGui import QIcon, QIcon
 import sys
-from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
+from settings import get_setting
 from settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
 from hotkey_handler import HotkeyHandler
 import os
 import xml.etree.ElementTree as ET
-from logs import setup_logging
 import logging
 
 logger = logging.getLogger(__name__)

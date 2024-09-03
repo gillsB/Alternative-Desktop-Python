@@ -1,5 +1,4 @@
-from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLabel
-import sys
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QPushButton
 import logging
 
 logger = logging.getLogger(__name__)

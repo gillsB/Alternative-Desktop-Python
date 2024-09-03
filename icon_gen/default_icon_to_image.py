@@ -1,7 +1,6 @@
 import ctypes
 from ctypes import wintypes
 from PIL import Image
-import os
 import logging
 
 # Constants for SHGetFileInfo function

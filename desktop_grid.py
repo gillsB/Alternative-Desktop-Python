@@ -1,13 +1,11 @@
 import logging
-import sys
-from PySide6.QtWidgets import (QApplication, QWidget, QLabel, QGridLayout, QVBoxLayout,  
+from PySide6.QtWidgets import (QWidget, QLabel, QGridLayout, QVBoxLayout,  
                                QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
 from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie, QDrag
 from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData, QMetaObject
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
-import shutil
 import subprocess
 import shlex
 from desktop_grid_menu import Menu

@@ -1,7 +1,4 @@
 import winreg
-import os
-from PIL import Image
-from icoextract import IconExtractor, IconExtractorError
 import logging
 from icon_gen.exe_to_image import exe_to_image
 

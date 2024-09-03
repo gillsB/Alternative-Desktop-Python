@@ -2,7 +2,6 @@ import os
 import shutil
 from PIL import Image
 import stat
-import ctypes
 import logging
 from icon_gen.icon_utils import remove_hidden_attribute
 

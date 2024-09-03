@@ -1,7 +1,6 @@
-from PySide6.QtWidgets import QApplication, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QRadioButton, QButtonGroup, QSpacerItem, QSizePolicy
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QLabel, QRadioButton, QButtonGroup, QSpacerItem, QSizePolicy
+from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
-import sys
 
 class ClickableLabel(QLabel):
     def __init__(self, parent=None):
