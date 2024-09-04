@@ -66,6 +66,10 @@ if __name__ == '__main__':
     set_dir(SETTINGS_FILE)
     settings = load_settings()
     logger.info(f"settings: {settings}")
+
+    # Must run before .main() and before any QApplication needs to be created
+    # Since updater(check_for_updates) uses a QApplication we call it before so that it uses the same QApplication (cannot delete one and re-create it)
+    desktop.create_app()
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, RELEASES_URL)
     

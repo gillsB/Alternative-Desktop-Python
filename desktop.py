@@ -165,7 +165,6 @@ def create_app():
 
 def main():
 
-    create_app()
     overlay = OverlayWidget()
     overlay.setWindowIcon(QIcon('alt.ico'))
     overlay.setMinimumSize(100, 100)  

@@ -3,10 +3,16 @@ import subprocess
 import os
 import sys
 import logging
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 logger = logging.getLogger(__name__)
+CURRENT_VERSION = None
+RELEASES_URL = None
 
-def check_for_updates(CURRENT_VERSION, RELEASES_URL):
+def check_for_updates(current_version, releases_url):
+    global CURRENT_VERSION, RELEASES_URL
+    CURRENT_VERSION = current_version
+    RELEASES_URL = releases_url
     try:
         response = requests.get(RELEASES_URL)
         response.raise_for_status()
@@ -34,8 +40,37 @@ def download_and_update(download_url, latest_version):
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
     logger.info(f"Downloaded {local_filename}")
-    run_installer(local_filename)
+    show_update_message(CURRENT_VERSION, latest_version, local_filename)
 
+def show_update_message(current_version, latest_version, local_filename):
+    logger.info("Displaying show_update_message")
+
+    # Check if QApplication instance exists
+    app = QApplication.instance()
+    if not app:
+        app = QApplication(sys.argv)
+
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("Update Available")
+    msg_box.setText(f"A new version has been downloaded.\n\n"
+                    f"Current version: {current_version}\n"
+                    f"New version: {latest_version}\n\n"
+                    "Would you like to install it?")
+    
+    msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+    msg_box.setDefaultButton(QMessageBox.Yes)
+
+    # Show the message box and capture the response
+    response = msg_box.exec()
+    if response == QMessageBox.Yes:
+        logger.info("User chose to install the new version.")
+        run_installer(local_filename)
+    else:
+        logger.info("User chose not to install the new version.")
+
+    # If the app was created here, quit it
+    if app and not QApplication.instance().closingDown():
+        app.quit()
 
 def run_installer(installer_path):
     try:
