@@ -24,7 +24,7 @@ def check_for_updates(current_version, releases_url):
             logger.warning(f"New version available: {latest_version}")
             download_url = latest_release["assets"][0]["browser_download_url"]
             logger.info("New download link: " + download_url)
-            download_and_update(download_url, latest_version)
+            show_update_message(download_url, latest_version)
         else:
             logger.info("You are running the latest version.")
     except requests.RequestException as e:
@@ -40,9 +40,9 @@ def download_and_update(download_url, latest_version):
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
     logger.info(f"Downloaded {local_filename}")
-    show_update_message(CURRENT_VERSION, latest_version, local_filename)
+    run_installer(local_filename)
 
-def show_update_message(current_version, latest_version, local_filename):
+def show_update_message(download_url, latest_version):
     logger.info("Displaying show_update_message")
 
     # Check if QApplication instance exists
@@ -52,8 +52,8 @@ def show_update_message(current_version, latest_version, local_filename):
 
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Update Available")
-    msg_box.setText(f"A new version has been downloaded.\n\n"
-                    f"Current version: {current_version}\n"
+    msg_box.setText(f"A new version is available.\n\n"
+                    f"Current version: {CURRENT_VERSION}\n"
                     f"New version: {latest_version}\n\n"
                     "Would you like to install it?")
     
@@ -64,7 +64,7 @@ def show_update_message(current_version, latest_version, local_filename):
     response = msg_box.exec()
     if response == QMessageBox.Yes:
         logger.info("User chose to install the new version.")
-        run_installer(local_filename)
+        download_and_update(download_url, latest_version)
     else:
         logger.info("User chose not to install the new version.")
 
