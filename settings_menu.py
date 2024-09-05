@@ -92,12 +92,16 @@ class SettingsDialog(QDialog):
         # format for background_source is no capitalize and "_" instead of " " therefore revert both
         self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
 
+        self.background_selector.currentIndexChanged.connect(self.set_changed)
+
 
         # background path clearable line edits
         self.background_video = ClearableLineEdit()
         self.background_image = ClearableLineEdit()
         self.background_video.setText(settings.get("background_video", ""))
         self.background_image.setText(settings.get("background_image", ""))
+        self.background_video.textChanged.connect(self.set_changed)
+        self.background_image.textChanged.connect(self.set_changed)
 
 
         # folder buttons to open path in fileDialog
@@ -313,12 +317,14 @@ class SettingsDialog(QDialog):
         self.toggle_overlay_keybind_button.setText(text)
 
     def video_folder_button_clicked(self):
+        self.set_changed()
         file_dialog = QFileDialog()
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             self.background_video.setText(selected_file)
 
     def image_folder_button_clicked(self):
+        self.set_changed()
         file_dialog = QFileDialog()
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
