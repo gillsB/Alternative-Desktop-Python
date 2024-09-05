@@ -31,12 +31,12 @@ LABEL_SIZE = 64
 LABEL_VERT_PAD = 64
 DEFAULT_BORDER = "border 0px"
 CONTEXT_OPEN = False
-LABEL_TEXT_STYLESHEET = "QLabel { color : white }"
 DRAG_ROW = None
 DRAG_COL = None
 AUTOGEN_ICON_SIZE = 128
 BACKGROUND_VIDEO = ""
 BACKGROUND_IMAGE = ""
+TEXT_LABEL_COLOR = "white"
 
 
 
@@ -378,6 +378,9 @@ class Grid(QWidget):
         logger.info(f"Changed MAX_COLS to {MAX_COLS} new MAX_LABELS = {MAX_LABELS}")
         self.add_labels()
         self.draw_labels()
+    def change_label_color(self, new_color):
+        global TEXT_LABEL_COLOR
+        TEXT_LABEL_COLOR = new_color
 
 class ClickableLabel(QLabel):
     def __init__(self, desktop_icon, text, parent=None):
@@ -409,7 +412,10 @@ class ClickableLabel(QLabel):
         self.text_label.setAlignment(Qt.AlignCenter)
         self.text_label.setWordWrap(True)
         self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.text_label.setStyleSheet(LABEL_TEXT_STYLESHEET)
+
+        label_style = f"QLabel {{ color : {get_setting('label_color', 'white')}; }}"
+        
+        self.text_label.setStyleSheet(label_style)
 
         # give it an EventFilter to detect mouseover
         self.text_label.installEventFilter(self)
@@ -424,10 +430,8 @@ class ClickableLabel(QLabel):
         self.movie = None
 
     def set_size(self):
-        """Set the size of the label."""
         self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
         self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
-        # Optionally, update the layout if needed
         if self.parent():
             self.parent().updateGeometry()
 

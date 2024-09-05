@@ -16,7 +16,8 @@ DEFUALT_SETTINGS = {
         "local_icons": True,
         "icon_size": 100,
         "max_rows": 20,
-        "max_cols": 40
+        "max_cols": 40,
+        "label_color": "white"
 }
 
 #background_source arguments:

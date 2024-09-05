@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QToolButton, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QToolButton, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
 from PySide6.QtCore import Qt, QEvent, QKeyCombination, QSize
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
@@ -151,7 +151,15 @@ class SettingsDialog(QDialog):
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
         layout.addRow("Max Columns: ", self.max_cols_sb)
 
+        self.label_color = get_setting("label_color", "white") #default white
+        
+        # Flat color button, when clicked opens color dialog
+        self.label_color_box = QPushButton("", self)
+        self.label_color_box.clicked.connect(self.open_color_dialog)
+        self.label_color_box.setFixedSize(QSize(75, 30))
 
+        self.update_color_box(self.label_color)
+        layout.addRow("Icon Name color: ", self.label_color_box)
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -159,10 +167,25 @@ class SettingsDialog(QDialog):
         save_button.setAutoDefault(False)
         save_button.setDefault(False)
 
+    def open_color_dialog(self):
+        self.redraw_setting_changed() # redraw or it won't update
+        # Open the color dialog and get the selected color
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.label_color = color.name()  # Get the hex code of the selected color
+            self.parent().grid_widget.change_label_color(self.label_color)
+            self.update_color_box(self.label_color)
+            
+    def update_color_box(self, color_name: str):
+        logger.info(f"Updated label color box to color {color_name}")
+        self.label_color_box.setStyleSheet(f"background-color: {color_name}; border: 1px solid black;")
+
     # Only called when a setting which requires redrawing of desktop icons is changed.
     def redraw_setting_changed(self):
         self.set_changed()
         self.redraw_request = True
+        logger.info("Redraw request now set to True")
             
 
     def display_theme(self):
@@ -228,6 +251,7 @@ class SettingsDialog(QDialog):
         settings["icon_size"] = self.icon_size_slider.value()
         settings["max_rows"] = self.max_rows_sb.value()
         settings["max_cols"] = self.max_cols_sb.value()
+        settings["label_color"] = self.label_color
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
