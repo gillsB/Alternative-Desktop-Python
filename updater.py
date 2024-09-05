@@ -76,13 +76,14 @@ def show_update_message(download_url, latest_version):
 def run_installer(installer_path):
     try:
         logger.info(f"Running installer: {installer_path}")
-        subprocess.Popen([installer_path], close_fds=True)
-        logger.info("Installation initiated. Closing the application.")
+        process = subprocess.Popen([installer_path], close_fds=True)
+        process.wait()  # Wait for the installer to finish
+        logger.info("Installation completed. Closing the application.")
         sys.exit(0)
     except PermissionError as e:
         logger.error(f"Permission error: {e}")
     except subprocess.CalledProcessError as e:
-         logger.error(f"Failed to run the installer: {e}")
+        logger.error(f"Failed to run the installer: {e}")
     finally:
         # Delete the installer after it's run
         if os.path.exists(installer_path):
