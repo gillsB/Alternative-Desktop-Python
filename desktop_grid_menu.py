@@ -442,6 +442,7 @@ class Menu(QDialog):
                         file_path = self.upscale_ico(file_path)
                     else:
                         self.icon_path_le.setText(file_path)
+                        self.parent().set_icon_path(self.icon_path_le.text())
                 else:
                     self.exec_path_le.setText(file_path)           
 
@@ -466,6 +467,7 @@ class Menu(QDialog):
         if(upscaled_icon):
             logger.info("upscaled .ICO file Success")
             self.icon_path_le.setText(output_path)
+            self.parent().set_icon_path(self.icon_path_le.text())
 
 
     def remove_file_extentions(self, file_name):
