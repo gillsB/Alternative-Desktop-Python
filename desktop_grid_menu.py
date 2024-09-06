@@ -53,6 +53,8 @@ class Menu(QDialog):
         self.web_link_le = ClearableLineEdit()
         self.parent().selected_border(10)
 
+        self.icon_path_le.textChanged.connect(self.preview_icon_path)
+
         self.setAcceptDrops(True)
 
         icon_folder_button = QPushButton(self)
@@ -149,8 +151,13 @@ class Menu(QDialog):
         else:
             super().keyPressEvent(event)
 
-    def check_valid_path(self, path):
-        return os.path.isfile(path)
+    
+    def preview_icon_path(self):
+        if os.path.isfile(self.icon_path_le.text()):
+            self.parent().set_icon_path(self.icon_path_le.text())
+        else:
+            self.parent().set_icon_path("assets/images/unknown.png")
+        self.parent().edit_mode_icon()
     
 
     ## clean up common problems with file path, i.e. copying a file and pasting into exec_path produces file:///C:/...
@@ -181,10 +188,10 @@ class Menu(QDialog):
             logger.info("Called save with existing icon_path, do not auto_gen")
             self.handle_save()
         #if exec_path is not empty check if it is a valid path then save if valid
-        elif self.check_valid_path(self.exec_path_le.text()) or self.web_link_le.text() != "":
+        elif os.path.isfile(self.exec_path_le.text()) or self.web_link_le.text() != "":
             logger.info("Called save with existing exec_path or a web_link")
-            logger.info(f"Arguments: valid exec_path: {self.check_valid_path(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
-            if self.exec_path_le != "" and not self.check_valid_path(self.exec_path_le.text()):
+            logger.info(f"Arguments: valid exec_path: {os.path.isfile(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
+            if self.exec_path_le != "" and not os.path.isfile(self.exec_path_le.text()):
                 # Show warning if user clicks cancel -> return and do not save, if Ok -> save
                 if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Cancel:
                     logger.info("User Chose to cancel Auto generating icon to fix the executable path.")
@@ -214,7 +221,6 @@ class Menu(QDialog):
             self.icon_path_le.setText("")
             logger.info("User chose to overwrite icon (OK). Generating icon.")
         self.auto_gen_icon()
-        self.parent().set_icon_path(self.icon_path_le.text())
         self.parent().edit_mode_icon()
 
     def auto_gen_icon(self):
@@ -248,7 +254,7 @@ class Menu(QDialog):
 
         logger.info(f"Auto gen icon called, data path = {data_path}, icon size = {icon_size}")
 
-        if self.exec_path_le.text() != "" and self.check_valid_path(self.exec_path_le.text()) and extract_ico_file(self.exec_path_le.text(), icon_path, icon_size):
+        if self.exec_path_le.text() != "" and os.path.isfile(self.exec_path_le.text()) and extract_ico_file(self.exec_path_le.text(), icon_path, icon_size):
             ico_file = True
             path_ico_icon = icon_path
             logger.info(f"Found .ico file in executable path location, saved to: {path_ico_icon}")
@@ -268,7 +274,7 @@ class Menu(QDialog):
         # If no icon path and exec is .exe
         elif self.icon_path_le.text() == "" and self.exec_path_le.text().endswith(".exe"):
             logger.info("Exec path is an .exe")
-            if self.check_valid_path(self.exec_path_le.text()):
+            if os.path.isfile(self.exec_path_le.text()):
                 path_exe_icon = exe_to_image(self.exec_path_le.text(), icon2_path, icon_size)  
                 if path_exe_icon != None:
                     logger.info(f"Found icon from .exe, saved to: {path_exe_icon}")
@@ -288,7 +294,7 @@ class Menu(QDialog):
         # If no icon path and exec_path exists
         elif self.icon_path_le.text() == "" and self.exec_path_le.text() != "":
             logger.info(f"Exec path is not .lnk or .exe: {self.exec_path_le.text()}, generating a default icon")
-            if self.check_valid_path(self.exec_path_le.text()):
+            if os.path.isfile(self.exec_path_le.text()):
                 path_default_file_icon = default_icon_to_image(self.exec_path_le.text(), icon4_path, icon_size)
                 if path_default_file_icon != None:
                     logger.info(f"Icon created from default, saved to: {path_default_file_icon}")
@@ -354,7 +360,7 @@ class Menu(QDialog):
         self.cleanup_path()
 
         if get_setting("local_icons"):
-            if self.check_valid_path(self.icon_path_le.text()) == True:
+            if os.path.isfile(self.icon_path_le.text()) == True:
                 data_directory = get_data_directory()
                 # if icon does not start with the default data directory
                 if not self.icon_path_le.text().startswith(data_directory):
@@ -368,7 +374,7 @@ class Menu(QDialog):
             return
         #this can call for save even if path for icon is wrong, so do this one last as doing it before the other error checks can result in it saving THEN displaying another warning.
         #check icon_path_le if it is NOT empty AND the path to file does NOT exist (invalid path)
-        if self.icon_path_le.text() != "" and self.check_valid_path(self.icon_path_le.text()) != True:
+        if self.icon_path_le.text() != "" and os.path.isfile(self.icon_path_le.text()) != True:
             # Show warning if user clicks cancel -> return and do not save, if Ok -> save
             if display_icon_path_not_exist_warning(self.icon_path_le.text()) == QMessageBox.Ok:
                 self.save()
@@ -442,7 +448,6 @@ class Menu(QDialog):
                         file_path = self.upscale_ico(file_path)
                     else:
                         self.icon_path_le.setText(file_path)
-                        self.parent().set_icon_path(self.icon_path_le.text())
                 else:
                     self.exec_path_le.setText(file_path)           
 
@@ -467,7 +472,6 @@ class Menu(QDialog):
         if(upscaled_icon):
             logger.info("upscaled .ICO file Success")
             self.icon_path_le.setText(output_path)
-            self.parent().set_icon_path(self.icon_path_le.text())
 
 
     def remove_file_extentions(self, file_name):
