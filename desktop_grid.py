@@ -738,7 +738,8 @@ class ClickableLabel(QLabel):
     
     #set icon into edit mode: red selected border, if icon is originally blank, set it to "add2.png"
     def edit_mode_icon(self):
-        if self.desktop_icon.icon_path == "" or entry_exists(self.desktop_icon.row, self.desktop_icon.col) == False:
+        logger.info("Edit mode icon called")
+        if self.desktop_icon.icon_path == "" and entry_exists(self.desktop_icon.row, self.desktop_icon.col) == False:
             self.set_icon_path("assets/images/add2.png")
         self.selected_border(10)
     
