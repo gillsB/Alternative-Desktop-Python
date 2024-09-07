@@ -69,13 +69,12 @@ class OverlayWidget(QWidget):
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
         self.previous_state = Qt.WindowMaximized
+        self.first_restore = True
         self.restored_from_keybind = False
-        self.first_close = False
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
-        if self.restored_from_keybind == False:
-            self.first_close = True
+        self.restored_from_keybind = True
         self.previous_state = self.windowState()
         event.ignore()
         self.hide()
@@ -173,19 +172,15 @@ class OverlayWidget(QWidget):
         logger.info(f"prev state = {self.previous_state}")
         
         if current_state & Qt.WindowMinimized or not self.isVisible():
-            if self.first_close:
-                self.show_window()
-                self.restored_from_keybind = True
-                self.first_close = False
-            else:
-                # Restore the window to its previous state
+            # Restore the window to its previous state
+            
+            if current_state == Qt.WindowState.WindowNoState or self.previous_state == Qt.WindowState.WindowNoState:
                 self.showNormal()
-                if current_state == Qt.WindowState.WindowNoState:
-                    pass
-                elif self.previous_state == Qt.WindowState.WindowMaximized:
-                    self.showMaximized()
-                self.updateGeometry()
-                self.grid_widget.updateGeometry()
+            elif self.previous_state == Qt.WindowState.WindowMaximized:
+                if self.first_restore == True and self.restored_from_keybind == True:
+                    self.showNormal()
+                    self.first_restore = False
+                self.showMaximized()
             
         else:
             # Save the current state and minimize the window
