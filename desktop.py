@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu
 from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QIcon, QIcon
+from PySide6.QtGui import QIcon, QIcon, QAction, QGuiApplication
 import sys
 from settings import get_setting
 from settings_menu import SettingsDialog
@@ -26,6 +26,27 @@ class OverlayWidget(QWidget):
         self.setWindowTitle("Alternative Desktop V0.1.000")
         self.showMaximized()
 
+        # Create the system tray icon
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon("alt.ico"))
+
+        # Create the tray menu
+        tray_menu = QMenu()
+
+        tray_menu.setStyle(QApplication.style())
+        
+        restore_action = QAction("Restore", self)
+        restore_action.triggered.connect(self.show_window)
+        tray_menu.addAction(restore_action)
+
+        quit_action = QAction("Quit", self)
+        quit_action.triggered.connect(self.close_application)
+        tray_menu.addAction(quit_action)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        
+        self.tray_icon.show()
+
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
@@ -47,6 +68,23 @@ class OverlayWidget(QWidget):
 
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
+        
+    # Override base CloseEvent to just hide it. (Tray item already exists)
+    def closeEvent(self, event):
+        event.ignore()
+        self.hide()
+
+    # This is only the tray icon -> Restore menu. NOT the same as the keybind to bring up/hide program.
+    def show_window(self):
+        self.showNormal()
+        self.showMaximized()
+        self.updateGeometry()
+        self.grid_widget.updateGeometry()
+
+    # Complete quit from Tray menu.
+    def close_application(self):
+        self.tray_icon.hide()
+        QApplication.instance().quit()
 
     def apply_theme(self, theme_name):
         if theme_name.startswith("none"):
@@ -111,7 +149,6 @@ class OverlayWidget(QWidget):
             theme_colors[color_name] = color_value
 
         return theme_colors
-
 
 
     def show_settings(self):
