@@ -68,9 +68,15 @@ class OverlayWidget(QWidget):
 
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
+        self.previous_state = Qt.WindowMaximized
+        self.restored_from_keybind = False
+        self.first_close = False
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
+        if self.restored_from_keybind == False:
+            self.first_close = True
+        self.previous_state = self.windowState()
         event.ignore()
         self.hide()
 
@@ -85,7 +91,7 @@ class OverlayWidget(QWidget):
     def close_application(self):
         self.tray_icon.hide()
         QApplication.instance().quit()
-
+        
     def apply_theme(self, theme_name):
         if theme_name.startswith("none"):
             global APP
@@ -154,41 +160,38 @@ class OverlayWidget(QWidget):
     def show_settings(self):
         dialog = SettingsDialog(parent=self)
         dialog.exec()
+        print(self.windowState())
     
     def change_opacity(self ,i):
         logger.info(f"Change opacity = {float(i/100)}")
         self.setWindowOpacity(float(i/100))
 
     def toggle_window_state(self):
-        if self.isMinimized():
-            # Restore to the last visible state
-            if self.last_visible_state == Qt.WindowFullScreen:
-                self.showFullScreen()
-            elif self.last_visible_state == Qt.WindowMaximized:
-                self.showMaximized()
+        logger.info("toggle_window_state called")
+        current_state = self.windowState()
+        logger.info(f"cur state = {current_state}")
+        logger.info(f"prev state = {self.previous_state}")
+        
+        if current_state & Qt.WindowMinimized or not self.isVisible():
+            if self.first_close:
+                self.show_window()
+                self.restored_from_keybind = True
+                self.first_close = False
             else:
+                # Restore the window to its previous state
                 self.showNormal()
-            self.grid_widget.play_video()
+                if current_state == Qt.WindowState.WindowNoState:
+                    pass
+                elif self.previous_state == Qt.WindowState.WindowMaximized:
+                    self.showMaximized()
+                self.updateGeometry()
+                self.grid_widget.updateGeometry()
+            
         else:
-            # Save the current state before minimizing
-            if self.isFullScreen():
-                self.last_visible_state = Qt.WindowFullScreen
-            elif self.isMaximized():
-                self.last_visible_state = Qt.WindowMaximized
-            else:
-                self.last_visible_state = Qt.WindowNoState
-            self.showMinimized()
-            self.grid_widget.pause_video()
+            # Save the current state and minimize the window
+            self.previous_state = current_state
+            self.setWindowState(Qt.WindowMinimized)
     def changeEvent(self, event):
-        if event.type() == QEvent.WindowStateChange:
-            if not self.isMinimized():
-                # Update last_visible_state when window state changes (except for minimization)
-                if self.isFullScreen():
-                    self.last_visible_state = Qt.WindowFullScreen
-                elif self.isMaximized():
-                    self.last_visible_state = Qt.WindowMaximized
-                else:
-                    self.last_visible_state = Qt.WindowNoState
         super().changeEvent(event)
     def set_hotkey(self):
         self.hotkey_handler.set_hotkey()
