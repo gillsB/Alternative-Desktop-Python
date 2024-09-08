@@ -69,11 +69,16 @@ class OverlayWidget(QWidget):
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
 
+        # first_restore is set to run a 1 time first restore code
+        self.first_restore = True
+        self.restored_window = False
+
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
         event.ignore()
+        self.restored_window = True
         if self.isMinimized:
             # Showing these as Maximized/Normal is important for actually bringing them back up in a single toggle_window_state() call.
             # Otherwise it would take multiple calls or bring it up in the background (non focused).
@@ -184,8 +189,10 @@ class OverlayWidget(QWidget):
             
             # self.is_maximized holds whether the last active state of the window was maximized.
             if self.is_maximized == True: # Restore window as maximized. showNormal() is required for proper scaling.
+                if self.first_restore and self.restored_window:
+                    self.showNormal()
+                    self.first_restore = False
                 logger.info("Showing window as maximized")
-                self.showNormal()
                 self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
                 self.showMaximized()
 
