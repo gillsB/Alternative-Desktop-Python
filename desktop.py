@@ -68,23 +68,33 @@ class OverlayWidget(QWidget):
 
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
-        self.previous_state = Qt.WindowMaximized
-        self.first_restore = True
-        self.restored_from_keybind = False
+
+
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
-        self.restored_from_keybind = True
-        self.previous_state = self.windowState()
         event.ignore()
+        if self.isMinimized:
+            # Showing these as Maximized/Normal is important for actually bringing them back up in a single toggle_window_state() call.
+            # Otherwise it would take multiple calls or bring it up in the background (non focused).
+            if self.is_maximized == True:
+                logger.info("Quickly showing window as Maximized before hiding")
+                self.showMaximized()
+            else:
+                logger.info("Quickly showing window as normal before closing")
+                self.showNormal()
+        
+
         self.hide()
 
-    # This is only the tray icon -> Restore menu. NOT the same as the keybind to bring up/hide program.
+    # This is only the tray icon -> Restore menu. Running self.toggle_window_state() makes it the same as keybind restore.
+    # Or can always override this say for instance if you want it to always restore to maximized.
     def show_window(self):
-        self.showNormal()
-        self.showMaximized()
-        self.updateGeometry()
-        self.grid_widget.updateGeometry()
+        self.toggle_window_state()
+        #self.showNormal()
+        #self.showMaximized()
+        #self.updateGeometry()
+        #self.grid_widget.updateGeometry()
 
     # Complete quit from Tray menu.
     def close_application(self):
@@ -169,25 +179,36 @@ class OverlayWidget(QWidget):
         logger.info("toggle_window_state called")
         current_state = self.windowState()
         logger.info(f"cur state = {current_state}")
-        logger.info(f"prev state = {self.previous_state}")
         
         if current_state & Qt.WindowMinimized or not self.isVisible():
-            # Restore the window to its previous state
             
-            if current_state == Qt.WindowState.WindowNoState or self.previous_state == Qt.WindowState.WindowNoState:
+            # self.is_maximized holds whether the last active state of the window was maximized.
+            if self.is_maximized == True: # Restore window as maximized. showNormal() is required for proper scaling.
+                logger.info("Showing window as maximized")
                 self.showNormal()
-            elif self.previous_state == Qt.WindowState.WindowMaximized:
-                if self.first_restore == True and self.restored_from_keybind == True:
-                    self.showNormal()
-                    self.first_restore = False
+                self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
                 self.showMaximized()
+
+            else: # Restore window as normal non-maximized
+                logger.info("Showing window as normal")
+                self.showNormal()
+                self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
             
         else:
-            # Save the current state and minimize the window
-            self.previous_state = current_state
+            # Minimize window
             self.setWindowState(Qt.WindowMinimized)
+
     def changeEvent(self, event):
+        # Check if the window state is changing
+        if event.type() == QEvent.WindowStateChange:
+            if self.windowState() & Qt.WindowMaximized:
+                self.is_maximized = True
+                logger.info("Window is maximized")
+            elif self.windowState() == Qt.WindowNoState:
+                self.is_maximized = False
+                logger.info("Window is in normal state")
         super().changeEvent(event)
+
     def set_hotkey(self):
         self.hotkey_handler.set_hotkey()
         
