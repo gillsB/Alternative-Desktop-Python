@@ -165,6 +165,13 @@ class SettingsDialog(QDialog):
         self.update_color_box(self.label_color)
         layout.addRow("Icon Name color: ", self.label_color_box)
 
+        # On closing the program: Minimize to Tray or Terminiate the program
+        self.on_close_cb = QComboBox()
+        on_close_options = ['Minimize to tray', 'Terminiate the program']
+        self.on_close_cb.addItems(on_close_options)
+        layout.addRow("On closing the program:", self.on_close_cb)
+        self.on_close_cb.setCurrentIndex(get_setting("on_close", 0))
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
@@ -256,6 +263,7 @@ class SettingsDialog(QDialog):
         settings["max_rows"] = self.max_rows_sb.value()
         settings["max_cols"] = self.max_cols_sb.value()
         settings["label_color"] = self.label_color
+        settings["on_close"] = self.on_close_cb.currentIndex()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
