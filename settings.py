@@ -20,6 +20,7 @@ DEFUALT_SETTINGS = {
         "label_color": "white",
         "on_close": 0
 }
+SETTINGS = None
 
 #background_source arguments:
 # first_found = First found
@@ -30,27 +31,31 @@ DEFUALT_SETTINGS = {
 
     
 def load_settings():
+    global SETTINGS
     if os.path.exists(DIRECTORY):
         with open(DIRECTORY, "r") as f:
-            return json.load(f)
+            SETTINGS = json.load(f)
+            return SETTINGS
+            
     else:
         logger.error("Error loading settings, expected file at: " + DIRECTORY )
         return {}
 
 def get_setting(key, default=None):
-    settings = load_settings()
-    return settings.get(key, default)
+    global SETTINGS
+    return SETTINGS.get(key, default)
 
 def set_setting(key, value):
-    if DIRECTORY != None:
-        settings = load_settings()
-        settings[key] = value
-        save_settings(settings)
+    global SETTINGS
+    SETTINGS[key] = value
+    save_settings(SETTINGS)
 
 def save_settings(settings):
     with open(DIRECTORY, "w") as f:
         json.dump(settings, f, indent=4)
         logger.info("Saved settings")
+    # Update global SETTINGS to be up to date.
+    load_settings()
 
 
 
@@ -67,16 +72,17 @@ def set_dir(directory):
 
 
 def check_for_new_settings():
-    settings = load_settings()
+    global SETTINGS
     new_settings = False
+    load_settings()
     for key, value in DEFUALT_SETTINGS.items():
-        if key not in settings:
+        if key not in SETTINGS:
             logger.info(f"key {key} not in settings")
-            settings[key] = value
+            SETTINGS[key] = value
             new_settings = True
     if new_settings:
-        logger.info(f"New settings before save: {settings}")
-        save_settings(settings)
+        logger.info(f"New settings before save: {SETTINGS}")
+        save_settings(SETTINGS)
 
 
 def add_angle_brackets(text):
