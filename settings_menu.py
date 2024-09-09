@@ -21,16 +21,20 @@ class SettingsDialog(QDialog):
         layout = QFormLayout()
         self.setLayout(layout)
 
+        # Small optimization to load settings once for the entire file then use .get() from that
+        # Instead of using get_setting() which calls a load_settings() every instance.
+        self.settings = load_settings()
+
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
-        settings = load_settings()
-        self.update_on_launch_cb.setChecked(settings.get("update_on_launch", True))
+
+        self.update_on_launch_cb.setChecked(self.settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
     
 
         self.toggle_overlay_keybind_button = KeybindButton()
-        self.toggle_overlay_keybind_button.setText(settings.get("toggle_overlay_keybind", "alt+d"))
+        self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
         self.toggle_overlay_keybind_button.setFocusPolicy(Qt.ClickFocus)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
@@ -41,7 +45,7 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setMinimum(30)
         self.window_opacity_slider.setMaximum(100)
         self.window_opacity_slider.setSingleStep(1)
-        self.window_opacity_slider.setSliderPosition(settings.get("window_opacity", 100))
+        self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.value_changed)
         
 
@@ -59,7 +63,7 @@ class SettingsDialog(QDialog):
         self.color_selector.addItems(self.colors)
 
         # Retrieve and set theme from settings
-        self.set_theme = get_setting("theme")
+        self.set_theme = self.settings.get("theme", "None")
         if '_' in self.set_theme:
             split_theme = self.set_theme.rsplit('.', 1)[0]
             theme, color = split_theme.split('_', 1)
@@ -84,11 +88,11 @@ class SettingsDialog(QDialog):
         self.display_theme()
 
         self.background_selector = QComboBox()
-        background_options = ['First found', "Both", "Video only", "Image only", "None"]
+        background_options = ["First found", "Both", "Video only", "Image only", "None"]
         self.background_selector.addItems(background_options)
         layout.addRow("Background sourcing:", self.background_selector)
         
-        set_bg_option = get_setting("background_source")
+        set_bg_option = self.settings.get("background_source", "First found")
         # format for background_source is no capitalize and "_" instead of " " therefore revert both
         self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
 
@@ -98,8 +102,8 @@ class SettingsDialog(QDialog):
         # background path clearable line edits
         self.background_video = ClearableLineEdit()
         self.background_image = ClearableLineEdit()
-        self.background_video.setText(settings.get("background_video", ""))
-        self.background_image.setText(settings.get("background_image", ""))
+        self.background_video.setText(self.settings.get("background_video", ""))
+        self.background_image.setText(self.settings.get("background_image", ""))
         self.background_video.textChanged.connect(self.set_changed)
         self.background_image.textChanged.connect(self.set_changed)
 
@@ -128,7 +132,7 @@ class SettingsDialog(QDialog):
         layout.addRow("Background Image path:", image_folder_layout)
 
         self.local_icons_cb = QCheckBox()
-        self.local_icons_cb.setChecked(settings.get("local_icons", True))
+        self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
         self.local_icons_cb.clicked.connect(self.set_changed)
         layout.addRow("Save icons locally", self.local_icons_cb)
 
@@ -136,7 +140,7 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setMinimum(30)
         self.icon_size_slider.setMaximum(256)
         self.icon_size_slider.setSingleStep(1)
-        self.icon_size_slider.setSliderPosition(settings.get("icon_size", 100))
+        self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
         layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
@@ -145,17 +149,17 @@ class SettingsDialog(QDialog):
         self.redraw_request = False
 
         self.max_rows_sb = QSpinBox()
-        self.max_rows_sb.setValue(settings.get("max_rows", 20))
+        self.max_rows_sb.setValue(self.settings.get("max_rows", 20))
         self.max_rows_sb.setRange(0, 100)
         self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
         layout.addRow("Max rows: ", self.max_rows_sb)
         self.max_cols_sb = QSpinBox()
-        self.max_cols_sb.setValue(settings.get("max_cols", 40))
+        self.max_cols_sb.setValue(self.settings.get("max_cols", 40))
         self.max_cols_sb.setRange(0, 100)
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
         layout.addRow("Max Columns: ", self.max_cols_sb)
 
-        self.label_color = get_setting("label_color", "white") #default white
+        self.label_color = self.settings.get("label_color", "white") #default white
         
         # Flat color button, when clicked opens color dialog
         self.label_color_box = QPushButton("", self)
@@ -170,7 +174,7 @@ class SettingsDialog(QDialog):
         on_close_options = ['Minimize to tray', 'Terminiate the program']
         self.on_close_cb.addItems(on_close_options)
         layout.addRow("On closing the program:", self.on_close_cb)
-        self.on_close_cb.setCurrentIndex(get_setting("on_close", 0))
+        self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -250,6 +254,7 @@ class SettingsDialog(QDialog):
         # Double check keybind is set to something. Changes it to last saved setting if not. (i.e. click button but don't press anything then hit save)
         self.good_keybind()
 
+        # More optimized to load and modify all settings then save. Than to set_setting() for each setting as set_setting() has load and save overhead.
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
         settings["toggle_overlay_keybind"] = self.toggle_overlay_keybind_button.get_keybind()
@@ -274,6 +279,8 @@ class SettingsDialog(QDialog):
             if self.redraw_request:
                 self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
                 self.parent().grid_widget.change_max_cols(self.max_cols_sb.value())
+        
+        # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
         self.accept()
 
     def good_keybind(self):
@@ -316,10 +323,10 @@ class SettingsDialog(QDialog):
             self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
 
     def on_close(self):
-        window_opacity = get_setting("window_opacity", -1)
+        window_opacity = self.settings.get("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
-        self.parent().grid_widget.update_label_size(get_setting("icon_size"))
+        self.parent().grid_widget.update_label_size(self.settings.get("icon_size"))
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
@@ -389,5 +396,4 @@ class KeybindButton(QPushButton):
 
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
-        settings = load_settings()
-        self.setText(settings.get("toggle_overlay_keybind", "alt+d"))
+        self.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
