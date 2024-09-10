@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu
-from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QIcon, QIcon, QAction, QGuiApplication
+from PySide6.QtCore import Qt, QEvent, QRect
+from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
 from settings import get_setting
 from settings_menu import SettingsDialog
@@ -72,6 +72,8 @@ class OverlayWidget(QWidget):
         # first_restore is set to run a 1 time first restore code
         self.first_restore = True
         self.restored_window = False
+
+        self.first_resize = True
 
 
         
@@ -215,6 +217,19 @@ class OverlayWidget(QWidget):
                 self.is_maximized = True
                 logger.info("Window is maximized")
             elif self.windowState() == Qt.WindowNoState:
+                if self.first_resize:
+                    screen_geometry = self.screen().availableGeometry()
+                    new_width = int(screen_geometry.width() * 0.75)
+                    new_height = int(screen_geometry.height() * 0.75)
+
+                    new_x = (screen_geometry.width() - new_width) // 2
+                    new_y = (screen_geometry.height() - new_height) // 2
+
+                    # Move and resize the window to the center of the screen with the new size
+                    self.setGeometry(QRect(new_x, new_y, new_width, new_height))
+                    self.first_resize = False
+
+
                 self.is_maximized = False
                 logger.info("Window is in normal state")
         super().changeEvent(event)
