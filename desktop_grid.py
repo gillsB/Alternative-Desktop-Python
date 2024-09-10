@@ -430,7 +430,7 @@ class ClickableLabel(QLabel):
         self.movie = None
 
     def set_size(self):
-        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.75)
+        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.5)
         self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
         if self.parent():
             self.parent().updateGeometry()
