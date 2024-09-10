@@ -24,6 +24,7 @@ class OverlayWidget(QWidget):
         window_opacity = float(window_opacity/100)
         self.setWindowOpacity(window_opacity)
         self.setWindowTitle("Alternative Desktop V0.1.000")
+        self.current_screen_name = self.screen().name()
         self.showMaximized()
 
         # Create the system tray icon
@@ -74,6 +75,7 @@ class OverlayWidget(QWidget):
         self.restored_window = False
 
         self.first_resize = True
+        
 
 
         
@@ -218,17 +220,21 @@ class OverlayWidget(QWidget):
                 logger.info("Window is maximized")
             elif self.windowState() == Qt.WindowNoState:
                 if self.first_resize:
-                    screen_geometry = self.screen().availableGeometry()
-                    new_width = int(screen_geometry.width() * 0.75)
-                    new_height = int(screen_geometry.height() * 0.75)
+                    current_screen = self.screen()
+                    if current_screen:
+                        screen_geometry = current_screen.availableGeometry()
 
-                    new_x = (screen_geometry.width() - new_width) // 2
-                    new_y = (screen_geometry.height() - new_height) // 2
+                        # Calculate 75% of the maximized width and height
+                        new_width = int(screen_geometry.width() * 0.75)
+                        new_height = int(screen_geometry.height() * 0.75)
 
-                    # Move and resize the window to the center of the screen with the new size
-                    self.setGeometry(QRect(new_x, new_y, new_width, new_height))
-                    self.first_resize = False
+                        # Calculate the top-left point to centralize the window on the current screen
+                        new_x = (screen_geometry.width() - new_width) // 2 + screen_geometry.x()
+                        new_y = (screen_geometry.height() - new_height) // 2 + screen_geometry.y()
 
+                        # Move and resize the window to the center of the current screen with the new size
+                        self.setGeometry(QRect(new_x, new_y, new_width, new_height))
+                        self.first_resize = False
 
                 self.is_maximized = False
                 logger.info("Window is in normal state")
@@ -237,6 +243,17 @@ class OverlayWidget(QWidget):
     def set_hotkey(self):
         self.hotkey_handler.set_hotkey()
         
+    def moveEvent(self, event):
+        # Detect if the window has moved to a different monitor
+        new_screen_name = self.screen().name()
+
+        if new_screen_name != self.current_screen_name:
+            # If the window moved to a new monitor, reset first_resize
+            logger.info("Moved program to another monitor, reset self.first_resize to True")
+            self.current_screen_name = new_screen_name
+            self.first_resize = True
+
+        super().moveEvent(event)
 
 
 def create_app():
