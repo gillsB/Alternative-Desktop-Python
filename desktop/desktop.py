@@ -213,6 +213,8 @@ class OverlayWidget(QWidget):
             self.setWindowState(Qt.WindowMinimized)
 
     def changeEvent(self, event):
+
+
         # Check if the window state is changing
         if event.type() == QEvent.WindowStateChange:
             if self.windowState() & Qt.WindowMaximized:
@@ -220,6 +222,11 @@ class OverlayWidget(QWidget):
                 logger.info("Window is maximized")
             elif self.windowState() == Qt.WindowNoState:
                 if self.first_resize:
+                    # Always resize down to under the screens max resolution to ensure the screen will at least fit on the screen.
+                    available_geometry = self.screen().availableGeometry()
+                    new_size = self.size().boundedTo(available_geometry.size())
+                    if new_size != self.size():
+                        self.resize(new_size)
                     current_screen = self.screen()
                     if current_screen:
                         screen_geometry = current_screen.availableGeometry()
@@ -230,7 +237,7 @@ class OverlayWidget(QWidget):
 
                         # Calculate the top-left point to centralize the window on the current screen
                         new_x = (screen_geometry.width() - new_width) // 2 + screen_geometry.x()
-                        new_y = (screen_geometry.height() - new_height) // 2 + screen_geometry.y()
+                        new_y = screen_geometry.y() + 40
 
                         # Move and resize the window to the center of the current screen with the new size
                         self.setGeometry(QRect(new_x, new_y, new_width, new_height))
