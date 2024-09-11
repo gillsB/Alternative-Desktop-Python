@@ -8,7 +8,7 @@ from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 import os
 import subprocess
 import shlex
-from desktop_grid_menu import Menu
+from desktop.desktop_grid_menu import Menu
 from run_menu_dialog import RunMenuDialog
 from util.settings import get_setting
 from util.config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,

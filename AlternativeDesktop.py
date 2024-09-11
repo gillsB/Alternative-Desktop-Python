@@ -32,12 +32,11 @@ print(f"Python path: {sys.path}")
 # Load modules
 updater = load_module('updater', subfolder='util')
 settings = load_module('settings', subfolder='util')
-desktop = load_module('desktop')
+desktop = load_module('desktop', subfolder='desktop')
 
 # Now use these modules
 from util.updater import check_for_updates
-from util.settings import load_settings, set_dir, get_setting, set_setting
-from desktop import main as desktop_main
+from util.settings import load_settings, set_dir
 import logging
 from util.logs import setup_logging
 
