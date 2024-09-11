@@ -1,7 +1,7 @@
 from PySide6.QtCore import Signal, QObject
 from pynput import keyboard
 from util.settings import add_angle_brackets, get_setting
-from display_warning import display_bad_overlay_keybind_warning
+from menus.display_warning import display_bad_overlay_keybind_warning
 import logging
 
 

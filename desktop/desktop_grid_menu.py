@@ -15,7 +15,7 @@ from icon_gen.browser_to_image import browser_to_image
 from icon_gen.default_icon_to_image import default_icon_to_image
 from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
 from util.settings import get_setting
-from display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
+from menus.display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
 
 

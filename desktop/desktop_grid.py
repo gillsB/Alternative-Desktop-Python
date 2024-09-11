@@ -9,11 +9,11 @@ import os
 import subprocess
 import shlex
 from desktop.desktop_grid_menu import Menu
-from run_menu_dialog import RunMenuDialog
+from menus.run_menu_dialog import RunMenuDialog
 from util.settings import get_setting
 from util.config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
                     get_data_directory, set_entry_to_default, is_default, swap_items_by_position, change_launch)
-from display_warning import (display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_drop_error,
+from menus.display_warning import (display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_drop_error,
                               display_failed_cleanup_warning, display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error)
 from qt_material import get_theme
 import send2trash

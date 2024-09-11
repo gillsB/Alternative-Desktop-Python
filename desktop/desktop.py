@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, QEvent, QRect
 from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
 from util.settings import get_setting
-from settings_menu import SettingsDialog
+from menus.settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler

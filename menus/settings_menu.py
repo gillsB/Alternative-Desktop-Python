@@ -5,7 +5,7 @@ import sys
 from pynput import keyboard
 from util.utils import ClearableLineEdit
 from util.settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
-from display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
+from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
 import os
 import logging
 
