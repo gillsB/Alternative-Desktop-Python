@@ -2,11 +2,11 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, Q
 from PySide6.QtCore import Qt, QEvent, QRect
 from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
-from settings import get_setting
+from util.settings import get_setting
 from settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
-from hotkey_handler import HotkeyHandler
+from util.hotkey_handler import HotkeyHandler
 import os
 import xml.etree.ElementTree as ET
 import logging

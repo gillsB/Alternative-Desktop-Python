@@ -2,11 +2,14 @@ import sys
 import os
 import importlib.util
 
-def load_module(module_name):
+def load_module(module_name, subfolder=None):
     current_dir = os.getcwd()
     print(f"Current working directory: {current_dir}")
 
-    module_path = os.path.join(current_dir, f"{module_name}.py")
+    if subfolder:
+        module_path = os.path.join(current_dir, subfolder, f"{module_name}.py")
+    else:
+        module_path = os.path.join(current_dir, f"{module_name}.py")
     print(f"Attempting to load {module_name} from: {module_path}")
     
     if os.path.exists(module_path):
@@ -27,16 +30,16 @@ if os.getcwd() not in sys.path:
 print(f"Python path: {sys.path}")
 
 # Load modules
-updater = load_module('updater')
-settings = load_module('settings')
+updater = load_module('updater', subfolder='util')
+settings = load_module('settings', subfolder='util')
 desktop = load_module('desktop')
 
 # Now use these modules
-from updater import check_for_updates
-from settings import load_settings, set_dir, get_setting, set_setting
+from util.updater import check_for_updates
+from util.settings import load_settings, set_dir, get_setting, set_setting
 from desktop import main as desktop_main
 import logging
-from logs import setup_logging
+from util.logs import setup_logging
 
 CURRENT_VERSION = "V0.1.000"
 GITHUB_REPO = "gillsb/Alternative-Desktop"

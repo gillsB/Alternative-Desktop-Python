@@ -3,8 +3,8 @@ from PySide6.QtCore import Qt, QEvent, QKeyCombination, QSize
 from PySide6.QtGui import QIcon, QKeySequence
 import sys
 from pynput import keyboard
-from utils import ClearableLineEdit
-from settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
+from util.utils import ClearableLineEdit
+from util.settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
 from display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
 import os
 import logging

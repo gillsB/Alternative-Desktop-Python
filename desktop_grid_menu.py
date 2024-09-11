@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPu
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
-from utils import ClearableLineEdit
+from util.utils import ClearableLineEdit
 from icon_gen.icon_utils import get_exact_img_file, make_local_icon
 from icon_gen.extract_ico_file import extract_ico_file
 from icon_gen.lnk_to_image import lnk_to_image
@@ -13,8 +13,8 @@ from icon_gen.icon_selection import select_icon_from_paths
 from icon_gen.favicon_to_image import favicon_to_image
 from icon_gen.browser_to_image import browser_to_image
 from icon_gen.default_icon_to_image import default_icon_to_image
-from config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
-from settings import get_setting
+from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
+from util.settings import get_setting
 from display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
 
