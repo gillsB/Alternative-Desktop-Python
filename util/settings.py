@@ -18,7 +18,8 @@ DEFUALT_SETTINGS = {
         "max_rows": 20,
         "max_cols": 40,
         "label_color": "white",
-        "on_close": 0
+        "on_close": 0,
+        "show_patch_notes": True
 }
 SETTINGS = None
 

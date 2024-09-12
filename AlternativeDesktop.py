@@ -75,4 +75,4 @@ if __name__ == '__main__':
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, RELEASES_URL)
     
-    desktop.main()
+    desktop.main(CURRENT_VERSION)

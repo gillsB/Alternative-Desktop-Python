@@ -1,0 +1,10 @@
+{
+  "V0.0.015": {
+    "date": "2024-09-01",
+    "notes": "Initial release with basic features."
+  },
+  "V0.1.000": {
+    "date": "2024-09-10",
+    "notes": "Added new settings and improved performance."
+  }
+}

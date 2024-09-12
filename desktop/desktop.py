@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu
-from PySide6.QtCore import Qt, QEvent, QRect
+from PySide6.QtCore import Qt, QEvent, QRect, QTimer
 from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
 from util.settings import get_setting
@@ -7,6 +7,7 @@ from menus.settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler
+from menus.patch_notes import PatchNotesPopup, load_patch_notes
 import os
 import xml.etree.ElementTree as ET
 import logging
@@ -17,13 +18,19 @@ APP = None
 
 
 class OverlayWidget(QWidget):
-    def __init__(self):
+    def __init__(self, current_version):
         super().__init__()
+
+        self.version = current_version
+
+        if get_setting("show_patch_notes") and load_patch_notes():
+            QTimer.singleShot(1000, self.show_patch_notes)
+
         #self.setAttribute(Qt.WA_TranslucentBackground)
         window_opacity = get_setting("window_opacity", -1)
         window_opacity = float(window_opacity/100)
         self.setWindowOpacity(window_opacity)
-        self.setWindowTitle("Alternative Desktop V0.1.000")
+        self.setWindowTitle(f"Alternative Desktop {current_version}")
         self.current_screen_name = self.screen().name()
         self.showMaximized()
 
@@ -76,7 +83,9 @@ class OverlayWidget(QWidget):
 
         self.first_resize = True
         
-
+    def show_patch_notes(self):
+        patch_notes_menu = PatchNotesPopup(self.version)
+        patch_notes_menu.exec()
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
@@ -268,9 +277,9 @@ def create_app():
     if APP is None:
         APP = QApplication(sys.argv)
 
-def main():
+def main(current_version):
 
-    overlay = OverlayWidget()
+    overlay = OverlayWidget(current_version)
     overlay.setWindowIcon(QIcon('alt.ico'))
     overlay.setMinimumSize(100, 100)  
     overlay.show()
