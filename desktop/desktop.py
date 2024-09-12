@@ -2,12 +2,12 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, Q
 from PySide6.QtCore import Qt, QEvent, QRect, QTimer
 from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
-from util.settings import get_setting
+from util.settings import get_setting, set_setting
 from menus.settings_menu import SettingsDialog
 import qt_material
 from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler
-from menus.patch_notes import PatchNotesPopup, load_patch_notes
+from menus.patch_notes import PatchNotesPopup, patch_notes_exist
 import os
 import xml.etree.ElementTree as ET
 import logging
@@ -22,8 +22,8 @@ class OverlayWidget(QWidget):
         super().__init__()
 
         self.version = current_version
-
-        if get_setting("show_patch_notes") and load_patch_notes():
+        if get_setting("show_patch_notes") and patch_notes_exist():
+            set_setting("show_patch_notes", False)
             QTimer.singleShot(1000, self.show_patch_notes)
 
         #self.setAttribute(Qt.WA_TranslucentBackground)
@@ -84,7 +84,7 @@ class OverlayWidget(QWidget):
         self.first_resize = True
         
     def show_patch_notes(self):
-        patch_notes_menu = PatchNotesPopup(self.version)
+        patch_notes_menu = PatchNotesPopup(self)
         patch_notes_menu.exec()
 
         

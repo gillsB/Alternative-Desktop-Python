@@ -1,0 +1,1 @@
+A base program which is usable but still missing some features and some bug/error checking. Consider V0.1.XXX a beta release where I am still finishing up all the functions of the project and chasing bugs.
