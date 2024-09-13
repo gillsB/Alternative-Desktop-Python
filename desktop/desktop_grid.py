@@ -320,11 +320,8 @@ class Grid(QWidget):
         self.draw_labels()
 
     def draw_labels(self):
-        logger.info("Draw Labels called")
         window_width = self.frameGeometry().width()
         window_height = self.frameGeometry().height()
-        logger.info(f"Label size = {LABEL_SIZE}")
-        logger.info(f"Label vert pad = {LABEL_VERT_PAD}")
 
         self.num_columns = max(1, window_width // LABEL_SIZE)
         self.num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 

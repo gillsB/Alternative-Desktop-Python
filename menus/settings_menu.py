@@ -175,6 +175,7 @@ class SettingsDialog(QDialog):
         self.on_close_cb.addItems(on_close_options)
         layout.addRow("On closing the program:", self.on_close_cb)
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
+        self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
