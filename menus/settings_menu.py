@@ -295,7 +295,7 @@ class SettingsDialog(QDialog):
             event.accept()
         else:
             logger.info("Called close with changes in settings")
-            if display_settings_not_saved() == QMessageBox.Ok:
+            if display_settings_not_saved() == QMessageBox.Yes:
                 logger.info("User chose to close the settings menu and revert the changes")
                 self.on_close()
                 event.accept()

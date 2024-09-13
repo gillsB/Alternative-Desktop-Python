@@ -4,21 +4,20 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def show_highlightable_message_box(title, message, cancel=False):
+def show_highlightable_message_box(title, message, standard_buttons=QMessageBox.Ok):
     # Create a QMessageBox
     msg_box = QMessageBox()
     msg_box.setWindowTitle(title)
     msg_box.setIcon(QMessageBox.Warning)
-    if cancel:
-        msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    else:
-        msg_box.setStandardButtons(QMessageBox.Ok)
+    
+    # Set the standard buttons passed as an argument
+    msg_box.setStandardButtons(standard_buttons)
 
+    # Create a QLabel for the message and make the text selectable
     label = QLabel(message)
     label.setTextInteractionFlags(Qt.TextSelectableByMouse)
     label.setWordWrap(True)
     label.setMinimumWidth(400)
-
 
     # Remove default message box but get it's layout
     layout = msg_box.layout()
@@ -29,6 +28,7 @@ def show_highlightable_message_box(title, message, cancel=False):
     layout.addItem(left_spacer, 0, 0, 1, 1)
     layout.addWidget(label, 0, 1, 1, layout.columnCount(), Qt.AlignCenter)
 
+    # Remove any unnecessary QLabel elements
     for i in range(layout.count()):
         item = layout.itemAt(i)
         widget = item.widget()
@@ -62,21 +62,21 @@ def display_icon_path_not_exist_warning(icon_path):
     return show_highlightable_message_box(
                 "Error: Icon Path",
                 f"Error: Icon path, item at path: \n{icon_path}\ndoes not exist. \nClick OK save regardless, or Cancel to continue editing.",
-                True
+                QMessageBox.Ok | QMessageBox.Cancel
     )
 
 def display_executable_file_path_warning(exec_path):
     return show_highlightable_message_box(
         "Warning: Executable File Path", 
         f"Warning: Executable path: '{exec_path}'\nitem does not exist. \nWould you like to continue saving with a bad exectuable path?",
-        True
+        QMessageBox.Ok | QMessageBox.Cancel
     )
 
 def display_icon_path_already_exists_warning():
     return show_highlightable_message_box(
         "Icon Path exists",
         "You already have an Icon Path set. Would you like to discard this Icon Path to generate a new one?",
-        True
+        QMessageBox.Ok | QMessageBox.Cancel
     )
 
 def display_path_and_parent_not_exist_warning(normalized_path):
@@ -88,7 +88,7 @@ def display_delete_icon_warning(name, row, col):
     logger.info(f"Displaying delete confirmation warning for {name}, at {row},{col}")
     return show_highlightable_message_box("Delete Icon",
         f"Are you sure you wish to delete \"{name}\" at: [{row},{col}]?",
-        True
+        QMessageBox.Ok | QMessageBox.Cancel
     )
 
 def display_drop_error(position):
@@ -126,7 +126,7 @@ def display_bg_video_not_exist(bg_video_path):
     return show_highlightable_message_box(
         "Video does not exist",
         f"Video at path: ' {bg_video_path} ' \nDoes Not Exist. Are you sure you want to save with an incorrect video file?",
-        True
+        QMessageBox.Yes | QMessageBox.Cancel
     )
 
 def display_bg_image_not_exist(bg_image_path):
@@ -134,7 +134,7 @@ def display_bg_image_not_exist(bg_image_path):
     return show_highlightable_message_box(
         "BG image does not exist",
         f"Image at path: ' {bg_image_path} '\nDoes Not Exist. Are you sure you want to save with an incorrect image file?",
-        True
+        QMessageBox.Yes | QMessageBox.Cancel
     )
 
 def display_settings_not_saved():
@@ -142,5 +142,5 @@ def display_settings_not_saved():
     return show_highlightable_message_box(
         "Settings NOT saved", 
         "Do you wish to discard these changes?", 
-        True
+        QMessageBox.Yes | QMessageBox.Cancel
     )
