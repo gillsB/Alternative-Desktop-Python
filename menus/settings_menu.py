@@ -238,17 +238,19 @@ class SettingsDialog(QDialog):
         if self.background_video.text() != "" and os.path.exists(self.background_video.text()) == False:
             logger.warning("Background Video does not exist")
             # Display warning that bg video path does not exist, cancel save if user hits cancel otherwise save.
-            if display_bg_video_not_exist(self.background_video.text()) == QMessageBox.Cancel:   
+            if display_bg_image_not_exist(self.background_image.text()) == QMessageBox.Yes:   
+                logger.info("User chose to save regardless")
+            else:
                 logger.info("User chose to cancel saving.")
                 return
-            logger.info("User chose to save regardless")
         if self.background_image.text() != "" and os.path.exists(self.background_image.text())  == False:
             logger.warning("Background Image does not exist")
             #display warning that bg image path does not exist, cancel save if user hits cancel otherwise save.
-            if display_bg_image_not_exist(self.background_image.text()) == QMessageBox.Cancel:   
+            if display_bg_image_not_exist(self.background_image.text()) == QMessageBox.Yes:   
+                logger.info("User chose to save regardless")
+            else:
                 logger.info("User chose to cancel saving.")
                 return
-            logger.info("User chose to save regardless")
 
 
         # Double check keybind is set to something. Changes it to last saved setting if not. (i.e. click button but don't press anything then hit save)

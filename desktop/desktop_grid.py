@@ -624,7 +624,7 @@ class ClickableLabel(QLabel):
     def delete_triggered(self):
         logger.info(f"User attempted to delete {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
         # Show delete confirmation warning, if Ok -> delete icon. if Cancel -> do nothing.
-        if display_delete_icon_warning(self.desktop_icon.name, self.desktop_icon.row, self.desktop_icon.col) == QMessageBox.Ok:   
+        if display_delete_icon_warning(self.desktop_icon.name, self.desktop_icon.row, self.desktop_icon.col) == QMessageBox.Yes:   
             logger.info(f"User confirmed deletion for {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
             set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
             self.delete_folder_items()

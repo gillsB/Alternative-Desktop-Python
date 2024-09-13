@@ -193,29 +193,31 @@ class Menu(QDialog):
             logger.info(f"Arguments: valid exec_path: {os.path.isfile(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
             if self.exec_path_le != "" and not os.path.isfile(self.exec_path_le.text()):
                 # Show warning if user clicks cancel -> return and do not save, if Ok -> save
-                if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Cancel:
+                if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Yes:
+                    logger.info("User chose to save regardless")
+                else:
                     logger.info("User Chose to cancel Auto generating icon to fix the executable path.")
                     return
-                else:
-                    logger.info("User chose to save regardless")
             self.auto_gen_icon()
             self.handle_save()
         # exec_path is not empty, and not a valid path. show warning (and do not close the menu)
         else:
             logger.warning(f"Called with a bad exec_path and no web_link or icon_path. exec_path = {self.exec_path_le.text()}")
             # Show warning if user clicks cancel -> return and do not save, if Ok -> save
-            if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Cancel:
-                    logger.info("User Chose to cancel saving to fix exec_path.")
-                    return
-            else:
+            if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Yes:
                 logger.info("User chose to save regardless")
                 self.handle_save()
+            else:
+                logger.info("User Chose to cancel saving to fix exec_path.")
+                return
 
     def auto_gen_button(self):
         if self.icon_path_le.text() != "":
             logger.info("Pressed Auto gen icon with an existing icon path.")
             # Show warning, if user clicks cancel -> return, if Ok -> save
-            if display_icon_path_already_exists_warning() == QMessageBox.Cancel:
+            if display_icon_path_already_exists_warning() == QMessageBox.Yes:
+                logger.info("User chose to overwrite icon path.")
+            else:    
                 logger.info("User chose to keep icon path (Cancelled).")
                 return
             self.icon_path_le.setText("")
@@ -376,7 +378,7 @@ class Menu(QDialog):
         #check icon_path_le if it is NOT empty AND the path to file does NOT exist (invalid path)
         if self.icon_path_le.text() != "" and os.path.isfile(self.icon_path_le.text()) != True:
             # Show warning if user clicks cancel -> return and do not save, if Ok -> save
-            if display_icon_path_not_exist_warning(self.icon_path_le.text()) == QMessageBox.Ok:
+            if display_icon_path_not_exist_warning(self.icon_path_le.text()) == QMessageBox.Yes:
                 self.save()
         else:
             self.save()
