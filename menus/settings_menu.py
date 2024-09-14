@@ -1,10 +1,8 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QToolButton, QLabel, QCheckBox, QDialog, QFormLayout, QLineEdit, QKeySequenceEdit, QDialogButtonBox, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
-from PySide6.QtCore import Qt, QEvent, QKeyCombination, QSize
-from PySide6.QtGui import QIcon, QKeySequence
-import sys
-from pynput import keyboard
+from PySide6.QtWidgets import QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
+from PySide6.QtCore import Qt, QEvent, QSize
+from PySide6.QtGui import QKeySequence
 from util.utils import ClearableLineEdit
-from util.settings import get_setting, set_setting, load_settings, save_settings, add_angle_brackets
+from util.settings import get_setting, set_setting, load_settings, save_settings
 from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
 import os
 import logging
@@ -239,7 +237,7 @@ class SettingsDialog(QDialog):
         if self.background_video.text() != "" and os.path.exists(self.background_video.text()) == False:
             logger.warning("Background Video does not exist")
             # Display warning that bg video path does not exist, cancel save if user hits cancel otherwise save.
-            if display_bg_image_not_exist(self.background_image.text()) == QMessageBox.Yes:   
+            if display_bg_video_not_exist(self.background_image.text()) == QMessageBox.Yes:   
                 logger.info("User chose to save regardless")
             else:
                 logger.info("User chose to cancel saving.")
