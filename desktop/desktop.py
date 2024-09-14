@@ -209,7 +209,6 @@ class OverlayWidget(QWidget):
                     self.showNormal()
                     self.first_restore = False
                 logger.info("Showing window as maximized")
-                self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
                 self.showMaximized()
 
             else: # Restore window as normal non-maximized
