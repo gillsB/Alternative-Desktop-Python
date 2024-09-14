@@ -218,8 +218,22 @@ class OverlayWidget(QWidget):
                 self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
             
         else:
-            # Minimize window
-            self.setWindowState(Qt.WindowMinimized)
+            if self.isActiveWindow():
+                logger.info("Window is in focus, minimizing")
+                self.setWindowState(Qt.WindowMinimized)
+            # If the window is already visible (maximized or normal), bring it to the front
+            elif current_state & Qt.WindowMaximized:
+                logger.info("Window not in focus but maximized, bringing to top.")
+                self.setWindowState(Qt.WindowMinimized)
+                self.setWindowState(Qt.WindowMaximized)
+            elif current_state == Qt.WindowNoState:
+                logger.info("Window not in focus but non-maximized (NoState), bringing to top.")
+                self.setWindowState(Qt.WindowMinimized)
+                self.setWindowState(Qt.WindowNoState)
+            else:
+                logger.error("Unknown window state and not active, minimizing window.")
+                self.setWindowState(Qt.WindowMinimized)
+
 
     def changeEvent(self, event):
 
