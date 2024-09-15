@@ -90,24 +90,28 @@ class OverlayWidget(QWidget):
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
+        # if "On closing the program" set to "terminate the program"
         if get_setting("on_close", 0) == 1:
             logger.info("Program closing by closeEvent with on_close set to 'Terminiate the program' on close.")
             super(OverlayWidget, self).closeEvent(event)
         else:
             event.ignore()
-            self.restored_window = True
-            if self.isMinimized:
-                # Showing these as Maximized/Normal is important for actually bringing them back up in a single toggle_window_state() call.
-                # Otherwise it would take multiple calls or bring it up in the background (non focused).
-                if self.is_maximized == True:
-                    logger.info("Quickly showing window as Maximized before hiding")
-                    self.showMaximized()
-                else:
-                    logger.info("Quickly showing window as normal before closing")
-                    self.showNormal()
-            
+            self.minimize_to_tray()
 
-            self.hide()
+    def minimize_to_tray(self):
+        self.restored_window = True
+        if self.isMinimized:
+            # Showing these as Maximized/Normal is important for actually bringing them back up in a single toggle_window_state() call.
+            # Otherwise it would take multiple calls or bring it up in the background (non focused).
+            if self.is_maximized == True:
+                logger.info("Quickly showing window as Maximized before hiding")
+                self.showMaximized()
+            else:
+                logger.info("Quickly showing window as normal before closing")
+                self.showNormal()
+        
+
+        self.hide()
 
     # This is only the tray icon -> Restore menu. Running self.toggle_window_state() makes it the same as keybind restore.
     # Or can always override this say for instance if you want it to always restore to maximized.
@@ -218,8 +222,13 @@ class OverlayWidget(QWidget):
             
         else:
             if self.isActiveWindow():
-                logger.info("Window is in focus, minimizing")
-                self.setWindowState(Qt.WindowMinimized)
+                # If "When in focus Keybind" setting is set to "Hide Window" (1)
+                if get_setting("keybind_minimize") == 1:
+                    logger.info("Minimizing to tray because user has keybind_minimize setting == Hide window")
+                    self.minimize_to_tray()
+                else:
+                    logger.info("Window is in focus, minimizing")
+                    self.setWindowState(Qt.WindowMinimized)
             # If the window is already visible (maximized or normal), bring it to the front
             elif current_state & Qt.WindowMaximized:
                 logger.info("Window not in focus but maximized, bringing to top.")
