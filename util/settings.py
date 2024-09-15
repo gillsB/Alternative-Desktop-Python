@@ -19,7 +19,8 @@ DEFUALT_SETTINGS = {
         "max_cols": 40,
         "label_color": "white",
         "on_close": 0,
-        "show_patch_notes": True
+        "show_patch_notes": True,
+        "keybind_minimize": 0
 }
 SETTINGS = None
 

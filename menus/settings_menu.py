@@ -30,13 +30,21 @@ class SettingsDialog(QDialog):
         self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
     
-
+        # Toggle Overlay Keybind
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
         self.toggle_overlay_keybind_button.setFocusPolicy(Qt.ClickFocus)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
         self.toggle_overlay_keybind_button.setDefault(False)
+
+        # When window in focus keybind: 
+        self.keybind_minimize = QComboBox()
+        keybind_options = ['Minimize window', 'Hide window (restore through keybind or system tray)']
+        self.keybind_minimize.addItems(keybind_options)
+        layout.addRow("When in focus Keybind:", self.keybind_minimize)
+        self.keybind_minimize.setCurrentIndex(self.settings.get("keybind_minimize", 0))
+        self.keybind_minimize.currentIndexChanged.connect(self.set_changed)
         
 
         self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
