@@ -278,6 +278,7 @@ class SettingsDialog(QDialog):
         settings["max_cols"] = self.max_cols_sb.value()
         settings["label_color"] = self.label_color
         settings["on_close"] = self.on_close_cb.currentIndex()
+        settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()

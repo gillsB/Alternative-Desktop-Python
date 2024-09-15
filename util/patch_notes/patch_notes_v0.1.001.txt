@@ -3,6 +3,7 @@
 - New setting "Icon Name color" which allows you to change the color of the desktop icon labels (names)
 - New setting "On closing the program" which allows you to set the program to minimize to tray, or terminate the program on X close, or right click -> close window.
 - Added a "None" theme which uses the default Qt theme instead of the Qt-Material theme system.(Light mode with dark gray background)
+- New setting "When in focus Keybind" which allows the user to either have the keybind minimize it to windows taskbar or have it minimize to system tray (hidden)
 
 ### New Improvements:
 - All desktop icons now auto-preview before saving
