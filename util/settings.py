@@ -96,32 +96,26 @@ def add_angle_brackets(text):
         "numpad0", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5", "numpad6", "numpad7", "numpad8", "numpad9",  # Numpad keys
         "enter", "space", "tab", "esc"  # Other keys
     }
+    
+    # Combine modifiers and special keys into a single dictionary with their lengths
+    all_keys = {**{mod: len(mod) for mod in modifiers}, **{key: len(key) for key in special_keys}}
+    
     result = []
     i = 0
+    
     while i < len(text):
         found_key = False
-
-        # Check for modifiers
-        for modifier in modifiers:
-            if text[i:i + len(modifier)].lower() == modifier:
-                result.append("<" + text[i:i + len(modifier)] + ">")
-                i += len(modifier)
+        
+        # Check for all keys in descending order of length
+        for key, length in sorted(all_keys.items(), key=lambda x: -x[1]):
+            if text[i:i + length].lower() == key:
+                result.append(f"<{text[i:i + length]}>")
+                i += length
                 found_key = True
                 break
-        logger.info(f"After modifier keys result = {result}")
-
-        # Check for special keys
+        
         if not found_key:
-            for special_key in special_keys:
-                if text[i:i + len(special_key)].lower() == special_key:
-                    result.append("<" + text[i:i + len(special_key)] + ">")
-                    i += len(special_key)
-                    found_key = True
-                    break
-        logger.info(f"After special keys result = {result}")
-
-        # Append regular characters
-        if not found_key:
+            # Append regular characters
             result.append(text[i])
             i += 1
 
