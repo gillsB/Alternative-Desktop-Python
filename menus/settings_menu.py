@@ -360,6 +360,8 @@ class KeybindButton(QPushButton):
         super().__init__(parent)
         logger.info("Keybind button initialized")
         self.listening = False
+        self.key = None  # Store the non-modifier key separately
+        self.modifiers = None  # Store the modifiers
         self.clicked.connect(self.enable_listening)
         self.installEventFilter(self)
 
@@ -369,30 +371,43 @@ class KeybindButton(QPushButton):
         self.setText("Press a key")
 
     def keyPressEvent(self, event):
-        if self.listening and event.key() <= 16000000:
+        if self.listening:# and event.key() <= 16000000:
             logger.info(f"Key press event: {event}")
-            self.listening = False
             key = event.key()
             modifiers = event.modifiers()
+
+            # Handle if a non-modifier key is pressed (e.g., F1, D, etc.)
+            if key not in (Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta):
+                logger.info(f"Non-modifier key press: {event.text()}")
+                self.key = key  # Store the key
+                self.modifiers = modifiers  # Store the modifiers
+                self.finalize_keybind()
+                return
+            else:
+                logger.info(f"Modifier key press: {event.text()}")
             
-            key_name = QKeySequence(key).toString()
-            modifier_names = []
-
-            if modifiers & Qt.ShiftModifier:
-                modifier_names.append("Shift")
-            if modifiers & Qt.ControlModifier:
-                modifier_names.append("Ctrl")
-            if modifiers & Qt.AltModifier:
-                modifier_names.append("Alt")
-            if modifiers & Qt.MetaModifier:
-                modifier_names.append("Meta")
-
-            full_key_name = "+".join(modifier_names + [key_name])
-            logger.info(f"Full key name: {full_key_name}")
-            self.parent().set_changed()
-            self.setText(full_key_name)
+            
         else:
             super().keyPressEvent(event)
+
+    def finalize_keybind(self):
+        key_name = QKeySequence(self.key).toString()
+        modifier_names = []
+
+        if self.modifiers & Qt.ShiftModifier:
+            modifier_names.append("Shift")
+        if self.modifiers & Qt.ControlModifier:
+            modifier_names.append("Ctrl")
+        if self.modifiers & Qt.AltModifier:
+            modifier_names.append("Alt")
+        if self.modifiers & Qt.MetaModifier:
+            modifier_names.append("Meta")
+
+        full_key_name = "+".join(modifier_names + [key_name])
+        logger.info(f"Full key name: {full_key_name}")
+        self.parent().set_changed()
+        self.setText(full_key_name)
+        self.listening = False
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and self.listening:
@@ -406,4 +421,4 @@ class KeybindButton(QPushButton):
 
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
-        self.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
+        self.setText(get_setting("toggle_overlay_keybind", "alt+d"))

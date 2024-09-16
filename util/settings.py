@@ -89,17 +89,38 @@ def check_for_new_settings():
 
 def add_angle_brackets(text):
     modifiers = {"alt", "ctrl", "shift"}  # Define the modifier keys
+    special_keys = {
+        "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
+        "left", "right", "up", "down",  # Arrow keys
+        "insert", "delete", "home", "end", "pageup", "pagedown",  # Navigation keys
+        "numpad0", "numpad1", "numpad2", "numpad3", "numpad4", "numpad5", "numpad6", "numpad7", "numpad8", "numpad9",  # Numpad keys
+        "enter", "space", "tab", "esc"  # Other keys
+    }
     result = []
     i = 0
     while i < len(text):
-        found_modifier = False
+        found_key = False
+
+        # Check for modifiers
         for modifier in modifiers:
-            if text[i:i+len(modifier)].lower() == modifier:  # Check for modifier keys (case insensitive)
-                result.append("<" + text[i:i+len(modifier)] + ">")
+            if text[i:i + len(modifier)].lower() == modifier:
+                result.append("<" + text[i:i + len(modifier)] + ">")
                 i += len(modifier)
-                found_modifier = True
+                found_key = True
                 break
-        if not found_modifier:
+
+        # Check for special keys
+        if not found_key:
+            for special_key in special_keys:
+                if text[i:i + len(special_key)].lower() == special_key:
+                    result.append("<" + text[i:i + len(special_key)] + ">")
+                    i += len(special_key)
+                    found_key = True
+                    break
+
+        # Append regular characters
+        if not found_key:
             result.append(text[i])
             i += 1
+
     return ''.join(result)
