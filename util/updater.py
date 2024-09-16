@@ -6,6 +6,7 @@ import logging
 from PySide6.QtWidgets import (QApplication, QMessageBox, QDialog, QVBoxLayout, 
                                QLabel, QProgressBar, QPushButton)
 from PySide6.QtCore import Qt, QThread, Signal
+from util.settings import set_setting
 
 logger = logging.getLogger(__name__)
 CURRENT_VERSION = None
@@ -65,6 +66,7 @@ def show_update_message(download_url, latest_version):
     response = msg_box.exec()
     if response == QMessageBox.Yes:
         logger.info("User chose to install the new version.")
+        set_setting("show_patch_notes", True)
         download_and_update(download_url, latest_version)
     else:
         logger.info("User chose not to install the new version.")
