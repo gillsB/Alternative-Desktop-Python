@@ -371,18 +371,25 @@ class KeybindButton(QPushButton):
         self.setText("Press a key")
 
     def keyPressEvent(self, event):
-        if self.listening:# and event.key() <= 16000000:
+        if self.listening:
             logger.info(f"Key press event: {event}")
             key = event.key()
             modifiers = event.modifiers()
 
+            # Check if the key is from the numpad
+            if modifiers & Qt.KeypadModifier:
+                # Use a custom mapping for numpad keys
+                key_name = f"numpad{QKeySequence(key).toString()}"
+                logger.info(f"Numpad key detected: {key_name}")
+            else:
+                key_name = QKeySequence(key).toString()
+
             # Handle if a non-modifier key is pressed (e.g., F1, D, etc.)
             if key not in (Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta):
-                logger.info(f"Non-modifier key press: {event.text()}")
-                self.key = key  # Store the key
+                logger.info(f"Non-modifier key press: {key_name}")  # Changed to use `key_name`
+                self.key = key_name  # Store the key or numpad key name
                 self.modifiers = modifiers  # Store the modifiers
                 self.finalize_keybind()
-                return
             else:
                 logger.info(f"Modifier key press: {event.text()}")
             
@@ -391,7 +398,7 @@ class KeybindButton(QPushButton):
             super().keyPressEvent(event)
 
     def finalize_keybind(self):
-        key_name = QKeySequence(self.key).toString()
+        key_name = self.key
         modifier_names = []
 
         if self.modifiers & Qt.ShiftModifier:

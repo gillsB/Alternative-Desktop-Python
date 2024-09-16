@@ -108,6 +108,7 @@ def add_angle_brackets(text):
                 i += len(modifier)
                 found_key = True
                 break
+        logger.info(f"After modifier keys result = {result}")
 
         # Check for special keys
         if not found_key:
@@ -117,6 +118,7 @@ def add_angle_brackets(text):
                     i += len(special_key)
                     found_key = True
                     break
+        logger.info(f"After special keys result = {result}")
 
         # Append regular characters
         if not found_key:
