@@ -379,7 +379,7 @@ class KeybindButton(QPushButton):
             # Check if the key is from the numpad
             if modifiers & Qt.KeypadModifier:
                 # Use a custom mapping for numpad keys
-                key_name = f"numpad{QKeySequence(key).toString()}"
+                key_name = f"num {QKeySequence(key).toString()}"
                 logger.info(f"Numpad key detected: {key_name}")
             else:
                 key_name = QKeySequence(key).toString()
