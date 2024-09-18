@@ -144,3 +144,15 @@ def display_settings_not_saved():
         "Do you wish to discard these changes?", 
         QMessageBox.Yes | QMessageBox.Cancel
     )
+
+def display_keybind_not_supported(keybind):
+    logger.warning("Displaying keybind not supported warning")
+    def show_warning():
+        show_highlightable_message_box(
+            "Keybind not supported",
+            f"Keybind: ' {keybind} ' \nNot fully supported, it might also respond to different keys, or not be picked up at all."
+        )
+
+    # QTimer to not block main thread. (Async)
+    QTimer.singleShot(0, show_warning)
+    

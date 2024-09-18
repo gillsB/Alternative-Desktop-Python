@@ -1,7 +1,7 @@
 from PySide6.QtCore import Signal, QObject
 import keyboard
 from util.settings import get_setting, set_setting
-from menus.display_warning import display_bad_overlay_keybind_warning
+from menus.display_warning import display_bad_overlay_keybind_warning, display_keybind_not_supported
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,6 +40,8 @@ class HotkeyHandler(QObject):
                     # key_to_scan_codes[0] is the base number's scan code, [1] is the numpad only version
                     main_key_scan_code = keyboard.key_to_scan_codes(main_key)[1] 
                 else:
+                    if "num" in main_key or "/" in main_key:
+                        display_keybind_not_supported(main_key)
                     # Non numpad key get the base version.
                     main_key_scan_code = keyboard.key_to_scan_codes(main_key)[0]
                 logger.info(f"Main key '{main_key}' converted to scan code: {main_key_scan_code}")
