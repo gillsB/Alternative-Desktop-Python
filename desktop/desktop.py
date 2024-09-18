@@ -279,6 +279,7 @@ class OverlayWidget(QWidget):
         super().changeEvent(event)
 
     def set_hotkey(self):
+        self.hotkey_handler.stop_listener()
         self.hotkey_handler.set_hotkey()
         
     def moveEvent(self, event):
