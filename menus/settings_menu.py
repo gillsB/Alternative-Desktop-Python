@@ -399,6 +399,7 @@ class KeybindButton(QPushButton):
             super().keyPressEvent(event)
 
     def get_numpad_key_sequence(self, key_event):
+        logger.info("getting numpad key sequence")
         key = key_event.key()
         modifiers = key_event.modifiers()
         logger.info(f"modifiers = {modifiers}")
@@ -454,16 +455,36 @@ class KeybindButton(QPushButton):
 
     
     def get_key_sequence(self, key_event):
+        logger.info("getting normal key sequence")
         # Create a list to store the key sequence parts
         sequence_parts = []
+        key = key_event.key()
+        modifiers = key_event.modifiers()
+        logger.info(f"modifiers = {modifiers}")
+        logger.info(f"Key event = {key_event}")
+        logger.info(f"Key = {key}")
 
-        # Handle the base key (without shift influence)
+        # Check if Shift is pressed
+        shift_pressed = key_event.modifiers() & Qt.ShiftModifier
+
+        # Handle regular alphanumeric and shifted special characters
         if key_event.key() >= Qt.Key_Space and key_event.key() <= Qt.Key_AsciiTilde:
-            # Handle unshifted base key (for normal alphanumeric keys)
-            base_key = chr(key_event.nativeVirtualKey())
-            sequence_parts.append(base_key)
+            if shift_pressed:
+                # Manually map shifted characters to their unshifted versions
+                shifted_map = {
+                    '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8',
+                    '(': '9', ')': '0', '_': '-', '+': '=', '{': '[', '}': ']', ':': ';',
+                    '"': "'", '<': ',', '>': '.', '?': '/', '|': '\\'
+                }
+                # Get the character typed and map it back to the unshifted key
+                base_key = shifted_map.get(key_event.text(), key_event.text())
+                sequence_parts.append(base_key)
+            else:
+                # For unmodified alphanumeric keys, just append the character
+                base_key = key_event.text()
+                sequence_parts.append(base_key)
         else:
-            # Handle special keys (e.g., F1, arrows, etc.)
+            # If it's some other special key, handle it using QKeySequence
             base_key = QKeySequence(key_event.key()).toString()
             sequence_parts.append(base_key)
 
