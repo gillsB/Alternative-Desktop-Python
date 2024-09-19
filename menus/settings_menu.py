@@ -401,6 +401,7 @@ class KeybindButton(QPushButton):
     def get_numpad_key_sequence(self, key_event):
         key = key_event.key()
         modifiers = key_event.modifiers()
+        logger.info(f"modifiers = {modifiers}")
 
         logger.info(f"Key event = {key_event}")
         logger.info(f"Key = {key}")
@@ -416,33 +417,19 @@ class KeybindButton(QPushButton):
 
         # Mapping of native numpad keys to "num X" representation
         numpad_mapping = {
-            96: "num 0",
-            97: "num 1",
-            98: "num 2",
-            99: "num 3",
-            100: "num 4",
-            101: "num 5",
-            102: "num 6",
-            103: "num 7",
-            104: "num 8",
-            105: "num 9",
-            106: "num *",
-            107: "num +",   # this has the problem from hotkey_handler since it splits by +, needs special case to work.
-            109: "num -",
-            110: "num .",   # doesn't seem to work
-            111: "num /",   # / is still buggy
-            13: "num Enter",    # still works for normal enter presses.
-            45: "shift+num 0",
-            35: "shift+num 1",
-            40: "shift+num 2",
-            34: "shift+num 3",
-            37: "shift+num 4",
-            12: "shift+num 5",
-            39: "shift+num 6",
-            36: "shift+num 7",
-            38: "shift+num 8",
-            33: "shift+num 9",
-            46: "shift+num ." #doesn't work either something wrong with num .
+            Qt.Key_Insert: "shift+num 0",
+            Qt.Key_End: "shift+num 1",
+            Qt.Key_Down: "shift+num 2",
+            Qt.Key_PageDown: "shift+num 3",
+            Qt.Key_Left: "shift+num 4",
+            Qt.Key_Clear: "shift+num 5",
+            Qt.Key_Right: "shift+num 6",
+            Qt.Key_Home: "shift+num 7",
+            Qt.Key_Up: "shift+num 8",
+            Qt.Key_PageUp: "shift+num 9",
+            Qt.Key_Delete: "shift+num .", #doesn't work either something wrong with num .
+            Qt.Key_NumLock: "num lock",
+            Qt.Key_Slash: "num /" # still broken with scan code = 57397
 
             # shift+num "*, -, Enter, numlock" all seem to work by default / is still buggy.
 
@@ -454,11 +441,11 @@ class KeybindButton(QPushButton):
         }
 
         # Check if the native key is a numpad key and map it accordingly
-        if native_key in numpad_mapping:
-            sequence_parts.append(numpad_mapping[native_key])
+        if key in numpad_mapping:
+            sequence_parts.append(numpad_mapping[key])
         else:
             # Handle any non-numpad keys that may be mapped to logical keys
-            sequence_parts.append(QKeySequence(key).toString())
+            sequence_parts.append(f"num {QKeySequence(key).toString()}")
 
         # Return the formatted key sequence string (e.g., "Shift+num 7")
         seq = "+".join(sequence_parts)
