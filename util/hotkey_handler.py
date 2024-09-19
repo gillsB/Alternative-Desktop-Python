@@ -68,6 +68,29 @@ class HotkeyHandler(QObject):
             keyboard.add_hotkey(tuple(full_scan_code_combination), on_activate)
             logger.info(f"Hotkey registered using scan codes: {full_scan_code_combination}")
 
+            # If 'Shift' is in modifiers, register another hotkey with 'right shift'
+            if "shift" in modifiers:
+                logger.info("Shift modifier detected, registering variant with 'right shift'.")
+                # Replace 'shift' with 'right shift'
+                modifiers_with_right_shift = [mod if mod != "shift" else "right shift" for mod in modifiers]
+
+                # Convert 'right shift' and other modifiers to scan codes
+                modifier_right_shift_scan_codes = []
+                for mod in modifiers_with_right_shift:
+                    try:
+                        mod_scan_code = keyboard.key_to_scan_codes(mod)[0]
+                        modifier_right_shift_scan_codes.append(mod_scan_code)
+                        logger.info(f"Modifier '{mod}' converted to scan code: {mod_scan_code}")
+                    except ValueError:
+                        logger.error(f"Modifier '{mod}' could not be converted to a scan code.")
+
+                # Register the hotkey with 'right shift'
+                full_scan_code_combination_with_right_shift = modifier_right_shift_scan_codes + [main_key_scan_code]
+                logger.info(f"Registering hotkey with 'right shift' with scan codes: {full_scan_code_combination_with_right_shift}")
+                keyboard.add_hotkey(tuple(full_scan_code_combination_with_right_shift), on_activate)
+                logger.info(f"Hotkey with 'right shift' registered using scan codes: {full_scan_code_combination_with_right_shift}")
+
+
         except ValueError as e:
             # Handle invalid hotkey by setting it to default and logging the error
             logger.error(f"Invalid hotkey '{hotkey_str}': {e}. Setting to default 'alt+d'.")
