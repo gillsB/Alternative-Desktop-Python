@@ -379,7 +379,8 @@ class KeybindButton(QPushButton):
             # Check if the key is from the numpad
             if modifiers & Qt.KeypadModifier:
                 # Use a custom mapping for numpad keys
-                key_name = f"num {QKeySequence(key).toString()}"
+                #key_name = f"num {QKeySequence(key).toString()}"
+                key_name = self.get_numpad_key_sequence(event)
                 logger.info(f"Numpad key detected: {key_name}")
             else:
                 # Use custom get_key_sequence to handle shift-modified keys
@@ -396,6 +397,73 @@ class KeybindButton(QPushButton):
 
         else:
             super().keyPressEvent(event)
+
+    def get_numpad_key_sequence(self, key_event):
+        key = key_event.key()
+        modifiers = key_event.modifiers()
+
+        logger.info(f"Key event = {key_event}")
+        logger.info(f"Key = {key}")
+
+        # List to store key sequence parts
+        sequence_parts = []
+
+        # Use the nativeVirtualKey to get the unmodified key value
+        native_key = key_event.nativeVirtualKey()
+
+        logger.info(f"native Key = {native_key}")
+
+
+        # Mapping of native numpad keys to "num X" representation
+        numpad_mapping = {
+            96: "num 0",
+            97: "num 1",
+            98: "num 2",
+            99: "num 3",
+            100: "num 4",
+            101: "num 5",
+            102: "num 6",
+            103: "num 7",
+            104: "num 8",
+            105: "num 9",
+            106: "num *",
+            107: "num +",   # this has the problem from hotkey_handler since it splits by +, needs special case to work.
+            109: "num -",
+            110: "num .",   # doesn't seem to work
+            111: "num /",   # / is still buggy
+            13: "num Enter",    # still works for normal enter presses.
+            45: "shift+num 0",
+            35: "shift+num 1",
+            40: "shift+num 2",
+            34: "shift+num 3",
+            37: "shift+num 4",
+            12: "shift+num 5",
+            39: "shift+num 6",
+            36: "shift+num 7",
+            38: "shift+num 8",
+            33: "shift+num 9",
+            46: "shift+num ." #doesn't work either something wrong with num .
+
+            # shift+num "*, -, Enter, numlock" all seem to work by default / is still buggy.
+
+            
+            # Depending on state of numlock when setting the keybind, it can be bound to either shift or normal version of it.
+            # For instance numlock off numpad 7 means key 36 = "shift+num 7". So Should probably add a shift modifier detection
+            # To save either to just the base key or the shift variant.
+
+        }
+
+        # Check if the native key is a numpad key and map it accordingly
+        if native_key in numpad_mapping:
+            sequence_parts.append(numpad_mapping[native_key])
+        else:
+            # Handle any non-numpad keys that may be mapped to logical keys
+            sequence_parts.append(QKeySequence(key).toString())
+
+        # Return the formatted key sequence string (e.g., "Shift+num 7")
+        seq = "+".join(sequence_parts)
+        logger.info(f"Sequence = {seq}")
+        return seq
 
     
     def get_key_sequence(self, key_event):
