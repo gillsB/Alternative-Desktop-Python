@@ -382,7 +382,8 @@ class KeybindButton(QPushButton):
                 key_name = f"num {QKeySequence(key).toString()}"
                 logger.info(f"Numpad key detected: {key_name}")
             else:
-                key_name = QKeySequence(key).toString()
+                # Use custom get_key_sequence to handle shift-modified keys
+                key_name = self.get_key_sequence(event)
 
             # Handle if a non-modifier key is pressed (e.g., F1, D, etc.)
             if key not in (Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta):
@@ -392,10 +393,27 @@ class KeybindButton(QPushButton):
                 self.finalize_keybind()
             else:
                 logger.info(f"Modifier key press: {event.text()}")
-            
-            
+
         else:
             super().keyPressEvent(event)
+
+    
+    def get_key_sequence(self, key_event):
+        # Create a list to store the key sequence parts
+        sequence_parts = []
+
+        # Handle the base key (without shift influence)
+        if key_event.key() >= Qt.Key_Space and key_event.key() <= Qt.Key_AsciiTilde:
+            # Handle unshifted base key (for normal alphanumeric keys)
+            base_key = chr(key_event.nativeVirtualKey())
+            sequence_parts.append(base_key)
+        else:
+            # Handle special keys (e.g., F1, arrows, etc.)
+            base_key = QKeySequence(key_event.key()).toString()
+            sequence_parts.append(base_key)
+
+        # Join the parts to form the final key sequence string
+        return "+".join(sequence_parts)
 
     def finalize_keybind(self):
         key_name = self.key
