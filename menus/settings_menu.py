@@ -428,10 +428,11 @@ class KeybindButton(QPushButton):
             Qt.Key_Home: "shift+num 7",
             Qt.Key_Up: "shift+num 8",
             Qt.Key_PageUp: "shift+num 9",
-            Qt.Key_Delete: "shift+num .", #doesn't work either something wrong with num .
+            Qt.Key_Delete: "shift+decimal",
             Qt.Key_NumLock: "num lock",
-            Qt.Key_Slash: "num /" # still broken with scan code = 57397
-
+            Qt.Key_Slash: "num /", # still broken with scan code = 57397
+            Qt.Key_Plus: "num add",
+            Qt.Key_Period: "decimal"
             # shift+num "*, -, Enter, numlock" all seem to work by default / is still buggy.
 
             
