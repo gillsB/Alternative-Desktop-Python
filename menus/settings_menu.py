@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
-from PySide6.QtCore import Qt, QEvent, QSize
+from PySide6.QtCore import Qt, QEvent, QSize, QTimer
 from PySide6.QtGui import QKeySequence
 from util.utils import ClearableLineEdit
 from util.settings import get_setting, set_setting, load_settings, save_settings
@@ -364,6 +364,7 @@ class KeybindButton(QPushButton):
         self.modifiers = None  # Store the modifiers
         self.clicked.connect(self.enable_listening)
         self.installEventFilter(self)
+        self.shift_pressed = False
 
     def enable_listening(self):
         logger.info("Enable listening called")
@@ -375,11 +376,16 @@ class KeybindButton(QPushButton):
             logger.info(f"Key press event: {event}")
             key = event.key()
             modifiers = event.modifiers()
+            logger.info(f"Modifiers = {modifiers}")
+
+            # Set shift_pressed if key = shift. This is used for shift+numpad # keybinding.
+            if key == Qt.Key_Shift:
+                self.shift_pressed = True
+                logger.info("Shift key pressed")
 
             # Check if the key is from the numpad
             if modifiers & Qt.KeypadModifier:
                 # Use a custom mapping for numpad keys
-                #key_name = f"num {QKeySequence(key).toString()}"
                 key_name = self.get_numpad_key_sequence(event)
                 logger.info(f"Numpad key detected: {key_name}")
             else:
@@ -402,7 +408,28 @@ class KeybindButton(QPushButton):
         else:
             super().keyPressEvent(event)
 
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Shift:
+            def set_false():
+                self.shift_pressed = False
+
+            # Instantly resetting shift_pressed will mean that holding shift the hitting num 7
+            # Will instantly reset shift_pressed to False. Before running keyPressEvent
+            # So delay this very slightly so that it will instead run KeyPressEvent then turn shift off.
+            # This allows for detecting shift on a shift numpad # press (which gives a full unique key with no shift modifier.)
+            # This self.shift_pressed is only used in get_numpad_key_sequence below because the only time a shift modified key
+            # Changes input to a non-shift modified key is when 'shift + numpad #'.
+            QTimer.singleShot(100, set_false)
+            
+            logger.info("Shift key released")
+
+        super().keyReleaseEvent(event)
+            
+
     def get_numpad_key_sequence(self, key_event):
+        logger.info(f"SHIFT PRESSED = {self.shift_pressed}")
+        # Create local variable as self.shift_pressed is essentially on a 100ms timer before turning to False.
+        shift_pressed = self.shift_pressed
         logger.info("getting numpad key sequence")
         key = key_event.key()
         modifiers = key_event.modifiers()
@@ -414,39 +441,28 @@ class KeybindButton(QPushButton):
         # List to store key sequence parts
         sequence_parts = []
 
-        # Use the nativeVirtualKey to get the unmodified key value
-        native_key = key_event.nativeVirtualKey()
-
-        logger.info(f"native Key = {native_key}")
-
-
         # Mapping of native numpad keys to "num X" representation
         numpad_mapping = {
-            Qt.Key_Insert: "shift+num 0",
-            Qt.Key_End: "shift+num 1",
-            Qt.Key_Down: "shift+num 2",
-            Qt.Key_PageDown: "shift+num 3",
-            Qt.Key_Left: "shift+num 4",
-            Qt.Key_Clear: "shift+num 5",
-            Qt.Key_Right: "shift+num 6",
-            Qt.Key_Home: "shift+num 7",
-            Qt.Key_Up: "shift+num 8",
-            Qt.Key_PageUp: "shift+num 9",
-            Qt.Key_Delete: "shift+decimal",
+            Qt.Key_Insert: "shift+num 0" if shift_pressed else "num 0",
+            Qt.Key_End: "shift+num 1" if shift_pressed else "num 1",
+            Qt.Key_Down: "shift+num 2" if shift_pressed else "num 2",
+            Qt.Key_PageDown: "shift+num 3" if shift_pressed else "num 3",
+            Qt.Key_Left: "shift+num 4" if shift_pressed else "num 4",
+            Qt.Key_Clear: "shift+num 5" if shift_pressed else "num 5",
+            Qt.Key_Right: "shift+num 6" if shift_pressed else "num 6",
+            Qt.Key_Home: "shift+num 7" if shift_pressed else "num 7",
+            Qt.Key_Up: "shift+num 8" if shift_pressed else "num 8",
+            Qt.Key_PageUp: "shift+num 9" if shift_pressed else "num 9",
+            Qt.Key_Delete: "shift+decimal" if shift_pressed else "decimal",
             Qt.Key_NumLock: "num lock",
-            Qt.Key_Slash: "num /", # still broken with scan code = 57397
+            Qt.Key_Slash: "shift+num /" if shift_pressed else "num /", # still broken with scan code = 57397
             Qt.Key_Plus: "num add",
             Qt.Key_Period: "decimal",
             # shift+num "*, -, Enter, numlock" all seem to work by default / is still buggy.
 
-            
-            # Depending on state of numlock when setting the keybind, it can be bound to either shift or normal version of it.
-            # For instance numlock off numpad 7 means key 36 = "shift+num 7". So Should probably add a shift modifier detection
-            # To save either to just the base key or the shift variant.
-
         }
 
-        # Check if the native key is a numpad key and map it accordingly
+        # If non-normal numpad key take the key and convert it to the numpad equivalent
         if key in numpad_mapping:
             sequence_parts.append(numpad_mapping[key])
         else:
@@ -500,11 +516,12 @@ class KeybindButton(QPushButton):
         key_name = self.key
         modifier_names = []
 
-        if self.modifiers & Qt.ShiftModifier:
+        # Add modifiers to keybind if modifier detected, and not already in key_name (essentially ensure modifier only included 1 time.)
+        if self.modifiers & Qt.ShiftModifier and "shift" not in key_name.lower():
             modifier_names.append("Shift")
-        if self.modifiers & Qt.ControlModifier:
+        if self.modifiers & Qt.ControlModifier and "ctrl" not in key_name.lower():
             modifier_names.append("Ctrl")
-        if self.modifiers & Qt.AltModifier:
+        if self.modifiers & Qt.AltModifier and "alt" not in key_name.lower():
             modifier_names.append("Alt")
         if self.modifiers & Qt.MetaModifier:
             modifier_names.append("Meta")
