@@ -87,6 +87,7 @@ def check_for_new_settings():
         save_settings(SETTINGS)
 
 
+# Depreciated was originally used for pynput keyboard library. But has since moved to base keyboard library which does not use this <> formatting.
 def add_angle_brackets(text):
     modifiers = {"alt", "ctrl", "shift"}  # Define the modifier keys
     special_keys = {

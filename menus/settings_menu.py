@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, QEvent, QSize
 from PySide6.QtGui import QKeySequence
 from util.utils import ClearableLineEdit
 from util.settings import get_setting, set_setting, load_settings, save_settings
-from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved
+from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_multiple_working_keybind_warning
 import os
 import logging
 
@@ -386,6 +386,10 @@ class KeybindButton(QPushButton):
                 # Use custom get_key_sequence to handle shift-modified keys
                 key_name = self.get_key_sequence(event)
 
+            logger.info(f"Key name = {key_name}")
+            if "enter" in key_name.lower() or "return" in key_name.lower():
+                display_multiple_working_keybind_warning(key_name)
+
             # Handle if a non-modifier key is pressed (e.g., F1, D, etc.)
             if key not in (Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta):
                 logger.info(f"Non-modifier key press: {key_name}")  # Changed to use `key_name`
@@ -432,7 +436,7 @@ class KeybindButton(QPushButton):
             Qt.Key_NumLock: "num lock",
             Qt.Key_Slash: "num /", # still broken with scan code = 57397
             Qt.Key_Plus: "num add",
-            Qt.Key_Period: "decimal"
+            Qt.Key_Period: "decimal",
             # shift+num "*, -, Enter, numlock" all seem to work by default / is still buggy.
 
             

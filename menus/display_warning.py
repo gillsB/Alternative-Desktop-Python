@@ -156,3 +156,12 @@ def display_keybind_not_supported(keybind):
     # QTimer to not block main thread. (Async)
     QTimer.singleShot(0, show_warning)
     
+def display_multiple_working_keybind_warning(keybind):
+    logger.warning("Displaying warning that multiple keys may respond to selected keybind.")
+    def show_warning():
+        show_highlightable_message_box(
+            "Multple keybinds may work",
+            f"Keybind: ' {keybind} ' \nis known to have multiple variants which return the same value as the key set. For instance ' enter/return ' and ' num enter/return ' will both trigger this keybind."
+        )
+    # QTimer to not block main thread. (Async)
+    QTimer.singleShot(0, show_warning)
