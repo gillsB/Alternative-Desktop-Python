@@ -150,7 +150,7 @@ def display_keybind_not_supported(keybind):
     def show_warning():
         show_highlightable_message_box(
             "Keybind not supported",
-            f"Keybind: ' {keybind} ' \nNot fully supported, it might also respond to different keys, or not be picked up at all."
+            f"Keybind: ' {keybind} ' \nReturned scan code far out of normal scan code range. This keybind is not fully supported, it might also respond to different keys, or not be picked up at all. \nKnown conflicting keys ' / '   ' num / '   ' menu ' If your key is different please report it."
         )
 
     # QTimer to not block main thread. (Async)

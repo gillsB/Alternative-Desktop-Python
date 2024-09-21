@@ -40,11 +40,14 @@ class HotkeyHandler(QObject):
                     # key_to_scan_codes[0] is the base number's scan code, [1] is the numpad only version
                     main_key_scan_code = keyboard.key_to_scan_codes(main_key)[1] 
                 else:
-                    if "num" in main_key or "/" in main_key:
-                        display_keybind_not_supported(main_key)
                     # Non numpad key get the base version.
                     main_key_scan_code = keyboard.key_to_scan_codes(main_key)[0]
                 logger.info(f"Main key '{main_key}' converted to scan code: {main_key_scan_code}")
+
+                # Scan code returned is drastically invalid. Only had this happen with /, num /, and menu in my testing.
+                if main_key_scan_code > 57000:
+                    logger.error(f"Critical error getting scan code from key {main_key} returned scan code: {main_key_scan_code}")
+                    display_keybind_not_supported(main_key)
             except IndexError:
                 # Handle cases where no scan code is found
                 logger.error(f"Scan code retrieval failed for key '{main_key}'.")
