@@ -755,6 +755,7 @@ class ClickableLabel(QLabel):
         return self.desktop_icon.icon_path
     
     def run_program(self):
+        self.show_warning_count = 0
         launch_option_methods = {
             0: self.launch_first_found,
             1: self.launch_prio_web_link,
@@ -767,7 +768,7 @@ class ClickableLabel(QLabel):
         method = launch_option_methods.get(launch_option, 0)
         success = method()
         
-        if not success:
+        if not success and self.show_warning_count == 0:
             logger.error("No successful launch detected")
             display_no_successful_launch_error()
     
@@ -807,6 +808,7 @@ class ClickableLabel(QLabel):
                 raise FileNotFoundError
         except FileNotFoundError:
             logger.error(f"While attempting to run the executable the file is not found at {self.desktop_icon.executable_path}")
+            self.show_warning_count += 1
             display_file_not_found_error(self.desktop_icon.executable_path)
             return running
 
@@ -832,6 +834,7 @@ class ClickableLabel(QLabel):
                         running = False
                         
                         logger.error(f"Error opening file, Seems like user does not have a default application for this file type and windows is not popping up for them to select a application to open with., path = {self.desktop_icon.executable_path}")
+                        self.show_warning_count += 1
                         display_no_default_type_error(self.desktop_icon.executable_path)
                     
                 #kill the connection between this process and the subprocess we just launched.
