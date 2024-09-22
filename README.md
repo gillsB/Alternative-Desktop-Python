@@ -57,16 +57,17 @@ Want to move the desktop icon? Just click and drag it!
 ### Base Requirements: 
 Python  
 pip (https://pip.pypa.io/en/stable/installation/)  
-pyinstaller (pip install pyinstaller)  
-Inno setup compiler (https://jrsoftware.org/isdl.php)  
+pyinstaller (only for building the executable. pip install pyinstaller)  
+Inno setup compiler (only for building the installer. https://jrsoftware.org/isdl.php)  
 requests   	(pulling updates from github, pip install requests)
-Pyside6 	(Qt for Python, pip install PySide6)   
-pylnk3		(for getting icons from .lnk files, pip install pylnk3)   
+Pyside6 	(Qt for Python, pip install PySide6)     
 PIL 		(Python Imaging Library, pip install pillow)   
 icoextract  (Extracting icons from .exe, pip install icoextract)  
 qt-material (stylesheets, pip install qt-material)  
 send2trash (recycle bin instead of outright deletion of icons, pip install send2trash)  
 pywin32     (dealing with some windows functions, pip install pywin32 (can be somewhat annoying to install, if not working try: python -m pip install pywin32) or after installation: python Scripts/pywin32_postinstall.py -install)
+Markdown    (Markdown formatting, pip install markdown)
+Keyboard    (setting a hotkey, pip install keyboard)
 
 ### Step 1: Building .exe
 open command prompt
