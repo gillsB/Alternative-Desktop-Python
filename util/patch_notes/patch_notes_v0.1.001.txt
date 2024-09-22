@@ -3,16 +3,19 @@
 - New setting "Icon Name color" which allows you to change the color of the desktop icon labels (names)
 - New setting "On closing the program" which allows you to set the program to minimize to tray, or terminate the program on X close, or right click -> close window.
 - Added a "None" theme which uses the default Qt theme instead of the Qt-Material theme system.(Light mode with dark gray background)
-- New setting "When in focus Keybind" which allows the user to either have the keybind minimize it to windows taskbar or have it minimize to system tray (hidden)
+- New setting "When in focus Keybind" which allows the user to either have the keybind minimize it to windows taskbar or have it minimize to system tray (hidden but responds to keybind/right click -> restore)
 
 ### New Improvements:
 - All desktop icons now auto-preview before saving
+- Improved range of possible keybinds. Added ability to bind with multiple modifier keys, and now differentiate between normal keys and numpad keys. Note keybind numbers duplicate to their numlock off keybinds. Ex: any num 1 can be replaced with end, any num 7 can be replaced by pressing home. This is a very low level issue that is hard to solve.
 - Added logging to better trace errors/bugs
 - Minimizing to tray, When "On closing the program" setting is set to Minimize to tray, Closing the program will hide the program and remove it from windows taskbar. The program will still respond to keybind to bring it up, and can be restored or completely closed out through the windows tray.
 - Un-maximizing the screen now shows the program in the center of the screen at 75% monitor width, 75% monitor height for the first time it is unmaximized on a monitor. (Previously it would be a tall awkwardly sized window starting from the center of the screen, likely too tall to fit entirely on the screen).
 - Warning messages text are now selectable (for copy/pasting)
 - Open Executable Location (right click menu) now opens parent directory if the Executable Path does not exist. And shows an error if neither exist (previously would only open if the executable path existed).
 - Organized util files into /util , desktop files into /desktop , and other widgets/dialogs/menus into /menus
+- Removed "no successful launch detected" warning when already displaying a warning like File Not Found or no associated file type.
+- When not in focus but windowed/fullscreen, pressing the keybind brings it to the top into focus instead of minimizing it (then taking another keypress to bring it up and into focus)
 
 ### Bugfixes:
 - Fixed a bug which left icons in edit mode upon Esc key closing a desktop icon edit.
