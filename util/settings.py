@@ -18,7 +18,7 @@ DEFUALT_SETTINGS = {
         "max_rows": 20,
         "max_cols": 40,
         "label_color": "white",
-        "on_close": 0,
+        "on_close": 1,
         "show_patch_notes": True,
         "keybind_minimize": 0
 }
@@ -30,6 +30,8 @@ SETTINGS = None
 # video_only = Video only
 # image_only = Image only
 # none = None
+
+#on_close: default set to 1 (terminate the program)
 
     
 def load_settings():

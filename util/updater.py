@@ -79,21 +79,26 @@ def run_installer(installer_path):
     try:
         logger.info(f"Running installer: {installer_path}")
         process = subprocess.Popen([installer_path], close_fds=True)
-        process.wait()  # Wait for the installer to finish
-        logger.info("Installation completed. Closing the application.")
         sys.exit(0)
+        # Exit the program upon launching installer as the installer cannot install while program running.
+        # If I want to do cleanup etc. I need to do it on next launch not, leaving the program running.
+        # I think this setup only works if you have the dependencies to have it running installed i.e. worked on my main setup at the time.
+
+        #process.wait()  # Wait for the installer to finish
+        #logger.info("Installation completed. Closing the application.")
+        
     except PermissionError as e:
         logger.error(f"Permission error: {e}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to run the installer: {e}")
-    finally:
+    #finally:
         # Delete the installer after it's run
-        if os.path.exists(installer_path):
-            try:
-                os.remove(installer_path)
-                logger.info(f"Deleted installer: {installer_path}")
-            except OSError as e:
-                logger.error(f"Error deleting installer: {e}")
+        #if os.path.exists(installer_path):
+        #    try:
+        #        os.remove(installer_path)
+        #        logger.info(f"Deleted installer: {installer_path}")
+        #    except OSError as e:
+        #        logger.error(f"Error deleting installer: {e}")
 
 class DownloadThread(QThread):
     progress = Signal(int)
