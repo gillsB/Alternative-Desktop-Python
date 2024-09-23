@@ -6,5 +6,9 @@
   "V0.1.001": {
     "date": "2024-09-21",
     "notes_file": "patch_notes_v0.1.001.txt"
+  },
+  "V0.1.002":{
+    "date": "2024-09-22",
+    "notes_file": "patch_notes_v0.1.002.txt"
   }
 }

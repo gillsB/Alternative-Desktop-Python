@@ -1,0 +1,7 @@
+Small patch to fix some important things which unintentionally got left out of last patch in workflow.
+
+### New Improvements:
+- If update downloaded but not installed, upon next run it asks if you want to just install from found file or redownload and install.
+
+### Bugfixes:
+- Fixed a problem with installer not including patch_notes folder, thus not showing these patch notes :(

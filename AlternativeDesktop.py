@@ -43,7 +43,7 @@ from util.logs import setup_logging
 # Only used for pyinstaller to get the dependencies needed for the program. (pyinstaller only looks for explicit imports not load_module)
 from desktop.desktop import main
 
-CURRENT_VERSION = "V0.1.001"
+CURRENT_VERSION = "V0.1.002"
 GITHUB_REPO = "gillsb/Alternative-Desktop"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None
