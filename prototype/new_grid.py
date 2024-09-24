@@ -3,7 +3,50 @@ from PySide6.QtCore import Qt, QSize, QRectF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics
 import sys
 
-VERTICAL_PADDING = 40
+# Global Padding Variables
+TOP_PADDING = 20  # Padding from the top of the window
+SIDE_PADDING = 20  # Padding from the left side of the window
+VERTICAL_PADDING = 40  # Padding between icons
+
+class DesktopGrid(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Desktop Grid Prototype')
+        self.setMinimumSize(400, 400)
+
+        self.scene = QGraphicsScene(self)
+        self.setScene(self.scene)
+
+        # Disable scroll bars
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.populate_icons()
+
+        # Set the scene rectangle to be aligned with the top-left corner with padding
+        self.scene.setSceneRect(0, 0, self.width(), self.height())
+
+    def populate_icons(self):
+        icon_size = 64
+        spacing = 10
+        cols = 5 
+
+        for y in range(3): 
+            for x in range(cols):
+                icon_item = DesktopIcon(x, y, icon_size)
+                # Adjust position with side padding and top padding
+                icon_item.setPos(SIDE_PADDING + x * (icon_size + spacing), 
+                                 TOP_PADDING + y * (icon_size + spacing + VERTICAL_PADDING)) 
+                self.scene.addItem(icon_item)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Adjust the scene rectangle on resize
+        self.scene.setSceneRect(0, 0, self.width(), self.height())
+
+    def wheelEvent(self, event):
+        # Override wheel event to prevent scrolling
+        event.ignore()  # Ignore the event to prevent scrolling
 
 class DesktopIcon(QGraphicsItem):
     def __init__(self, x, y, icon_size=64):
@@ -60,30 +103,6 @@ class DesktopIcon(QGraphicsItem):
 
         return lines
 
-class DesktopGrid(QGraphicsView):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('Desktop Grid Prototype')
-        self.setMinimumSize(400, 400)
-
-        self.scene = QGraphicsScene(self)
-        self.setScene(self.scene)
-
-        self.populate_icons()
-
-    def populate_icons(self):
-        icon_size = 64
-        spacing = 10
-        cols = 5 
-
-        for y in range(3): 
-            for x in range(cols):
-                icon_item = DesktopIcon(x, y, icon_size)
-                icon_item.setPos(x * (icon_size + spacing), y * (icon_size + spacing + VERTICAL_PADDING)) 
-                self.scene.addItem(icon_item)
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
