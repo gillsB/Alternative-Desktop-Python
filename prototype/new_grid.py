@@ -21,32 +21,75 @@ class DesktopGrid(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+        # Initialize 2D array for icon items
+        self.desktop_icons = []
+
         self.populate_icons()
+
+        # Example of calling a function for a DesktopIcon
+        self.desktop_icons[3][1].set_color("black")
 
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
 
     def populate_icons(self):
         icon_size = 64
-        spacing = 10
-        cols = 5 
+        self.spacing = 10
+        cols = 40
+        rows = 10
 
-        for y in range(3): 
-            for x in range(cols):
+        # Create a 2D array for icon items
+        self.desktop_icons = [[None for _ in range(cols)] for _ in range(rows)]
+
+        for x in range(rows):
+            for y in range(cols):
                 icon_item = DesktopIcon(x, y, icon_size)
-                # Adjust position with side padding and top padding
-                icon_item.setPos(SIDE_PADDING + x * (icon_size + spacing), 
-                                 TOP_PADDING + y * (icon_size + spacing + VERTICAL_PADDING)) 
+                # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
+                icon_item.setPos(SIDE_PADDING + y * (icon_size + self.spacing), 
+                    TOP_PADDING + x * (icon_size + self.spacing + VERTICAL_PADDING))
+                self.desktop_icons[x][y] = icon_item
                 self.scene.addItem(icon_item)
+
+        # Initially update visibility based on the current window size
+        self.update_icon_visibility()
+
+
+
+    def update_icon_color(self, x, y, color):
+        if 0 <= x < len(self.desktop_icons) and 0 <= y < len(self.desktop_icons[0]):
+            icon_item = self.desktop_icons[x][y]
+            if icon_item:
+                icon_item.set_color(color)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         # Adjust the scene rectangle on resize
         self.scene.setSceneRect(0, 0, self.width(), self.height())
+        self.update_icon_visibility()
+
+    def update_icon_visibility(self):
+        # Get the size of the visible area of the window
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
+
+        # Calculate max visible row and column based on icon size + padding
+        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing)
+        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing)
+        print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
+
+        # Iterate only within visible rows and columns
+        for x in range(len(self.desktop_icons)):
+            for y in range(len(self.desktop_icons[x])):
+                icon_item = self.desktop_icons[x][y]
+                if x < max_visible_rows and y < max_visible_columns:
+                    icon_item.setVisible(True)
+                else:
+                    icon_item.setVisible(False)
 
     def wheelEvent(self, event):
         # Override wheel event to prevent scrolling
         event.ignore()  # Ignore the event to prevent scrolling
+
 
 class DesktopIcon(QGraphicsItem):
     def __init__(self, x, y, icon_size=64):
@@ -56,13 +99,27 @@ class DesktopIcon(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.padding = 30
         self.font = QFont('Arial', 10)
+        self.color = QColor(200, 200, 255)  # Default color
+
+    def set_color(self, color):
+        if isinstance(color, str):
+            # If the color is a hex code without '#', add the '#' symbol
+            if len(color) == 6 and not color.startswith('#'):
+                color = '#' + color
+            self.color = QColor(color)  # QColor will interpret the color name or hex code
+        elif isinstance(color, QColor):
+            self.color = color
+        else:
+            raise ValueError("Color must be a valid color name, hex string, or QColor object.")
+
+        self.update() 
 
     def boundingRect(self) -> QRectF:
         text_height = self.calculate_text_height(self.icon_text)
         return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
 
     def paint(self, painter: QPainter, option, widget=None):
-        painter.setBrush(QColor(200, 200, 255))  # Light blue background
+        painter.setBrush(self.color)
         painter.drawRect(0, 0, self.icon_size, self.icon_size)
 
         painter.setFont(self.font)
@@ -76,6 +133,7 @@ class DesktopIcon(QGraphicsItem):
             self.setSelected(True)
 
     def mouseDoubleClickEvent(self, event):
+        self.set_color("red")
         print(f"Opening {self.icon_text}...")
 
     def calculate_text_height(self, text):
