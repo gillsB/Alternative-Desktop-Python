@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication
-from PySide6.QtCore import Qt, QSize, QRectF
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics
 import sys
 
@@ -26,6 +26,12 @@ class DesktopGrid(QGraphicsView):
 
         self.populate_icons()
 
+        # Initialize a timer for debouncing update_icon_visibility
+        self.resize_timer = QTimer()
+        self.resize_timer.setInterval(200)  # Adjust the interval to your preference (in ms)
+        self.resize_timer.setSingleShot(True)
+        self.resize_timer.timeout.connect(self.update_icon_visibility)
+
         # Example of calling a function for a DesktopIcon
         self.desktop_icons[3][1].set_color("black")
 
@@ -35,14 +41,14 @@ class DesktopGrid(QGraphicsView):
     def populate_icons(self):
         icon_size = 64
         self.spacing = 10
-        cols = 40
-        rows = 10
+        self.cols = 40
+        self.rows = 10
 
         # Create a 2D array for icon items
-        self.desktop_icons = [[None for _ in range(cols)] for _ in range(rows)]
+        self.desktop_icons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
 
-        for x in range(rows):
-            for y in range(cols):
+        for x in range(self.rows):
+            for y in range(self.cols):
                 icon_item = DesktopIcon(x, y, icon_size)
                 # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
                 icon_item.setPos(SIDE_PADDING + y * (icon_size + self.spacing), 
@@ -63,11 +69,19 @@ class DesktopGrid(QGraphicsView):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Adjust the scene rectangle on resize
-        self.scene.setSceneRect(0, 0, self.width(), self.height())
-        self.update_icon_visibility()
+
+        # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
+        self.resize_timer.start() 
+
+        # Prioritizes drawing over resizing. i.e. always draw and always resize at the same time, thus resize can lag a bit more behind but desktop will always look to be the same.
+        #self.scene.setSceneRect(0, 0, self.width(), self.height())
+        #self.update_icon_visibility()
 
     def update_icon_visibility(self):
+
+        # Only do this is resizeEvent() has self.resize_timer.start()
+        self.scene.setSceneRect(0, 0, self.width(), self.height())
+        
         # Get the size of the visible area of the window
         view_width = self.viewport().width()
         view_height = self.viewport().height()
@@ -76,10 +90,11 @@ class DesktopGrid(QGraphicsView):
         max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing)
         max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing)
         print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
+        
 
         # Iterate only within visible rows and columns
-        for x in range(len(self.desktop_icons)):
-            for y in range(len(self.desktop_icons[x])):
+        for x in range(self.rows):
+            for y in range(self.cols):
                 icon_item = self.desktop_icons[x][y]
                 if x < max_visible_rows and y < max_visible_columns:
                     icon_item.setVisible(True)
