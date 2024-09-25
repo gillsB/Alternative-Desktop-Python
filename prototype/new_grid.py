@@ -14,6 +14,9 @@ class DesktopGrid(QGraphicsView):
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
 
+        self.prev_max_visible_columns = 0
+        self.prev_max_visible_rows = 0
+
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
 
@@ -37,6 +40,10 @@ class DesktopGrid(QGraphicsView):
 
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
+
+
+        # Only run _fresh_ for launch to init all visibilities.
+        self.update_fresh_icon_visiblity()
 
     def populate_icons(self):
         icon_size = 64
@@ -78,28 +85,69 @@ class DesktopGrid(QGraphicsView):
         #self.update_icon_visibility()
 
     def update_icon_visibility(self):
-
-        # Only do this is resizeEvent() has self.resize_timer.start()
         self.scene.setSceneRect(0, 0, self.width(), self.height())
-        
         # Get the size of the visible area of the window
         view_width = self.viewport().width()
         view_height = self.viewport().height()
 
-        # Calculate max visible row and column based on icon size + padding
-        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing)
-        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing)
+        # Calculate current max visible row and column based on icon size and padding
+        # min() ensures max_visible_rows/columns cannot exceed the self.rows/self.cols values.
+        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing), self.rows)
+        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing), self.cols)
         print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
+
+
+        # If nothing has changed, no need to proceed
+        if max_visible_columns == self.prev_max_visible_columns and max_visible_rows == self.prev_max_visible_rows:
+            return
+        
+        # Add rows as visible
+        if max_visible_rows > self.prev_max_visible_rows:
+            for x in range(self.prev_max_visible_rows, max_visible_rows):
+                for y in range(min(max_visible_columns, self.cols)):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(True)
+
+        # Add columns as visible
+        if max_visible_columns > self.prev_max_visible_columns:
+            for y in range(self.prev_max_visible_columns, max_visible_columns):
+                for x in range(min(max_visible_rows, self.rows)):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(True)
+
+        # Remove Rows as visible
+        if max_visible_rows < self.prev_max_visible_rows:
+            for y in range(self.prev_max_visible_columns +1):
+                for x in range(max(max_visible_rows, 0), self.prev_max_visible_rows +1):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(False)
+        
+        # Remove Columns as visbile
+        if max_visible_columns < self.prev_max_visible_columns:
+            for x in range(self.prev_max_visible_rows +1):
+                for y in range(max(max_visible_columns, 0), self.prev_max_visible_columns +1):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(False)
+        
         
 
-        # Iterate only within visible rows and columns
+        self.prev_max_visible_columns = max_visible_columns
+        self.prev_max_visible_rows = max_visible_rows
+
+    # Iterates through every self.desktop_icons and sets visiblity (more costly than self.update_icon_visibility)
+    # Generally only use this on launching the program to set the defaults and then update them from there normally.
+    def update_fresh_icon_visiblity(self):
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
+
+        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing)
+        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing)
         for x in range(self.rows):
             for y in range(self.cols):
-                icon_item = self.desktop_icons[x][y]
                 if x < max_visible_rows and y < max_visible_columns:
-                    icon_item.setVisible(True)
+                    self.desktop_icons[x][y].setVisible(True)
                 else:
-                    icon_item.setVisible(False)
+                    self.desktop_icons[x][y].setVisible(False)
 
     def wheelEvent(self, event):
         # Override wheel event to prevent scrolling
