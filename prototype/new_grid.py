@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
 import sys
+import os
 
 # Global Padding Variables
 TOP_PADDING = 20  # Padding from the top of the window
@@ -41,6 +42,11 @@ class DesktopGrid(QGraphicsView):
 
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
+
+        # Load specifically "background.png" (will update this later to act like desktop_grid())
+        if os.path.exists("background.png"):
+            background_image = QPixmap("background.png") 
+            self.setBackgroundBrush(QBrush(background_image))
 
 
         # Only run _fresh_ for launch to init all visibilities.
@@ -215,8 +221,7 @@ class DesktopIcon(QGraphicsItem):
             self.color = color
         else:
             raise ValueError("Color must be a valid color name, hex string, or QColor object.")
-
-        self.update() 
+        self.update()
 
     def update_size(self, new_size):
         self.icon_size = new_size
@@ -233,8 +238,28 @@ class DesktopIcon(QGraphicsItem):
         painter.setFont(self.font)
 
         lines = self.get_multiline_text(self.font, self.icon_text)
+
+        # Define the outline color and main text color
+        outline_color = QColor(0, 0, 0)  # Black outline
+        text_color = QColor(255, 255, 255)  # White text
+
         for i, line in enumerate(lines):
-            painter.drawText(0, self.icon_size + self.padding / 2 + i * 15, line)
+            text_y = self.icon_size + self.padding / 2 + i * 15
+
+            # Create a QPainterPath for the text outline
+            path = QPainterPath()
+            path.addText(0, text_y, self.font, line)
+
+            # Draw the text outline with a thicker pen
+            painter.setPen(QColor(outline_color))
+            painter.setPen(QColor(outline_color))
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline
+            painter.drawPath(path)
+
+            # Draw the main text in the middle
+            painter.setPen(text_color)
+            painter.drawText(0, text_y, line)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -247,7 +272,7 @@ class DesktopIcon(QGraphicsItem):
     def calculate_text_height(self, text):
         font_metrics = QFontMetrics(self.font)
         lines = self.get_multiline_text(font_metrics, text)
-        return len(lines) * 15  
+        return len(lines) * 15
 
     def get_multiline_text(self, font, text):
         font_metrics = QFontMetrics(font)
