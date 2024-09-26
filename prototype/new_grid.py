@@ -7,6 +7,7 @@ import sys
 TOP_PADDING = 20  # Padding from the top of the window
 SIDE_PADDING = 20  # Padding from the left side of the window
 VERTICAL_PADDING = 40  # Padding between icons
+ICON_SIZE = 128
 
 class DesktopGrid(QGraphicsView):
     def __init__(self):
@@ -46,7 +47,7 @@ class DesktopGrid(QGraphicsView):
         self.update_fresh_icon_visiblity()
 
     def populate_icons(self):
-        icon_size = 64
+        icon_size = ICON_SIZE
         self.spacing = 10
         self.cols = 40
         self.rows = 10
@@ -149,9 +150,49 @@ class DesktopGrid(QGraphicsView):
                 else:
                     self.desktop_icons[x][y].setVisible(False)
 
+    # Override to do nothing to avoid scrolling
     def wheelEvent(self, event):
-        # Override wheel event to prevent scrolling
+
+        #temporary override to test resizing icons.
+        global ICON_SIZE
+        if ICON_SIZE == 64:
+            ICON_SIZE = 128
+            self.update_icon_size(128)
+        else:
+            ICON_SIZE = 64
+            self.update_icon_size(64)
         event.ignore()  # Ignore the event to prevent scrolling
+
+    def update_icon_size(self, size):
+        # Update the size of each icon and adjust their position
+        for x in range(self.rows):
+            for y in range(self.cols):
+                self.desktop_icons[x][y].update_size(size)
+                self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + self.spacing), 
+                                TOP_PADDING + x * (size + self.spacing + VERTICAL_PADDING))
+
+        # Update the scene rectangle and visibility after resizing icons
+        self.update_icon_visibility()
+
+
+    # Debug function to find furthest visible row, col (not point but furthest row with a visible object and furthest column with a visible object)
+    def find_largest_visible_index(self):
+        largest_visible_row = -1
+        largest_visible_column = -1
+
+        # Find the largest visible row
+        for row in range(self.rows):
+            for column in range(self.cols):
+                if self.desktop_icons[row][column].isVisible():
+                    largest_visible_row = max(largest_visible_row, row)
+
+        # Find the largest visible column
+        for column in range(self.cols):
+            for row in range(self.rows):
+                if self.desktop_icons[row][column].isVisible():
+                    largest_visible_column = max(largest_visible_column, column)
+
+        return largest_visible_row, largest_visible_column
 
 
 class DesktopIcon(QGraphicsItem):
@@ -176,6 +217,10 @@ class DesktopIcon(QGraphicsItem):
             raise ValueError("Color must be a valid color name, hex string, or QColor object.")
 
         self.update() 
+
+    def update_size(self, new_size):
+        self.icon_size = new_size
+        self.prepareGeometryChange()
 
     def boundingRect(self) -> QRectF:
         text_height = self.calculate_text_height(self.icon_text)
