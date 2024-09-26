@@ -1,6 +1,7 @@
 import sys
 import os
 import importlib.util
+import argparse
 
 def load_module(module_name, subfolder=None):
     current_dir = os.getcwd()
@@ -77,5 +78,14 @@ if __name__ == '__main__':
     desktop.create_app()
     if settings.get("update_on_launch", True):
         check_for_updates(CURRENT_VERSION, RELEASES_URL)
+
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Launch AlternativeDesktop with or without prototype mode.")
     
-    desktop.main(CURRENT_VERSION)
+    # Add an optional argument to accept "prototype"
+    parser.add_argument('mode', nargs='?', default='normal', help="Mode to launch the application: 'prototype' or 'normal'")
+
+    # Parse the arguments
+    args = parser.parse_args()
+    
+    desktop.main(CURRENT_VERSION, args)

@@ -18,7 +18,7 @@ APP = None
 
 
 class OverlayWidget(QWidget):
-    def __init__(self, current_version):
+    def __init__(self, current_version, args):
         super().__init__()
 
         self.version = current_version
@@ -58,9 +58,14 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
-        from desktop.desktop_grid import Grid
-        self.grid_widget = Grid()
+        if args.mode == "prototype":
+            from prototype.new_grid import DesktopGrid
+            self.grid_widget = DesktopGrid()
+        else:
+            # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
+            from desktop.desktop_grid import Grid
+            self.grid_widget = Grid()
+
         layout.addWidget(self.grid_widget)
 
         settings_button = QPushButton("Settings")
@@ -82,6 +87,7 @@ class OverlayWidget(QWidget):
         self.restored_window = False
 
         self.first_resize = True
+
         
     def show_patch_notes(self):
         patch_notes_menu = PatchNotesPopup(self)
@@ -300,9 +306,9 @@ def create_app():
     if APP is None:
         APP = QApplication(sys.argv)
 
-def main(current_version):
+def main(current_version, args):
 
-    overlay = OverlayWidget(current_version)
+    overlay = OverlayWidget(current_version, args)
     overlay.setWindowIcon(QIcon('alt.ico'))
     overlay.setMinimumSize(100, 100)  
     overlay.show()
