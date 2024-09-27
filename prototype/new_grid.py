@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
+from util.settings import get_setting
 import sys
 import os
+
 
 # Global Padding Variables
 TOP_PADDING = 20  # Padding from the top of the window
@@ -209,7 +211,7 @@ class DesktopIcon(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.padding = 30
         self.font = QFont('Arial', 10)
-        self.color = QColor(200, 200, 255)  # Default color
+        self.color = QColor(200, 200, 255)  
 
     def set_color(self, color):
         if isinstance(color, str):
@@ -240,8 +242,8 @@ class DesktopIcon(QGraphicsItem):
         lines = self.get_multiline_text(self.font, self.icon_text)
 
         # Define the outline color and main text color
-        outline_color = QColor(0, 0, 0)  # Black outline
-        text_color = QColor(255, 255, 255)  # White text
+        outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
+        text_color = QColor(get_setting("label_color", "white"))  # Text label Color setting 
 
         for i, line in enumerate(lines):
             text_y = self.icon_size + self.padding / 2 + i * 15
@@ -254,7 +256,7 @@ class DesktopIcon(QGraphicsItem):
             painter.setPen(QColor(outline_color))
             painter.setPen(QColor(outline_color))
             painter.setBrush(Qt.NoBrush)
-            painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline
+            painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline eventually will have a setting
             painter.drawPath(path)
 
             # Draw the main text in the middle
