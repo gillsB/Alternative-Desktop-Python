@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApp
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
 from util.settings import get_setting
-from util.config import get_item_data, create_config_path, set_data_directory
+from util.config import get_item_data, create_paths
 import sys
 import os
 import logging
@@ -22,8 +22,8 @@ class DesktopGrid(QGraphicsView):
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
 
-        create_config_path()
-        create_data_path()
+        # Build paths for config and data directories (stored in config.py)
+        create_paths()
 
         self.prev_max_visible_columns = 0
         self.prev_max_visible_rows = 0
@@ -329,26 +329,6 @@ class DesktopIcon(QGraphicsItem):
 
         return lines
     
-
-
-#this would be passed by AlternativeDesktop.py or one of the main program files (settings.py etc.)
-def create_data_path():
-
-    global DATA_DIRECTORY
-    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
-
-    # Create app_data directory if it doesn't exist
-    if not os.path.exists(app_data_path):
-        os.makedirs(app_data_path)
-
-    # Append /config/data.json to the AppData path
-    data_path = os.path.join(app_data_path, 'data')
-    if not os.path.exists(data_path):
-        logger.info(f"Making directory at {data_path}")
-        os.makedirs(data_path)
-    
-    DATA_DIRECTORY = data_path
-    set_data_directory(DATA_DIRECTORY)
 
 
 

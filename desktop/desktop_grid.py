@@ -11,7 +11,7 @@ import shlex
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
 from util.settings import get_setting
-from util.config import (get_item_data, create_config_path, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder, set_data_directory,
+from util.config import (get_item_data, create_paths, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder,
                     get_data_directory, set_entry_to_default, is_default, swap_items_by_position, change_launch)
 from menus.display_warning import (display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_drop_error,
                               display_failed_cleanup_warning, display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error)
@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 MAX_LABELS = None
 MAX_ROWS = None 
 MAX_COLS = None
-DATA_DIRECTORY = None
 LABEL_SIZE = 64
 LABEL_VERT_PAD = 64
 DEFAULT_BORDER = "border 0px"
@@ -50,8 +49,9 @@ class Grid(QWidget):
         global MAX_COLS, MAX_LABELS, MAX_ROWS
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowOpacity(1.0)
-        create_config_path()
-        create_data_path()
+
+        # Build paths for config and data directories (stored in config.py)
+        create_paths()
 
         global LABEL_SIZE, LABEL_VERT_PAD
         LABEL_SIZE = get_setting("icon_size", 100)
@@ -632,7 +632,7 @@ class ClickableLabel(QLabel):
     def delete_folder_items(self):
         # Check if the directory exists
         data_directory = get_data_directory()
-        folder_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+        folder_path = os.path.join(data_directory, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
         if os.path.exists(folder_path) and os.path.isdir(folder_path):
             # Loop through all the items in the directory
             for item in os.listdir(folder_path):
@@ -698,7 +698,8 @@ class ClickableLabel(QLabel):
 
     # returns base DATA_DIRECTORY/[row, col]
     def get_data_icon_dir(self):
-        data_path = os.path.join(DATA_DIRECTORY, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
+        data_directory = get_data_directory()
+        data_path = os.path.join(data_directory, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
         #make file if no file (new)
         if not os.path.exists(data_path):
             logger.info(f"Making directory at {data_path}")
@@ -893,21 +894,3 @@ class DesktopIcon:
         self.launch_option = launch_option
 
 
-#this would be passed by AlternativeDesktop.py or one of the main program files (settings.py etc.)
-def create_data_path():
-
-    global DATA_DIRECTORY
-    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
-
-    # Create app_data directory if it doesn't exist
-    if not os.path.exists(app_data_path):
-        os.makedirs(app_data_path)
-
-    # Append /config/data.json to the AppData path
-    data_path = os.path.join(app_data_path, 'data')
-    if not os.path.exists(data_path):
-        logger.info(f"Making directory at {data_path}")
-        os.makedirs(data_path)
-    
-    DATA_DIRECTORY = data_path
-    set_data_directory(DATA_DIRECTORY)

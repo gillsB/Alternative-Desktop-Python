@@ -37,9 +37,13 @@ DEFAULT_DESKTOP =  {
 
 
 
+def create_paths():
+    create_config_path()
+    logger.info("Created config path")
+    create_data_path()
+    logger.info("Created data path")
 
 
-#this would also be done by AlternativeDesktop.py or main program files (possibly settings.py)
 def create_config_path():
 
     global DESKTOP_CONFIG_DIRECTORY
@@ -70,6 +74,24 @@ def create_config_path():
         JSON = [DEFAULT_DESKTOP]
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
             json.dump([DEFAULT_DESKTOP], f, indent=4)
+
+def create_data_path():
+
+    global DATA_DIRECTORY
+    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
+
+    # Create app_data directory if it doesn't exist
+    if not os.path.exists(app_data_path):
+        os.makedirs(app_data_path)
+
+    # Append /config/data.json to the AppData path
+    data_path = os.path.join(app_data_path, 'data')
+    if not os.path.exists(data_path):
+        logger.info(f"Making directory at {data_path}")
+        os.makedirs(data_path)
+    
+    DATA_DIRECTORY = data_path
+
 
 
 
@@ -232,10 +254,6 @@ def update_folder( new_row, new_col):
     
     save_config_to_file(config)
             
-
-def set_data_directory(data_path):
-    global DATA_DIRECTORY
-    DATA_DIRECTORY = data_path
 
 def get_data_directory():
     return DATA_DIRECTORY
