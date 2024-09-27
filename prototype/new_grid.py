@@ -2,8 +2,12 @@ from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApp
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
 from util.settings import get_setting
+from util.config import get_item_data, create_config_path, set_data_directory
 import sys
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Global Padding Variables
@@ -17,6 +21,9 @@ class DesktopGrid(QGraphicsView):
         super().__init__()
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
+
+        create_config_path()
+        create_data_path()
 
         self.prev_max_visible_columns = 0
         self.prev_max_visible_rows = 0
@@ -63,13 +70,26 @@ class DesktopGrid(QGraphicsView):
         # Create a 2D array for icon items
         self.desktop_icons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
 
-        for x in range(self.rows):
-            for y in range(self.cols):
-                icon_item = DesktopIcon(x, y, icon_size)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                data = get_item_data(row, col)
+                if data['icon_path'] == "":
+                    data['icon_path'] = ""
+                
+                icon_item = DesktopIcon(
+                    row, 
+                    col, 
+                    data['name'], 
+                    data['icon_path'], 
+                    data['executable_path'], 
+                    data['command_args'], 
+                    data['website_link'], 
+                    data['launch_option'],
+                    icon_size)
                 # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
-                icon_item.setPos(SIDE_PADDING + y * (icon_size + self.spacing), 
-                    TOP_PADDING + x * (icon_size + self.spacing + VERTICAL_PADDING))
-                self.desktop_icons[x][y] = icon_item
+                icon_item.setPos(SIDE_PADDING + col * (icon_size + self.spacing), 
+                    TOP_PADDING + row * (icon_size + self.spacing + VERTICAL_PADDING))
+                self.desktop_icons[row][col] = icon_item
                 self.scene.addItem(icon_item)
 
         # Initially update visibility based on the current window size
@@ -204,14 +224,27 @@ class DesktopGrid(QGraphicsView):
 
 
 class DesktopIcon(QGraphicsItem):
-    def __init__(self, x, y, icon_size=64):
+    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64):
         super().__init__()
-        self.icon_text = f"icon {x},{y}\nMulti-line example"
+        self.row = row
+        self.col = col
+        self.name = name
+        self.icon_path = icon_path
+        self.executable_path = executable_path
+        self.command_args = command_args
+        self.website_link = website_link
+        self.launch_option = launch_option
+
+
+        self.icon_text = self.name
         self.icon_size = icon_size
         self.setAcceptHoverEvents(True)
         self.padding = 30
         self.font = QFont('Arial', 10)
         self.color = QColor(200, 200, 255)  
+
+
+
 
     def set_color(self, color):
         if isinstance(color, str):
@@ -269,7 +302,7 @@ class DesktopIcon(QGraphicsItem):
 
     def mouseDoubleClickEvent(self, event):
         self.set_color("red")
-        print(f"Opening {self.icon_text}...")
+        print(f"icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
 
     def calculate_text_height(self, text):
         font_metrics = QFontMetrics(self.font)
@@ -295,6 +328,28 @@ class DesktopIcon(QGraphicsItem):
             lines.append(current_line)
 
         return lines
+    
+
+
+#this would be passed by AlternativeDesktop.py or one of the main program files (settings.py etc.)
+def create_data_path():
+
+    global DATA_DIRECTORY
+    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
+
+    # Create app_data directory if it doesn't exist
+    if not os.path.exists(app_data_path):
+        os.makedirs(app_data_path)
+
+    # Append /config/data.json to the AppData path
+    data_path = os.path.join(app_data_path, 'data')
+    if not os.path.exists(data_path):
+        logger.info(f"Making directory at {data_path}")
+        os.makedirs(data_path)
+    
+    DATA_DIRECTORY = data_path
+    set_data_directory(DATA_DIRECTORY)
+
 
 
 if __name__ == "__main__":
