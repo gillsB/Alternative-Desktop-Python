@@ -236,9 +236,13 @@ class DesktopIcon(QGraphicsItem):
         self.launch_option = launch_option
 
 
+        
+
+
         self.icon_text = self.name
         self.icon_size = icon_size
         self.setAcceptHoverEvents(True)
+        self.hovered = False
         self.padding = 30
         self.font = QFont('Arial', 10)
         self.color = QColor(200, 200, 255)  
@@ -297,6 +301,14 @@ class DesktopIcon(QGraphicsItem):
                 # Draw the main text in the middle
                 painter.setPen(text_color)
                 painter.drawText(0, text_y, line)
+        # DesktopIcon is default (no fields set)
+        else:
+            if self.hovered:
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/add.png"))
+            else:
+                # Regular paint
+                painter.setBrush(QBrush(QColor(100, 100, 100)))
+                
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -330,6 +342,14 @@ class DesktopIcon(QGraphicsItem):
             lines.append(current_line)
 
         return lines
+    
+    def hoverEnterEvent(self, event):
+        self.hovered = True
+        self.update()
+
+    def hoverLeaveEvent(self, event):
+        self.hovered = False
+        self.update()
     
 
 
