@@ -73,9 +73,6 @@ class DesktopGrid(QGraphicsView):
         for row in range(self.rows):
             for col in range(self.cols):
                 data = get_item_data(row, col)
-                if data['icon_path'] == "":
-                    data['icon_path'] = ""
-                
                 icon_item = DesktopIcon(
                     row, 
                     col, 
@@ -311,7 +308,24 @@ class DesktopIcon(QGraphicsItem):
         current_line = ""
 
         for word in words:
-            # Measure the width of the current line with the new word
+            if len(lines) >= 4:
+                break
+            # Handle long words that exceed the icon size
+            while font_metrics.boundingRect(word).width() > self.icon_size:
+                if len(lines) >= 4:
+                    break
+                for i in range(1, len(word)):
+                    if font_metrics.boundingRect(word[:i]).width() > self.icon_size:
+                        # Add the max length that fits to the current line
+                        lines.append(word[:i-1])
+                        # Continue processing the remaining part of the word
+                        word = word[i-1:]
+                        break
+                else:
+                    # This else is part of the for-else construct; it means the word fits entirely
+                    break
+
+            # Word fits within line
             new_line = current_line + " " + word if current_line else word
             if font_metrics.boundingRect(new_line).width() <= self.icon_size:
                 current_line = new_line
@@ -321,6 +335,21 @@ class DesktopIcon(QGraphicsItem):
 
         if current_line:
             lines.append(current_line)
+
+        # If we exceed the limit, cut it down to 3 lines + "..."
+        if len(lines) > 3:
+            # Cut it to 3 (total) lines
+            lines = lines[:3]
+
+            last_line = lines[2]
+            # Make sure the last line fits with the "..." within the icon size
+            while font_metrics.boundingRect(last_line + "...").width() > self.icon_size:
+                last_line = last_line[:-1]  # Remove one character at a time till it fits
+
+            last_line += "..."
+
+            lines = lines[:2]  # Keep the first two lines
+            lines.append(last_line)
 
         return lines
     
