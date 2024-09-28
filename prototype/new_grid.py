@@ -47,7 +47,7 @@ class DesktopGrid(QGraphicsView):
         self.resize_timer.timeout.connect(self.update_icon_visibility)
 
         # Example of calling a function for a DesktopIcon
-        self.desktop_icons[3][1].set_color("black")
+        # self.desktop_icons[3][1].set_color("black") function removed but calling remains the same syntax
 
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
@@ -96,12 +96,6 @@ class DesktopGrid(QGraphicsView):
         self.update_icon_visibility()
 
 
-
-    def update_icon_color(self, x, y, color):
-        if 0 <= x < len(self.desktop_icons) and 0 <= y < len(self.desktop_icons[0]):
-            icon_item = self.desktop_icons[x][y]
-            if icon_item:
-                icon_item.set_color(color)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -245,22 +239,8 @@ class DesktopIcon(QGraphicsItem):
         self.hovered = False
         self.padding = 30
         self.font = QFont('Arial', 10)
-        self.color = QColor(200, 200, 255)  
 
 
-
-
-    def set_color(self, color):
-        if isinstance(color, str):
-            # If the color is a hex code without '#', add the '#' symbol
-            if len(color) == 6 and not color.startswith('#'):
-                color = '#' + color
-            self.color = QColor(color)  # QColor will interpret the color name or hex code
-        elif isinstance(color, QColor):
-            self.color = color
-        else:
-            raise ValueError("Color must be a valid color name, hex string, or QColor object.")
-        self.update()
 
     def update_size(self, new_size):
         self.icon_size = new_size
@@ -271,10 +251,12 @@ class DesktopIcon(QGraphicsItem):
         return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
 
     def paint(self, painter: QPainter, option, widget=None):
-        painter.setBrush(self.color)
 
         if not is_default(self.row, self.col):
-            painter.drawRect(0, 0, self.icon_size, self.icon_size)
+            if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
+            else:
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap(self.icon_path))
 
             painter.setFont(self.font)
 
@@ -306,8 +288,8 @@ class DesktopIcon(QGraphicsItem):
             if self.hovered:
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/add.png"))
             else:
-                # Regular paint
-                painter.setBrush(QBrush(QColor(100, 100, 100)))
+                # paint nothing
+                pass
                 
 
     def mousePressEvent(self, event):
@@ -315,7 +297,6 @@ class DesktopIcon(QGraphicsItem):
             self.setSelected(True)
 
     def mouseDoubleClickEvent(self, event):
-        self.set_color("red")
         print(f"icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
 
     def calculate_text_height(self, text):
