@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApp
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
 from util.settings import get_setting
-from util.config import get_item_data, create_paths
+from util.config import get_item_data, create_paths, is_default
 import sys
 import os
 import logging
@@ -268,33 +268,35 @@ class DesktopIcon(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget=None):
         painter.setBrush(self.color)
-        painter.drawRect(0, 0, self.icon_size, self.icon_size)
 
-        painter.setFont(self.font)
+        if not is_default(self.row, self.col):
+            painter.drawRect(0, 0, self.icon_size, self.icon_size)
 
-        lines = self.get_multiline_text(self.font, self.icon_text)
+            painter.setFont(self.font)
 
-        # Define the outline color and main text color
-        outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
-        text_color = QColor(get_setting("label_color", "white"))  # Text label Color setting 
+            lines = self.get_multiline_text(self.font, self.icon_text)
 
-        for i, line in enumerate(lines):
-            text_y = self.icon_size + self.padding / 2 + i * 15
+            # Define the outline color and main text color
+            outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
+            text_color = QColor(get_setting("label_color", "white"))  # Text label Color setting 
 
-            # Create a QPainterPath for the text outline
-            path = QPainterPath()
-            path.addText(0, text_y, self.font, line)
+            for i, line in enumerate(lines):
+                text_y = self.icon_size + self.padding / 2 + i * 15
 
-            # Draw the text outline with a thicker pen
-            painter.setPen(QColor(outline_color))
-            painter.setPen(QColor(outline_color))
-            painter.setBrush(Qt.NoBrush)
-            painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline eventually will have a setting
-            painter.drawPath(path)
+                # Create a QPainterPath for the text outline
+                path = QPainterPath()
+                path.addText(0, text_y, self.font, line)
 
-            # Draw the main text in the middle
-            painter.setPen(text_color)
-            painter.drawText(0, text_y, line)
+                # Draw the text outline with a thicker pen
+                painter.setPen(QColor(outline_color))
+                painter.setPen(QColor(outline_color))
+                painter.setBrush(Qt.NoBrush)
+                painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline eventually will have a setting
+                painter.drawPath(path)
+
+                # Draw the main text in the middle
+                painter.setPen(text_color)
+                painter.drawText(0, text_y, line)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:

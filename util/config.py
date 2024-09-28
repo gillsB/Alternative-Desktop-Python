@@ -84,7 +84,7 @@ def create_data_path():
     if not os.path.exists(app_data_path):
         os.makedirs(app_data_path)
 
-    # Append /config/data.json to the AppData path
+    # Append /data/ to the AppData path
     data_path = os.path.join(app_data_path, 'data')
     if not os.path.exists(data_path):
         logger.info(f"Making directory at {data_path}")
