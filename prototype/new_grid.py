@@ -13,8 +13,14 @@ logger = logging.getLogger(__name__)
 # Global Padding Variables
 TOP_PADDING = 20  # Padding from the top of the window
 SIDE_PADDING = 20  # Padding from the left side of the window
-VERTICAL_PADDING = 40  # Padding between icons
-ICON_SIZE = 128
+VERTICAL_PADDING = 50  # Padding between icons
+HORIZONTAL_PADDING = 10
+
+
+# Desktop Icon variables
+ICON_SIZE = 128  # Overrided by settings
+FONT_SIZE = 10
+FONT = "Arial"
 
 class DesktopGrid(QGraphicsView):
     def __init__(self):
@@ -24,6 +30,9 @@ class DesktopGrid(QGraphicsView):
 
         # Build paths for config and data directories (stored in config.py)
         create_paths()
+
+        global ICON_SIZE
+        ICON_SIZE = get_setting("icon_size", 100)
 
         self.prev_max_visible_columns = 0
         self.prev_max_visible_rows = 0
@@ -63,7 +72,6 @@ class DesktopGrid(QGraphicsView):
 
     def populate_icons(self):
         icon_size = ICON_SIZE
-        self.spacing = 10
         self.cols = 40
         self.rows = 10
 
@@ -84,8 +92,8 @@ class DesktopGrid(QGraphicsView):
                     data['launch_option'],
                     icon_size)
                 # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
-                icon_item.setPos(SIDE_PADDING + col * (icon_size + self.spacing), 
-                    TOP_PADDING + row * (icon_size + self.spacing + VERTICAL_PADDING))
+                icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
+                    TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
                 self.desktop_icons[row][col] = icon_item
                 self.scene.addItem(icon_item)
 
@@ -112,8 +120,8 @@ class DesktopGrid(QGraphicsView):
 
         # Calculate current max visible row and column based on icon size and padding
         # min() ensures max_visible_rows/columns cannot exceed the self.rows/self.cols values.
-        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing), self.rows)
-        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing), self.cols)
+        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING), self.rows)
+        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING), self.cols)
         print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
 
 
@@ -160,8 +168,8 @@ class DesktopGrid(QGraphicsView):
         view_width = self.viewport().width()
         view_height = self.viewport().height()
 
-        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + self.spacing)
-        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING + self.spacing)
+        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING)
+        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING)
         for x in range(self.rows):
             for y in range(self.cols):
                 if x < max_visible_rows and y < max_visible_columns:
@@ -182,13 +190,16 @@ class DesktopGrid(QGraphicsView):
             self.update_icon_size(64)
         event.ignore()  # Ignore the event to prevent scrolling
 
+
+
+
     def update_icon_size(self, size):
         # Update the size of each icon and adjust their position
         for x in range(self.rows):
             for y in range(self.cols):
                 self.desktop_icons[x][y].update_size(size)
-                self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + self.spacing), 
-                                TOP_PADDING + x * (size + self.spacing + VERTICAL_PADDING))
+                self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + HORIZONTAL_PADDING), 
+                                TOP_PADDING + x * (size + VERTICAL_PADDING))
 
         # Update the scene rectangle and visibility after resizing icons
         self.update_icon_visibility()
@@ -212,6 +223,19 @@ class DesktopGrid(QGraphicsView):
                     largest_visible_column = max(largest_visible_column, column)
 
         return largest_visible_row, largest_visible_column
+    
+
+    #### Delete these Temporarily included just to allow changing icons sizes by setting.
+
+    # Change this call from settings_menu.py when fully swapping new_grid and desktop_grid
+    def update_label_size(self,size):
+        self.update_icon_size(size)
+
+    def render_bg(self):
+        ...
+    
+    def set_bg(self, background_video, background_image):
+        ...
 
 
 class DesktopIcon(QGraphicsItem):
@@ -235,7 +259,7 @@ class DesktopIcon(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.hovered = False
         self.padding = 30
-        self.font = QFont('Arial', 10)
+        self.font = QFont(FONT, FONT_SIZE)
 
 
 
@@ -307,12 +331,14 @@ class DesktopIcon(QGraphicsItem):
         lines = []
         current_line = ""
 
+        max_lines = 3
+
         for word in words:
-            if len(lines) >= 4:
+            if len(lines) > max_lines:
                 break
             # Handle long words that exceed the icon size
             while font_metrics.boundingRect(word).width() > self.icon_size:
-                if len(lines) >= 4:
+                if len(lines) > max_lines:
                     break
                 for i in range(1, len(word)):
                     if font_metrics.boundingRect(word[:i]).width() > self.icon_size:
@@ -336,19 +362,21 @@ class DesktopIcon(QGraphicsItem):
         if current_line:
             lines.append(current_line)
 
-        # If we exceed the limit, cut it down to 3 lines + "..."
-        if len(lines) > 3:
-            # Cut it to 3 (total) lines
-            lines = lines[:3]
 
-            last_line = lines[2]
+
+        # If we exceed the limit, cut it down to 3 lines + "..."
+        if len(lines) > max_lines:
+            # Cut it to max_lines (total) lines
+            lines = lines[:max_lines]
+
+            last_line = lines[max_lines -1]
             # Make sure the last line fits with the "..." within the icon size
             while font_metrics.boundingRect(last_line + "...").width() > self.icon_size:
                 last_line = last_line[:-1]  # Remove one character at a time till it fits
 
             last_line += "..."
 
-            lines = lines[:2]  # Keep the first two lines
+            lines = lines[:max_lines -1]  # Keep the lines < max lines
             lines.append(last_line)
 
         return lines
