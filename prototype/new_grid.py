@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
+from PySide6.QtMultimedia import QMediaPlayer
+from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_item_data, create_paths, is_default
 import sys
@@ -15,6 +17,9 @@ TOP_PADDING = 20  # Padding from the top of the window
 SIDE_PADDING = 20  # Padding from the left side of the window
 VERTICAL_PADDING = 50  # Padding between icons
 HORIZONTAL_PADDING = 10
+
+BACKGROUND_VIDEO = ""
+BACKGROUND_IMAGE = ""
 
 
 # Desktop Icon variables
@@ -44,6 +49,15 @@ class DesktopGrid(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+
+        # Video background stuff
+        self.load_video, self.load_image = self.background_setting()
+        self.video_item = QGraphicsVideoItem()
+        self.scene.addItem(self.video_item)
+        self.media_player = QMediaPlayer()
+        self.media_player.setVideoOutput(self.video_item)
+        self.media_player.mediaStatusChanged.connect(self.handle_media_status_changed)
+
         # Initialize 2D array for icon items
         self.desktop_icons = []
 
@@ -61,14 +75,12 @@ class DesktopGrid(QGraphicsView):
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
 
-        # Load specifically "background.png" (will update this later to act like desktop_grid())
-        if os.path.exists("background.png"):
-            background_image = QPixmap("background.png") 
-            self.setBackgroundBrush(QBrush(background_image))
 
+        
 
         # Only run _fresh_ for launch to init all visibilities.
         self.update_fresh_icon_visiblity()
+        self.render_bg()
 
     def populate_icons(self):
         icon_size = ICON_SIZE
@@ -104,6 +116,12 @@ class DesktopGrid(QGraphicsView):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        self.scene.setSceneRect(self.rect())
+        self.video_item.setSize(self.size())
+
+        # This is needed for image background but also seems to reset the video player
+        self.render_bg()
+
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
         self.resize_timer.start() 
@@ -224,6 +242,85 @@ class DesktopGrid(QGraphicsView):
 
         return largest_visible_row, largest_visible_column
     
+    def pause_video(self):
+        QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
+    def play_video(self):
+        QMetaObject.invokeMethod(self.media_player, "play", Qt.QueuedConnection)
+
+    def background_setting(self):
+        bg_setting = get_setting("background_source")
+        exists_video = os.path.exists(BACKGROUND_VIDEO)
+        exists_image = os.path.exists(BACKGROUND_IMAGE)
+        if bg_setting == "first_found":
+            if exists_video:
+                return True, False
+            elif exists_image:
+                return False, True
+            return False, False
+        elif bg_setting == "both":
+            return exists_video, exists_image
+        elif bg_setting == "video_only":
+            return exists_video, False
+        elif bg_setting == "image_only":
+            return False, exists_image
+
+        return False, False
+    
+    def render_bg(self):
+        self.load_bg_from_settings()
+        self.load_video, self.load_image = self.background_setting()
+        logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
+        if self.load_video:
+            self.set_video_source(BACKGROUND_VIDEO)
+            self.scene.setBackgroundBrush(QBrush())
+        else:
+            self.media_player.stop()  # Stop the playback
+            self.media_player.setSource(QUrl())  # Clear the media source
+
+        if self.load_image:
+            background_pixmap = QPixmap(BACKGROUND_IMAGE)
+            self.scene.setBackgroundBrush(QBrush(background_pixmap.scaled(self.size(),
+                                                    Qt.KeepAspectRatioByExpanding, 
+                                                    Qt.SmoothTransformation)))
+        elif not self.load_image:
+            # Access the secondary color from the parent class, with a default fallback
+            secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
+
+            # Set the background color based on the secondary color
+            if secondary_color == '#4c5559':
+                color = QColor(secondary_color)
+            elif secondary_color == '#202020':
+                color = QColor(secondary_color)
+            else:
+                # Light mode: lighten the primary light color
+                bright_color = QColor(self.parent().primary_light_color)
+                lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
+                color = QColor(lighter_color)
+
+            # Set the background color as a solid brush
+            self.scene.setBackgroundBrush(QBrush(color))
+        
+    def load_bg_from_settings(self):
+        global BACKGROUND_VIDEO, BACKGROUND_IMAGE
+        BACKGROUND_VIDEO = get_setting("background_video")
+        BACKGROUND_IMAGE = get_setting("background_image")
+    
+    def set_bg(self, background_video, background_image):
+        global BACKGROUND_VIDEO, BACKGROUND_IMAGE
+        BACKGROUND_VIDEO = background_video
+        BACKGROUND_IMAGE = background_image
+        self.render_bg()
+
+    def set_video_source(self, video_path):
+        self.media_player.setSource(QUrl.fromLocalFile(video_path))
+        self.media_player.setPlaybackRate(1.0)
+        self.media_player.play()
+    
+    def handle_media_status_changed(self, status):
+        if status == QMediaPlayer.EndOfMedia:
+            self.media_player.setPosition(0)
+            self.media_player.play()
+    
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
 
@@ -231,11 +328,7 @@ class DesktopGrid(QGraphicsView):
     def update_label_size(self,size):
         self.update_icon_size(size)
 
-    def render_bg(self):
-        ...
     
-    def set_bg(self, background_video, background_image):
-        ...
 
 
 class DesktopIcon(QGraphicsItem):
