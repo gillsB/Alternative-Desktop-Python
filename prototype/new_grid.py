@@ -1,13 +1,18 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_item_data, create_paths, is_default
+from desktop.desktop_grid_menu import Menu
+from menus.run_menu_dialog import RunMenuDialog
+from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
 import sys
 import os
 import logging
+import shlex
+import subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -343,10 +348,6 @@ class DesktopIcon(QGraphicsItem):
         self.website_link = website_link
         self.launch_option = launch_option
 
-
-        
-
-
         self.icon_text = self.name
         self.icon_size = icon_size
         self.setAcceptHoverEvents(True)
@@ -481,6 +482,148 @@ class DesktopIcon(QGraphicsItem):
     def hoverLeaveEvent(self, event):
         self.hovered = False
         self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.LeftButton and is_default(self.row, self.col):
+            self.parent().media_player.pause()
+            menu = Menu(None, parent=self)
+            main_window_size = self.parent().size()
+            dialog_width = main_window_size.width() / 2
+            dialog_height = main_window_size.height() / 2
+            menu.resize(dialog_width, dialog_height)
+            
+            menu.exec()
+            self.parent().media_player.play()
+        #if icon has an executable_path already (icon exists with path)
+        elif event.button() == Qt.LeftButton:
+            self.run_program()
+    
+    def run_program(self):
+        self.show_warning_count = 0
+        launch_option_methods = {
+            0: self.launch_first_found,
+            1: self.launch_prio_web_link,
+            2: self.launch_ask_upon_launching,
+            3: self.launch_exec_only,
+            4: self.launch_web_link_only,
+        }
+
+        launch_option = self.launch_option
+        method = launch_option_methods.get(launch_option, 0)
+        success = method()
+        
+        if not success and self.show_warning_count == 0:
+            logger.error("No successful launch detected")
+            display_no_successful_launch_error()
+    
+    def launch_first_found(self):
+        logger.info("launch option = 0")
+        return self.run_executable() or self.run_website_link()
+    def launch_prio_web_link(self):
+        logger.info("launch option = 1")
+        return self.run_website_link() or self.run_executable()
+    def launch_ask_upon_launching(self):
+        logger.info("launch option = 2")
+        return self.choose_launch()
+    def launch_exec_only(self):
+        logger.info("launch option = 3")
+        return self.run_executable()
+    def launch_web_link_only(self):
+        logger.info("launch option = 4")
+        return self.run_website_link()
+
+    def run_executable(self):
+        #returns running = true if runs program, false otherwise
+        running = False
+
+        file_path = self.executable_path
+        args = shlex.split(self.command_args)
+        command = [file_path] + args
+
+        
+
+        #only bother trying to run file_path if it is not empty
+        if file_path == "":
+            return running
+        
+        #ensure path is an actual file that exists, display message if not
+        try:
+            if os.path.exists(file_path) == False:
+                raise FileNotFoundError
+        except FileNotFoundError:
+            logger.error(f"While attempting to run the executable the file is not found at {self.executable_path}")
+            self.show_warning_count += 1
+            display_file_not_found_error(self.executable_path)
+            return running
+
+
+        #file path exists and is not ""
+        try:
+            #if it is a .lnk file it is expected that the .lnk contains the command line arguments
+            #upon which running os.startfile(file_path) runs the .lnk the same as just clicking it from a shortcut
+            if file_path.lower().endswith('.lnk'):
+                running = True
+                os.startfile(file_path)
+            else:
+                try:
+
+                    #when shell=True exceptions like FileNotFoundError are no longer raised but put into stderr
+                    process = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                    running = True
+                    stdout, stderr = process.communicate(timeout=0.5)
+                    
+
+                    text = stderr.decode('utf-8')
+                    if "is not recognized as an internal or external command" in text:
+                        running = False
+                        
+                        logger.error(f"Error opening file, Seems like user does not have a default application for this file type and windows is not popping up for them to select a application to open with., path = {self.executable_path}")
+                        self.show_warning_count += 1
+                        display_no_default_type_error(self.executable_path)
+                    
+                #kill the connection between this process and the subprocess we just launched.
+                #this will not kill the subprocess but just set it free from the connection
+                except Exception as e:
+                    logger.info("killing connection to new subprocess")
+                    process.kill()
+
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+        return running
+        
+    def run_website_link(self):
+        logger.info("run_web_link attempted")
+        running = True
+        url = self.website_link
+
+        if(url == ""): 
+            running = False
+            return running
+        #append http:// to website to get it to open as a web link
+        #for example google.com will not open as a link, but www.google.com, http://google.com, www.google.com all will, even http://google will open in the web browser (it just won't put you at google.com)
+        elif not url.startswith(('http://', 'https://')):
+            url = 'http://' + url
+        
+        os.startfile(url)
+        logger.info(f"Run website link running status = {running}")
+        return running
+
+    
+    def choose_launch(self):
+        
+        logger.info("Choose_launch called")
+        self.run_menu_dialog = RunMenuDialog()
+        if self.run_menu_dialog.exec() == QDialog.Accepted:
+            result = self.run_menu_dialog.get_result()
+            if result == 'run_executable':
+                logger.info("Run Executable button was clicked")
+                return self.run_executable()
+
+            elif result == 'open_website_link':
+                logger.info("Open Website Link button was clicked")
+                return self.run_website_link()
+        return True
+
     
 
 
