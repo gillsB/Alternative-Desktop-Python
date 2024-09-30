@@ -127,11 +127,8 @@ class DesktopGrid(QGraphicsView):
         super().resizeEvent(event)
         self.scene.setSceneRect(self.rect())
         self.video_item.setSize(self.size())
-
-        # This is needed for image background but also seems to reset the video player
         self.render_bg()
-
-
+        
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
         self.resize_timer.start() 
 
@@ -276,11 +273,14 @@ class DesktopGrid(QGraphicsView):
         return False, False
     
     def render_bg(self):
+        # Store old version to tell if it has changed after loading new video.
+        old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
         if self.load_video:
-            self.set_video_source(BACKGROUND_VIDEO)
+            if old_bg_video != BACKGROUND_VIDEO:
+                self.set_video_source(BACKGROUND_VIDEO)
             self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
