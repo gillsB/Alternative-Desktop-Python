@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -8,6 +8,7 @@ from util.config import get_item_data, create_paths, is_default
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
+from desktop.desktop_grid_menu import Menu
 import sys
 import os
 import logging
@@ -22,6 +23,8 @@ TOP_PADDING = 20  # Padding from the top of the window
 SIDE_PADDING = 20  # Padding from the left side of the window
 VERTICAL_PADDING = 50  # Padding between icons
 HORIZONTAL_PADDING = 10
+
+MEDIA_PLAYER = None
 
 BACKGROUND_VIDEO = ""
 BACKGROUND_IMAGE = ""
@@ -56,12 +59,13 @@ class DesktopGrid(QGraphicsView):
 
 
         # Video background stuff
+        global MEDIA_PLAYER
         self.load_video, self.load_image = self.background_setting()
         self.video_item = QGraphicsVideoItem()
         self.scene.addItem(self.video_item)
-        self.media_player = QMediaPlayer()
-        self.media_player.setVideoOutput(self.video_item)
-        self.media_player.mediaStatusChanged.connect(self.handle_media_status_changed)
+        MEDIA_PLAYER = QMediaPlayer()
+        MEDIA_PLAYER.setVideoOutput(self.video_item)
+        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
 
         # Initialize 2D array for icon items
         self.desktop_icons = []
@@ -248,9 +252,9 @@ class DesktopGrid(QGraphicsView):
         return largest_visible_row, largest_visible_column
     
     def pause_video(self):
-        QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
+        QMetaObject.invokeMethod(MEDIA_PLAYER, "pause", Qt.QueuedConnection)
     def play_video(self):
-        QMetaObject.invokeMethod(self.media_player, "play", Qt.QueuedConnection)
+        QMetaObject.invokeMethod(MEDIA_PLAYER, "play", Qt.QueuedConnection)
 
     def background_setting(self):
         bg_setting = get_setting("background_source")
@@ -279,8 +283,8 @@ class DesktopGrid(QGraphicsView):
             self.set_video_source(BACKGROUND_VIDEO)
             self.scene.setBackgroundBrush(QBrush())
         else:
-            self.media_player.stop()  # Stop the playback
-            self.media_player.setSource(QUrl())  # Clear the media source
+            MEDIA_PLAYER.stop()  # Stop the playback
+            MEDIA_PLAYER.setSource(QUrl())  # Clear the media source
 
         if self.load_image:
             background_pixmap = QPixmap(BACKGROUND_IMAGE)
@@ -317,14 +321,14 @@ class DesktopGrid(QGraphicsView):
         self.render_bg()
 
     def set_video_source(self, video_path):
-        self.media_player.setSource(QUrl.fromLocalFile(video_path))
-        self.media_player.setPlaybackRate(1.0)
-        self.media_player.play()
+        MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
+        MEDIA_PLAYER.setPlaybackRate(1.0)
+        MEDIA_PLAYER.play()
     
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia:
-            self.media_player.setPosition(0)
-            self.media_player.play()
+            MEDIA_PLAYER.setPosition(0)
+            MEDIA_PLAYER.play()
     
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
@@ -337,8 +341,8 @@ class DesktopGrid(QGraphicsView):
 
 
 class DesktopIcon(QGraphicsItem):
-    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64):
-        super().__init__()
+    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
+        super().__init__(parent)
         self.row = row
         self.col = col
         self.name = name
@@ -347,6 +351,9 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = command_args
         self.website_link = website_link
         self.launch_option = launch_option
+
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
         self.icon_text = self.name
         self.icon_size = icon_size
@@ -485,15 +492,15 @@ class DesktopIcon(QGraphicsItem):
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
-            self.parent().media_player.pause()
-            menu = Menu(None, parent=self)
-            main_window_size = self.parent().size()
-            dialog_width = main_window_size.width() / 2
-            dialog_height = main_window_size.height() / 2
-            menu.resize(dialog_width, dialog_height)
+            MEDIA_PLAYER.pause()
+            #menu = Menu(None, parent=self)
+            main_window_width, main_window_height = self.get_view_size()
+            dialog_width = main_window_width / 2
+            dialog_height = main_window_height / 2
+            #menu.resize(dialog_width, dialog_height)
             
-            menu.exec()
-            self.parent().media_player.play()
+            #menu.exec()
+            MEDIA_PLAYER.play()
         #if icon has an executable_path already (icon exists with path)
         elif event.button() == Qt.LeftButton:
             self.run_program()
@@ -623,6 +630,52 @@ class DesktopIcon(QGraphicsItem):
                 logger.info("Open Website Link button was clicked")
                 return self.run_website_link()
         return True
+    
+    def contextMenuEvent(self, event):
+        global CONTEXT_OPEN
+        CONTEXT_OPEN = True
+        context_menu = QMenu()
+
+        #self.edit_mode_icon()
+
+        # Edit Icon section
+        
+        logger.info(f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, Launch option: {self.launch_option}")
+        
+        edit_action = QAction('Edit Icon', context_menu)
+        edit_action.triggered.connect(self.edit_triggered)
+        context_menu.addAction(edit_action)
+        context_menu.exec(event.screenPos())
+
+    def edit_triggered(self):
+        MEDIA_PLAYER.pause()
+        # Before this I need to set it into edit mode.
+        #menu = Menu(None, self.row, self.col, parent=None)
+        main_window_width, main_window_height = self.get_view_size()
+        dialog_width = main_window_width / 2
+        dialog_height = main_window_height / 2
+        #menu.resize(dialog_width, dialog_height)
+        #menu.exec()
+        # After this it should go back to normal mode.
+        MEDIA_PLAYER.play()
+
+
+    def get_view_size(self):
+        # Get the list of views from the scene
+        views = self.scene().views()
+        
+        if views:
+            # Assume there's only one view and get the first one
+            view = views[0]
+
+            # Get the size of the QGraphicsView
+            view_size = view.size()
+            view_width = view_size.width()
+            view_height = view_size.height()
+
+            return view_width, view_height
+
+        return None  # If there are no views
 
     
 
