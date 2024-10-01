@@ -58,13 +58,9 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        if args.mode == "prototype":
-            from prototype.new_grid import DesktopGrid
-            self.grid_widget = DesktopGrid()
-        else:
-            # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
-            from desktop.desktop_grid import Grid
-            self.grid_widget = Grid()
+        # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
+        from desktop.desktop_grid import DesktopGrid
+        self.grid_widget = DesktopGrid()
 
         layout.addWidget(self.grid_widget)
 

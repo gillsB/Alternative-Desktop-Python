@@ -1,142 +1,257 @@
-import logging
-from PySide6.QtWidgets import (QWidget, QLabel, QGridLayout, QVBoxLayout,  
-                               QGraphicsView, QGraphicsScene, QDialog, QSizePolicy, QMessageBox, QMenu, QToolTip)
-from PySide6.QtGui import QPixmap, QAction, QPainter, QBrush, QColor, QCursor, QMovie, QDrag
-from PySide6.QtCore import Qt, QTimer, QEvent, QUrl, QMimeData, QMetaObject
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
-import os
-import subprocess
-import shlex
+from util.settings import get_setting
+from util.config import get_item_data, create_paths, is_default
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
-from util.settings import get_setting
-from util.config import (get_item_data, create_paths, load_desktop_config, entry_exists, check_for_new_config, get_entry, update_folder,
-                    get_data_directory, set_entry_to_default, is_default, swap_items_by_position, change_launch)
-from menus.display_warning import (display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_drop_error,
-                              display_failed_cleanup_warning, display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error)
-from qt_material import get_theme
-import send2trash
-
-
-
-
+from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
+from desktop.desktop_grid_menu import Menu
+import sys
+import os
+import logging
+import shlex
+import subprocess
 
 logger = logging.getLogger(__name__)
-MAX_LABELS = None
-MAX_ROWS = None 
-MAX_COLS = None
-LABEL_SIZE = 64
-LABEL_VERT_PAD = 64
-DEFAULT_BORDER = "border 0px"
-CONTEXT_OPEN = False
-DRAG_ROW = None
-DRAG_COL = None
-AUTOGEN_ICON_SIZE = 256
+
+
+# Global Padding Variables
+TOP_PADDING = 20  # Padding from the top of the window
+SIDE_PADDING = 20  # Padding from the left side of the window
+VERTICAL_PADDING = 50  # Padding between icons
+HORIZONTAL_PADDING = 10
+
+MEDIA_PLAYER = None
+
 BACKGROUND_VIDEO = ""
 BACKGROUND_IMAGE = ""
-TEXT_LABEL_COLOR = "white"
 
 
+# Desktop Icon variables
+ICON_SIZE = 128  # Overrided by settings
+FONT_SIZE = 10
+FONT = "Arial"
 
-
-
-class Grid(QWidget):
+class DesktopGrid(QGraphicsView):
     def __init__(self):
         super().__init__()
-        logger.info("Created Grid Object")
-
-        global MAX_COLS, MAX_LABELS, MAX_ROWS
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(1.0)
+        self.setWindowTitle('Desktop Grid Prototype')
+        self.setMinimumSize(400, 400)
 
         # Build paths for config and data directories (stored in config.py)
         create_paths()
 
-        global LABEL_SIZE, LABEL_VERT_PAD
-        LABEL_SIZE = get_setting("icon_size", 100)
+        global ICON_SIZE
+        ICON_SIZE = get_setting("icon_size", 100)
 
-        #main layout
-        self.main_layout = QGridLayout(self)
-        self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.setSpacing(0)
+        self.prev_max_visible_columns = 0
+        self.prev_max_visible_rows = 0
 
-        self.load_video, self.load_image = self.background_setting()
-
-        #QGraphicsView and QGraphicsScene
-        self.view = QGraphicsView(self)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.view.setStyleSheet("background: transparent;")
         self.scene = QGraphicsScene(self)
-        self.view.setScene(self.scene)
+        self.setScene(self.scene)
 
+        # Disable scroll bars
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+
+        # Video background stuff
+        global MEDIA_PLAYER
+        self.load_video, self.load_image = self.background_setting()
         self.video_item = QGraphicsVideoItem()
         self.scene.addItem(self.video_item)
-        self.media_player = QMediaPlayer()
-        self.media_player.setVideoOutput(self.video_item)
-        self.media_player.mediaStatusChanged.connect(self.handle_media_status_changed)
+        MEDIA_PLAYER = QMediaPlayer()
+        MEDIA_PLAYER.setVideoOutput(self.video_item)
+        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
 
-        self.main_layout.addWidget(self.view, 0, 0)
+        # Initialize 2D array for icon items
+        self.desktop_icons = []
 
-        # grid_layout
-        self.grid_layout = QGridLayout()
-        self.grid_layout.setSpacing(0)
-        self.main_layout.addLayout(self.grid_layout, 0, 0)
+        self.populate_icons()
 
-        self.labels = []
+        # Initialize a timer for debouncing update_icon_visibility
+        self.resize_timer = QTimer()
+        self.resize_timer.setInterval(200)  # Adjust the interval to your preference (in ms)
+        self.resize_timer.setSingleShot(True)
+        self.resize_timer.timeout.connect(self.update_icon_visibility)
 
-        # Set MAX_LABELS to the maximum amount of items you would need based on rows/cols
-        MAX_ROWS = get_setting("max_rows", 20)
-        MAX_COLS = get_setting("max_cols", 40)
-        MAX_LABELS = MAX_ROWS * MAX_COLS
+        # Example of calling a function for a DesktopIcon
+        # self.desktop_icons[3][1].set_color("black") function removed but calling remains the same syntax
+
+        # Set the scene rectangle to be aligned with the top-left corner with padding
+        self.scene.setSceneRect(0, 0, self.width(), self.height())
 
 
-        check_for_new_config()
-        self.add_labels()
+        
 
+        # Only run _fresh_ for launch to init all visibilities.
+        self.update_fresh_icon_visiblity()
         self.render_bg()
-        self.setAcceptDrops(True)
 
-    def add_labels(self):
-        # Remove existing labels before adding new ones
-        self.remove_labels()
-        logger.info("Adding labels to grid object")
-        # Use MAX_COLS to differentiate when to add a new row.
-        global MAX_LABELS, MAX_COLS, MAX_ROWS
+    def populate_icons(self):
+        icon_size = ICON_SIZE
+        self.cols = 40
+        self.rows = 10
 
-        for i in range(MAX_LABELS):
-            row = i // MAX_COLS
-            col = i % MAX_COLS
-            data = get_item_data(row, col)
-            if data['icon_path'] == "":
-                data['icon_path'] = "assets/images/blank.png"
-            desktop_icon = DesktopIcon(
-                row, 
-                col, 
-                data['name'], 
-                data['icon_path'], 
-                data['executable_path'], 
-                data['command_args'], 
-                data['website_link'], 
-                data['launch_option']
-            )
-            label = ClickableLabel(desktop_icon, data['name'])
-            self.labels.append(label)
-            self.grid_layout.addWidget(label, row, col)
-        logger.info("Finished adding labels to grid object")
+        # Create a 2D array for icon items
+        self.desktop_icons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
 
-    def remove_labels(self):
-        logger.info("Removing labels from grid object")
-        # Remove all widgets from the grid layout
-        while self.grid_layout.count():
-            widget_item = self.grid_layout.takeAt(0)
-            widget = widget_item.widget()
-            if widget is not None:
-                widget.deleteLater()
+        for row in range(self.rows):
+            for col in range(self.cols):
+                data = get_item_data(row, col)
+                icon_item = DesktopIcon(
+                    row, 
+                    col, 
+                    data['name'], 
+                    data['icon_path'], 
+                    data['executable_path'], 
+                    data['command_args'], 
+                    data['website_link'], 
+                    data['launch_option'],
+                    icon_size)
+                # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
+                icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
+                    TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
+                self.desktop_icons[row][col] = icon_item
+                self.scene.addItem(icon_item)
 
-        # Clear the list of labels
-        self.labels.clear()
+        # Initially update visibility based on the current window size
+        self.update_icon_visibility()
+
+
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.scene.setSceneRect(self.rect())
+        self.video_item.setSize(self.size())
+        self.render_bg()
+
+        # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
+        self.resize_timer.start() 
+
+        # Prioritizes drawing over resizing. i.e. always draw and always resize at the same time, thus resize can lag a bit more behind but desktop will always look to be the same.
+        #self.scene.setSceneRect(0, 0, self.width(), self.height())
+        #self.update_icon_visibility()
+
+    def update_icon_visibility(self):
+        self.scene.setSceneRect(0, 0, self.width(), self.height())
+        # Get the size of the visible area of the window
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
+
+        # Calculate current max visible row and column based on icon size and padding
+        # min() ensures max_visible_rows/columns cannot exceed the self.rows/self.cols values.
+        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING), self.rows)
+        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING), self.cols)
+        print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
+
+
+        # If nothing has changed, no need to proceed
+        if max_visible_columns == self.prev_max_visible_columns and max_visible_rows == self.prev_max_visible_rows:
+            return
+        
+        # Add rows as visible
+        if max_visible_rows > self.prev_max_visible_rows:
+            for x in range(self.prev_max_visible_rows, max_visible_rows):
+                for y in range(min(max_visible_columns, self.cols)):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(True)
+
+        # Add columns as visible
+        if max_visible_columns > self.prev_max_visible_columns:
+            for y in range(self.prev_max_visible_columns, max_visible_columns):
+                for x in range(min(max_visible_rows, self.rows)):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(True)
+
+        # Remove Rows as visible
+        if max_visible_rows < self.prev_max_visible_rows:
+            for y in range(self.prev_max_visible_columns +1):
+                for x in range(max(max_visible_rows, 0), self.prev_max_visible_rows +1):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(False)
+        
+        # Remove Columns as visbile
+        if max_visible_columns < self.prev_max_visible_columns:
+            for x in range(self.prev_max_visible_rows +1):
+                for y in range(max(max_visible_columns, 0), self.prev_max_visible_columns +1):
+                    if x < self.rows and y < self.cols:  
+                        self.desktop_icons[x][y].setVisible(False)
+        
+        
+
+        self.prev_max_visible_columns = max_visible_columns
+        self.prev_max_visible_rows = max_visible_rows
+
+    # Iterates through every self.desktop_icons and sets visiblity (more costly than self.update_icon_visibility)
+    # Generally only use this on launching the program to set the defaults and then update them from there normally.
+    def update_fresh_icon_visiblity(self):
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
+
+        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING)
+        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING)
+        for x in range(self.rows):
+            for y in range(self.cols):
+                if x < max_visible_rows and y < max_visible_columns:
+                    self.desktop_icons[x][y].setVisible(True)
+                else:
+                    self.desktop_icons[x][y].setVisible(False)
+
+    # Override to do nothing to avoid scrolling
+    def wheelEvent(self, event):
+
+        #temporary override to test resizing icons.
+        global ICON_SIZE
+        if ICON_SIZE == 64:
+            ICON_SIZE = 128
+            self.update_icon_size(128)
+        else:
+            ICON_SIZE = 64
+            self.update_icon_size(64)
+        event.ignore()  # Ignore the event to prevent scrolling
+
+
+
+
+    def update_icon_size(self, size):
+        # Update the size of each icon and adjust their position
+        for x in range(self.rows):
+            for y in range(self.cols):
+                self.desktop_icons[x][y].update_size(size)
+                self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + HORIZONTAL_PADDING), 
+                                TOP_PADDING + x * (size + VERTICAL_PADDING))
+
+        # Update the scene rectangle and visibility after resizing icons
+        self.update_icon_visibility()
+
+
+    # Debug function to find furthest visible row, col (not point but furthest row with a visible object and furthest column with a visible object)
+    def find_largest_visible_index(self):
+        largest_visible_row = -1
+        largest_visible_column = -1
+
+        # Find the largest visible row
+        for row in range(self.rows):
+            for column in range(self.cols):
+                if self.desktop_icons[row][column].isVisible():
+                    largest_visible_row = max(largest_visible_row, row)
+
+        # Find the largest visible column
+        for column in range(self.cols):
+            for row in range(self.rows):
+                if self.desktop_icons[row][column].isVisible():
+                    largest_visible_column = max(largest_visible_column, column)
+
+        return largest_visible_row, largest_visible_column
+    
+    def pause_video(self):
+        QMetaObject.invokeMethod(MEDIA_PLAYER, "pause", Qt.QueuedConnection)
+    def play_video(self):
+        QMetaObject.invokeMethod(MEDIA_PLAYER, "play", Qt.QueuedConnection)
 
     def background_setting(self):
         bg_setting = get_setting("background_source")
@@ -158,13 +273,40 @@ class Grid(QWidget):
         return False, False
     
     def render_bg(self):
+        # Store old version to tell if it has changed after loading new video.
+        old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
         if self.load_video:
-            self.set_video_source(BACKGROUND_VIDEO)
+            if old_bg_video != BACKGROUND_VIDEO:
+                self.set_video_source(BACKGROUND_VIDEO)
+            self.scene.setBackgroundBrush(QBrush())
         else:
-            self.media_player.stop()  # Stop the playback
-            self.media_player.setSource(QUrl())  # Clear the media source
+            MEDIA_PLAYER.stop()  # Stop the playback
+            MEDIA_PLAYER.setSource(QUrl())  # Clear the media source
+
+        if self.load_image:
+            background_pixmap = QPixmap(BACKGROUND_IMAGE)
+            self.scene.setBackgroundBrush(QBrush(background_pixmap.scaled(self.size(),
+                                                    Qt.KeepAspectRatioByExpanding, 
+                                                    Qt.SmoothTransformation)))
+        elif not self.load_image:
+            # Access the secondary color from the parent class, with a default fallback
+            secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
+
+            # Set the background color based on the secondary color
+            if secondary_color == '#4c5559':
+                color = QColor(secondary_color)
+            elif secondary_color == '#202020':
+                color = QColor(secondary_color)
+            else:
+                # Light mode: lighten the primary light color
+                bright_color = QColor(self.parent().primary_light_color)
+                lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
+                color = QColor(lighter_color)
+
+            # Set the background color as a solid brush
+            self.scene.setBackgroundBrush(QBrush(color))
         
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
@@ -177,583 +319,191 @@ class Grid(QWidget):
         BACKGROUND_IMAGE = background_image
         self.render_bg()
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasText():
-            event.acceptProposedAction()
-
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasText():
-            event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        position = self.mapFromParent(event.position().toPoint())
-        new_widget = event.source()
-
-        logger.info(f"Drop position: {position}")
-        logger.info(f"Widget size: {self.size()}")
-
-        new_row, new_col = self.findCellAtPosition(position)
-        if new_row == None or new_col == None:
-            logger.error(f"Problem dropping at {position}, new_row == None, or new_col == None")
-            display_drop_error(position)
-            return
-        logger.info(f"Dropped at cell: ({new_row}, {new_col})")
-
-        # returns if item dropped is same as item dropped on. (no changes)
-        if new_row == DRAG_ROW and new_col == DRAG_COL:
-            return
-
-        if isinstance(new_widget, ClickableLabel) and new_row is not None and new_col is not None:
-            existing_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
-            if existing_widget:
-                swap_items_by_position(DRAG_ROW, DRAG_COL, new_row, new_col)
-                self.swap_folders(new_widget, existing_widget)
-                new_widget.render_icon()
-                existing_widget.render_icon()
-                event.acceptProposedAction()
-        elif event.mimeData().hasUrls():
-            urls = event.mimeData().urls()
-            if new_row is not None and new_col is not None:
-                label_widget = self.grid_layout.itemAtPosition(new_row, new_col).widget()
-                if label_widget:
-                    label_widget.drop_file_to_edit(urls)
-
-        self.updateGeometries()
-
-    def swap_folders(self, new_widget, existing_widget):
-        new_dir = new_widget.get_data_icon_dir()
-        exist_dir = existing_widget.get_data_icon_dir()
-        if os.path.exists(new_dir) and os.path.exists(exist_dir):
-            # Swap folder names using temporary folder
-            temp_folder = new_dir + '_temp'
-            temp_folder = self.get_unique_folder_name(temp_folder)
-            logger.info(f"making new folder name = {temp_folder}")
-            os.rename(new_dir, temp_folder)
-            os.rename(exist_dir, new_dir)
-            os.rename(temp_folder, exist_dir)
-        else:
-            logger.warning("One or both folders do not exist")
-        update_folder(existing_widget.desktop_icon.row, existing_widget.desktop_icon.col)
-        update_folder(new_widget.desktop_icon.row, new_widget.desktop_icon.col)
-
-    def get_unique_folder_name(self, folder_path):
-        counter = 1
-        new_folder = folder_path
-        while os.path.exists(new_folder):
-            logger.Error(f"Temp file seems to already exist {new_folder}, which seems to not have been removed/renamed after last cleanup.")
-            display_failed_cleanup_warning(new_folder)
-            new_folder = f"{folder_path}{counter}"
-            counter += 1
-        return new_folder
-                
-        
-
-    #get row, col at position
-    def findCellAtPosition(self, pos):
-        visible_labels = [label for label in self.labels if not label.isHidden()]
-        if not visible_labels:
-            return None, None
-
-        widget_rect = self.rect()
-        visible_rows = max(label.desktop_icon.row for label in visible_labels) + 1
-        visible_cols = max(label.desktop_icon.col for label in visible_labels) + 1
-
-        cell_width = widget_rect.width() / visible_cols
-        cell_height = widget_rect.height() / visible_rows
-
-        row = int(pos.y() / cell_height)
-        col = int(pos.x() / cell_width)
-
-        for label in visible_labels:
-            if label.desktop_icon.row == row and label.desktop_icon.col == col:
-                return row, col
-
-        return None, None
-    
-    def paintEvent(self, event):
-        painter = QPainter(self)
-
-        try:
-            if self.load_image:
-                # Load the background image and draw it
-                self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
-                painter.drawPixmap(self.rect(), self.background_pixmap)
-            else:
-                # Access colors from the parent class
-                secondary_color = getattr(self.parent(), 'secondary_color', '#202020')  # Default if None
-
-                # Set background based on secondary_color (dark mode)
-                if secondary_color == '#4c5559':
-                    color = QColor(secondary_color)
-                # No 'secondary_color' in parent class (None Theme)
-                elif secondary_color == '#202020':
-                    color = QColor(secondary_color)
-                else:
-                    # Light mode: set background to a lighter shade of primary color
-                    # Primary light color is still eye-burningly vivid so lets lighten it up a bit
-                    bright_color = QColor(self.parent().primary_light_color)
-                    lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
-                    color = QColor(lighter_color)
-
-                # Paint the background with the selected color
-                painter.fillRect(self.rect(), color)
-
-        finally:
-            # Painter should always be closed after running
-            painter.end()
-    
-        
     def set_video_source(self, video_path):
-        self.media_player.setSource(QUrl.fromLocalFile(video_path))
-        self.media_player.play()
+        MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
+        MEDIA_PLAYER.setPlaybackRate(1.0)
+        MEDIA_PLAYER.play()
     
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia:
-            self.media_player.setPosition(0)
-            self.media_player.play()
+            MEDIA_PLAYER.setPosition(0)
+            MEDIA_PLAYER.play()
+
     
-    def resizeEvent(self,event):
-        super().resizeEvent(event)
-        self.view.setGeometry(self.rect())
-        self.scene.setSceneRect(self.rect())
-        self.video_item.setSize(self.size())
-        self.draw_labels()
 
-    def draw_labels(self):
-        window_width = self.frameGeometry().width()
-        window_height = self.frameGeometry().height()
+    #### Delete these Temporarily included just to allow changing icons sizes by setting.
 
-        self.num_columns = max(1, window_width // LABEL_SIZE)
-        self.num_rows = max(1, window_height // (LABEL_SIZE + LABEL_VERT_PAD)) 
+    # Change this call from settings_menu.py when fully swapping new_grid and desktop_grid
+    def update_label_size(self,size):
+        self.update_icon_size(size)
 
-        logger.info(f"window dimensions : {window_width}x{window_height}")
-        logger.info(f"window max rows that fit in window : {self.num_rows}")
-        logger.info(f"window max cols that fit in window : {self.num_columns}")
-
-
-        for label in self.labels:
-            row = label.desktop_icon.row
-            col = label.desktop_icon.col
-
-            if col < self.num_columns and row < self.num_rows:
-                label.show()
-                label.set_size()
-                label.render_icon()
-            else:
-                label.hide()
-
-    def update_label_size(self, label_size):
-
-        global LABEL_SIZE, LABEL_VERT_PAD
-        LABEL_SIZE = label_size
-        logger.info(f"Label size = {label_size}")
-        self.draw_labels()
     
-    def showEvent(self, event):
-        super().showEvent(event)
-        self.updateGeometries()
 
-    def updateGeometries(self):
-        self.grid_layout.update()
-        self.updateGeometry()
-        self.draw_labels()
 
-    def pause_video(self):
-        QMetaObject.invokeMethod(self.media_player, "pause", Qt.QueuedConnection)
-    def play_video(self):
-        QMetaObject.invokeMethod(self.media_player, "play", Qt.QueuedConnection)
-
-    def change_max_rows(self, i):
-        global MAX_ROWS, MAX_COLS, MAX_LABELS
-        MAX_ROWS = i
-        MAX_LABELS = MAX_ROWS * MAX_COLS
-        logger.info(f"Changed MAX_ROWS to {MAX_ROWS} new MAX_LABELS = {MAX_LABELS}")
-        self.add_labels()
-        self.draw_labels()
-    def change_max_cols(self, i):
-        global MAX_ROWS, MAX_COLS, MAX_LABELS
-        MAX_COLS = i
-        MAX_LABELS = MAX_ROWS * MAX_COLS
-        logger.info(f"Changed MAX_COLS to {MAX_COLS} new MAX_LABELS = {MAX_LABELS}")
-        self.add_labels()
-        self.draw_labels()
-    def change_label_color(self, new_color):
-        global TEXT_LABEL_COLOR
-        TEXT_LABEL_COLOR = new_color
-
-class ClickableLabel(QLabel):
-    def __init__(self, desktop_icon, text, parent=None):
+class DesktopIcon(QGraphicsItem):
+    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
         super().__init__(parent)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.showContextMenu)
-        
-        #timer for right click on an icon (to not trigger launch programs on next left click)
-        self.timer_right_click = QTimer()
-        #timer for delaying a QToolTip on hovering over a desktop icon's name label
-        self.timer_hover = QTimer()
-        self.timer_hover.setSingleShot(True)
-        self.timer_hover.timeout.connect(self.show_tooltip)
-        
-        self.desktop_icon = desktop_icon
+        self.row = row
+        self.col = col
+        self.name = name
+        self.icon_path = icon_path
+        self.executable_path = executable_path
+        self.command_args = command_args
+        self.website_link = website_link
+        self.launch_option = launch_option
 
-        self.setAlignment(Qt.AlignCenter)
-        
-        
-        self.icon_label = QLabel(self)
-        self.icon_label.setStyleSheet(DEFAULT_BORDER)
-        self.set_size()
-        self.icon_label.setAlignment(Qt.AlignCenter)
-        self.icon_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
-        self.set_icon(self.desktop_icon.icon_path)
-        
-        self.text_label = QLabel(text)
-        self.text_label.setAlignment(Qt.AlignCenter)
-        self.text_label.setWordWrap(True)
-        self.text_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.icon_text = self.name
+        self.icon_size = icon_size
+        self.setAcceptHoverEvents(True)
+        self.hovered = False
+        self.padding = 30
+        self.font = QFont(FONT, FONT_SIZE)
 
-        label_style = f"QLabel {{ color : {get_setting('label_color', 'white')}; }}"
-        
-        self.text_label.setStyleSheet(label_style)
 
-        # give it an EventFilter to detect mouseover
-        self.text_label.installEventFilter(self)
-        
 
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.icon_label)
-        layout.setContentsMargins(1, 1, 1, 1)
-        layout.addWidget(self.text_label)
-        self.setLayout(layout)
-        self.render_icon()
-        self.movie = None
+    def update_size(self, new_size):
+        self.icon_size = new_size
+        self.prepareGeometryChange()
 
-    def set_size(self):
-        self.setFixedSize(LABEL_SIZE, LABEL_SIZE*1.5)
-        self.icon_label.setFixedSize(LABEL_SIZE -2, LABEL_SIZE -2)
-        if self.parent():
-            self.parent().updateGeometry()
+    def boundingRect(self) -> QRectF:
+        text_height = self.calculate_text_height(self.icon_text)
+        return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
 
-    def set_icon(self, icon_path):
-        if isinstance(self.movie, QMovie):
-            self.movie.stop()
-            self.movie.deleteLater()
-            self.movie = None
+    def paint(self, painter: QPainter, option, widget=None):
 
-        if not os.path.isfile(icon_path):
-            if entry_exists(self.desktop_icon.row, self.desktop_icon.col) and is_default(self.desktop_icon.row, self.desktop_icon.col) == False:
-                icon_path = "assets/images/unknown.png"
-            
-
-        if icon_path.lower().endswith('.gif'):
-            self.movie = QMovie(icon_path)
-            self.movie.setScaledSize(self.icon_label.size())
-            self.icon_label.setMovie(self.movie)
-            self.movie.start()
-        else:
-            pixmap = QPixmap(icon_path)
-            if not pixmap.isNull():
-                pixmap = pixmap.scaled(LABEL_SIZE - 2, LABEL_SIZE - 2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                self.icon_label.setPixmap(pixmap)
+        if not is_default(self.row, self.col):
+            if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
             else:
-                # Pixmap invalid set icon to blank
-                self.icon_label.setPixmap(QPixmap("assets/images/blank.png").scaled(LABEL_SIZE - 2, LABEL_SIZE - 2, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap(self.icon_path))
+
+            painter.setFont(self.font)
+
+            lines = self.get_multiline_text(self.font, self.icon_text)
+
+            # Define the outline color and main text color
+            outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
+            text_color = QColor(get_setting("label_color", "white"))  # Text label Color setting 
+
+            for i, line in enumerate(lines):
+                text_y = self.icon_size + self.padding / 2 + i * 15
+
+                # Create a QPainterPath for the text outline
+                path = QPainterPath()
+                path.addText(0, text_y, self.font, line)
+
+                # Draw the text outline with a thicker pen
+                painter.setPen(QColor(outline_color))
+                painter.setPen(QColor(outline_color))
+                painter.setBrush(Qt.NoBrush)
+                painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline eventually will have a setting
+                painter.drawPath(path)
+
+                # Draw the main text in the middle
+                painter.setPen(text_color)
+                painter.drawText(0, text_y, line)
+        # DesktopIcon is default (no fields set)
+        else:
+            if self.hovered:
+                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/add.png"))
+            else:
+                # paint nothing
+                pass
+                
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.setSelected(True)
 
     def mouseDoubleClickEvent(self, event):
-        if event.button() == Qt.LeftButton and self.desktop_icon.icon_path == "assets/images/add.png":
-            self.parent().media_player.pause()
-            menu = Menu(None, parent=self)
-            main_window_size = self.parent().size()
-            dialog_width = main_window_size.width() / 2
-            dialog_height = main_window_size.height() / 2
-            menu.resize(dialog_width, dialog_height)
+        print(f"icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
+
+    def calculate_text_height(self, text):
+        font_metrics = QFontMetrics(self.font)
+        lines = self.get_multiline_text(font_metrics, text)
+        return len(lines) * 15
+
+    def get_multiline_text(self, font, text):
+        font_metrics = QFontMetrics(font)
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        max_lines = 3
+
+        for word in words:
+            if len(lines) > max_lines:
+                break
+            # Handle long words that exceed the icon size
+            while font_metrics.boundingRect(word).width() > self.icon_size:
+                if len(lines) > max_lines:
+                    break
+                for i in range(1, len(word)):
+                    if font_metrics.boundingRect(word[:i]).width() > self.icon_size:
+                        # Add the max length that fits to the current line
+                        lines.append(word[:i-1])
+                        # Continue processing the remaining part of the word
+                        word = word[i-1:]
+                        break
+                else:
+                    # This else is part of the for-else construct; it means the word fits entirely
+                    break
+
+            # Word fits within line
+            new_line = current_line + " " + word if current_line else word
+            if font_metrics.boundingRect(new_line).width() <= self.icon_size:
+                current_line = new_line
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+
+
+        # If we exceed the limit, cut it down to 3 lines + "..."
+        if len(lines) > max_lines:
+            # Cut it to max_lines (total) lines
+            lines = lines[:max_lines]
+
+            last_line = lines[max_lines -1]
+            # Make sure the last line fits with the "..." within the icon size
+            while font_metrics.boundingRect(last_line + "...").width() > self.icon_size:
+                last_line = last_line[:-1]  # Remove one character at a time till it fits
+
+            last_line += "..."
+
+            lines = lines[:max_lines -1]  # Keep the lines < max lines
+            lines.append(last_line)
+
+        return lines
+    
+    def hoverEnterEvent(self, event):
+        self.hovered = True
+        self.update()
+
+    def hoverLeaveEvent(self, event):
+        self.hovered = False
+        self.update()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.LeftButton and is_default(self.row, self.col):
+            MEDIA_PLAYER.pause()
+            #menu = Menu(None, parent=self)
+            main_window_width, main_window_height = self.get_view_size()
+            dialog_width = main_window_width / 2
+            dialog_height = main_window_height / 2
+            #menu.resize(dialog_width, dialog_height)
             
-            menu.exec()
-            self.parent().media_player.play()
+            #menu.exec()
+            MEDIA_PLAYER.play()
         #if icon has an executable_path already (icon exists with path)
         elif event.button() == Qt.LeftButton:
             self.run_program()
-            
-    def mousePressEvent(self, event):
-        global CONTEXT_OPEN,DRAG_ROW,DRAG_COL
-        if event.button() == Qt.LeftButton:
-            CONTEXT_OPEN = False
-            DRAG_ROW = self.desktop_icon.row
-            DRAG_COL = self.desktop_icon.col
-            self.drag_start_position = event.position().toPoint()
-
-    def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton:
-            #only drag if icon is not default
-            if not (is_default(self.desktop_icon.row, self.desktop_icon.col)):
-                drag = QDrag(self)
-                mime_data = QMimeData()
-                mime_data.setText(self.text_label.text())
-                drag.setMimeData(mime_data)
-                drag.setHotSpot(event.position().toPoint() - self.rect().topLeft())
-
-                drop_action = drag.exec(Qt.MoveAction)
-
-    def showContextMenu(self, pos):
-            global CONTEXT_OPEN
-            CONTEXT_OPEN = True
-            context_menu = QMenu(self)
-
-            self.edit_mode_icon()
-
-            # Edit Icon section
-            
-            logger.info(f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}, Name: {self.desktop_icon.name}, Icon_path: {self.desktop_icon.icon_path}, Exec Path: {self.desktop_icon.executable_path}, Command args: {self.desktop_icon.command_args}, Website Link: {self.desktop_icon.website_link}, Launch option: {self.desktop_icon.launch_option}")
-            
-            edit_action = QAction('Edit Icon', self)
-            edit_action.triggered.connect(self.edit_triggered)
-            context_menu.addAction(edit_action)
-
-            context_menu.addSeparator()
-
-            #Launch Options submenu section
-            launch_options_sm = QMenu("Launch Options", self)
-        
-            action_names = [
-                "Launch first found",
-                "Prioritize Website links",
-                "Ask upon launching",
-                "Executable only",
-                "Website Link only"
-            ]
-        
-            for i, name in enumerate(action_names, start=0):
-                action = QAction(name, self)
-                action.triggered.connect(lambda checked, pos=i: self.update_launch(pos, self.desktop_icon.row, self.desktop_icon.col))
-                action.setCheckable(True)
-                action.setChecked(i ==  self.desktop_icon.launch_option)
-                launch_options_sm.addAction(action)
-
-            context_menu.addMenu(launch_options_sm)
-
-            context_menu.addSeparator()
-
-            # Launch executable or website section
-            executable_action = QAction('Run Executable', self)
-            executable_action.triggered.connect(self.run_executable)
-            context_menu.addAction(executable_action)
-            
-            website_link_action = QAction('Open Website in browser', self)
-            website_link_action.triggered.connect(self.run_website_link)
-            context_menu.addAction(website_link_action)
-
-            context_menu.addSeparator()
-
-            #Open Icon and Executable section
-            icon_path_action = QAction('Open Icon location', self)
-            icon_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.icon_path))
-            context_menu.addAction(icon_path_action)
-
-            exec_path_action = QAction('Open Executable location', self)
-            exec_path_action.triggered.connect(lambda: self.path_triggered(self.desktop_icon.executable_path))
-            context_menu.addAction(exec_path_action)
-
-
-            
-            context_menu.addSeparator()
-
-            delte_action = QAction('Delete Icon', self)
-            delte_action.triggered.connect(self.delete_triggered)
-            context_menu.addAction(delte_action)
-            
-            context_menu.aboutToHide.connect(self.context_menu_closed)
-            context_menu.exec(self.mapToGlobal(pos))
-
-    
-    def context_menu_closed(self):
-        logger.debug("Context menu closed")
-        self.normal_mode_icon()
-        self.timer_right_click.timeout.connect(self.context_close)
-        self.timer_right_click.start(100) 
-
-
-    def context_close(self):
-        global CONTEXT_OPEN
-        CONTEXT_OPEN = False
-        self.timer_right_click.stop()
-        self.timer_right_click.timeout.disconnect(self.context_close)
-
-    def update_launch(self, launch_val, row, col):
-        change_launch(launch_val, row, col)
-        self.render_icon()
-
-    def edit_triggered(self):
-        self.parent().media_player.pause()
-        menu = Menu(None, parent=self)
-        main_window_size = self.parent().size()
-        dialog_width = main_window_size.width() / 2
-        dialog_height = main_window_size.height() / 2
-        menu.resize(dialog_width, dialog_height)
-        menu.exec()
-        self.parent().media_player.play()
-    def drop_file_to_edit(self, urls):
-        self.parent().media_player.pause()
-        menu = Menu(urls, parent=self)
-        main_window_size = self.parent().size()
-        dialog_width = main_window_size.width() / 2
-        dialog_height = main_window_size.height() / 2
-        menu.resize(dialog_width, dialog_height)
-        menu.exec()
-        self.parent().media_player.play()
-    def path_triggered(self, path):
-        normalized_path = os.path.normpath(path)
-        
-        # Check if the file exists
-        if os.path.exists(normalized_path):
-            # Open the folder and highlight the file in Explorer
-            subprocess.run(['explorer', '/select,', normalized_path])
-        else:
-            # Get the parent directory
-            parent_directory = os.path.dirname(normalized_path)
-            
-            # Check if the parent directory exists
-            if os.path.exists(parent_directory):
-                # Open the parent directory in Explorer
-                subprocess.run(['explorer', parent_directory])
-            else:
-                # Show error if neither the file nor the parent directory exists
-                logger.warning(f"Tried to open file directory but path: {normalized_path} does not exist nor its parent: {parent_directory} exist")
-                display_path_and_parent_not_exist_warning(normalized_path)
-    
-    def delete_triggered(self):
-        logger.info(f"User attempted to delete {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
-        # Show delete confirmation warning, if Ok -> delete icon. if Cancel -> do nothing.
-        if display_delete_icon_warning(self.desktop_icon.name, self.desktop_icon.row, self.desktop_icon.col) == QMessageBox.Yes:   
-            logger.info(f"User confirmed deletion for {self.desktop_icon.name}, at {self.desktop_icon.row}, {self.desktop_icon.col}")
-            set_entry_to_default(self.desktop_icon.row, self.desktop_icon.col)
-            self.delete_folder_items()
-            self.render_icon()
-    
-    def delete_folder_items(self):
-        # Check if the directory exists
-        data_directory = get_data_directory()
-        folder_path = os.path.join(data_directory, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
-        if os.path.exists(folder_path) and os.path.isdir(folder_path):
-            # Loop through all the items in the directory
-            for item in os.listdir(folder_path):
-                item_path = os.path.join(folder_path, item)
-                logger.info(f"Deleting ITEM = {item_path}")
-                send2trash.send2trash(item_path)
-        else:
-            logger.warning(f"{folder_path} does not exist or is not a directory.")
-
-    
-
-    #mouseover icon
-    def enterEvent(self, event):
-        if self.desktop_icon.icon_path == "assets/images/blank.png" or self.desktop_icon.icon_path == "" and is_default(self.desktop_icon.row, self.desktop_icon.col):
-            self.set_icon_path("assets/images/add.png")
-
-    #mouseover leaves the icon
-    def leaveEvent(self, event):
-        if self.desktop_icon.icon_path == "assets/images/add.png":
-            self.set_icon_path("assets/images/blank.png")
-    
-    #mouseover the desktop_icon name
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Enter:
-            self.timer_hover.start(1000)
-        elif event.type() == QEvent.Leave:
-            self.timer_hover.stop()
-            QToolTip.hideText()
-        return super().eventFilter(obj, event)
-    def show_tooltip(self):
-        QToolTip.showText(QCursor.pos(), self.desktop_icon.name, self)
-        
-    def selected_border(self, percent):
-        self.icon_label.setStyleSheet(f"border: {LABEL_SIZE * (percent/100)}px solid red;")
-
-    def default_border(self):
-        self.icon_label.setStyleSheet(DEFAULT_BORDER)
-
-    def get_row(self):
-        return self.desktop_icon.row
-    def get_col(self):
-        return self.desktop_icon.col
-    def get_coord(self):
-        return f"Row: {self.desktop_icon.row}, Column: {self.desktop_icon.col}"
-    
-    def set_name(self, new_name):
-        self.desktop_icon.name = new_name
-        self.text_label.setText(new_name)
-        self.update()
-    def set_icon_path(self, new_icon_path):
-        self.desktop_icon.icon_path = new_icon_path
-        self.set_icon(new_icon_path)
-        self.icon_label.setStyleSheet(DEFAULT_BORDER)
-    def set_executable_path(self, new_executable_path):
-        self.desktop_icon.executable_path = new_executable_path
-    def set_command_args(self, command_args):
-        self.desktop_icon.command_args = command_args
-    def set_website_link(self, website_link):
-        self.desktop_icon.website_link = website_link
-    def set_launch_option(self, launch_option):
-        self.desktop_icon.launch_option = launch_option
-
-
-    # returns base DATA_DIRECTORY/[row, col]
-    def get_data_icon_dir(self):
-        data_directory = get_data_directory()
-        data_path = os.path.join(data_directory, f'[{self.desktop_icon.row}, {self.desktop_icon.col}]')
-        #make file if no file (new)
-        if not os.path.exists(data_path):
-            logger.info(f"Making directory at {data_path}")
-            os.makedirs(data_path)
-        logger.info(f"get_data_icon_dir: {data_path}")
-        return data_path
-    
-    def get_autogen_icon_size(self):
-        return AUTOGEN_ICON_SIZE
-        
-
-
-    #
-    #
-    # This is required to run in order for any client sided (non restart) edit to appear/work as normal
-    #
-    #
-    def render_icon(self):
-        entry = get_entry(self.desktop_icon.row, self.desktop_icon.col)
-        if entry:
-            self.set_name(entry['name'])
-            self.set_icon_path(entry['icon_path'])
-            self.set_executable_path(entry['executable_path'])
-            self.set_command_args(entry['command_args'])
-            self.set_website_link(entry['website_link'])
-            self.set_launch_option(entry['launch_option'])
-        else:
-            self.set_name("")
-            self.set_icon_path("")
-            self.set_executable_path("")
-            self.set_command_args("")
-            self.set_website_link("")
-            self.set_launch_option(0)
-            
-
-    
-    #set icon into edit mode: red selected border, if icon is originally blank, set it to "add2.png"
-    def edit_mode_icon(self):
-        logger.info("Edit mode icon called")
-        if self.desktop_icon.icon_path == "" and entry_exists(self.desktop_icon.row, self.desktop_icon.col) == False:
-            self.set_icon_path("assets/images/add2.png")
-        self.selected_border(10)
-    
-    #return icon into normal mode: (remove red select border) revert back to blank if icon was "add2.png"
-    def normal_mode_icon(self):
-        self.default_border()
-        #revert add
-        if self.get_icon_path() == "assets/images/add2.png":
-            self.set_icon_path("assets/images/blank.png")
-
-        self.render_icon()
-    
-    def get_icon_path(self):
-        return self.desktop_icon.icon_path
     
     def run_program(self):
         self.show_warning_count = 0
@@ -765,7 +515,7 @@ class ClickableLabel(QLabel):
             4: self.launch_web_link_only,
         }
 
-        launch_option = self.desktop_icon.launch_option
+        launch_option = self.launch_option
         method = launch_option_methods.get(launch_option, 0)
         success = method()
         
@@ -793,8 +543,8 @@ class ClickableLabel(QLabel):
         #returns running = true if runs program, false otherwise
         running = False
 
-        file_path = self.desktop_icon.executable_path
-        args = shlex.split(self.desktop_icon.command_args)
+        file_path = self.executable_path
+        args = shlex.split(self.command_args)
         command = [file_path] + args
 
         
@@ -808,9 +558,9 @@ class ClickableLabel(QLabel):
             if os.path.exists(file_path) == False:
                 raise FileNotFoundError
         except FileNotFoundError:
-            logger.error(f"While attempting to run the executable the file is not found at {self.desktop_icon.executable_path}")
+            logger.error(f"While attempting to run the executable the file is not found at {self.executable_path}")
             self.show_warning_count += 1
-            display_file_not_found_error(self.desktop_icon.executable_path)
+            display_file_not_found_error(self.executable_path)
             return running
 
 
@@ -834,9 +584,9 @@ class ClickableLabel(QLabel):
                     if "is not recognized as an internal or external command" in text:
                         running = False
                         
-                        logger.error(f"Error opening file, Seems like user does not have a default application for this file type and windows is not popping up for them to select a application to open with., path = {self.desktop_icon.executable_path}")
+                        logger.error(f"Error opening file, Seems like user does not have a default application for this file type and windows is not popping up for them to select a application to open with., path = {self.executable_path}")
                         self.show_warning_count += 1
-                        display_no_default_type_error(self.desktop_icon.executable_path)
+                        display_no_default_type_error(self.executable_path)
                     
                 #kill the connection between this process and the subprocess we just launched.
                 #this will not kill the subprocess but just set it free from the connection
@@ -851,7 +601,7 @@ class ClickableLabel(QLabel):
     def run_website_link(self):
         logger.info("run_web_link attempted")
         running = True
-        url = self.desktop_icon.website_link
+        url = self.website_link
 
         if(url == ""): 
             running = False
@@ -880,17 +630,59 @@ class ClickableLabel(QLabel):
                 logger.info("Open Website Link button was clicked")
                 return self.run_website_link()
         return True
+    
+    def contextMenuEvent(self, event):
+        global CONTEXT_OPEN
+        CONTEXT_OPEN = True
+        context_menu = QMenu()
+
+        #self.edit_mode_icon()
+
+        # Edit Icon section
         
+        logger.info(f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, Launch option: {self.launch_option}")
+        
+        edit_action = QAction('Edit Icon', context_menu)
+        edit_action.triggered.connect(self.edit_triggered)
+        context_menu.addAction(edit_action)
+        context_menu.exec(event.screenPos())
 
-class DesktopIcon:
-    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option):
-        self.row = row
-        self.col = col
-        self.name = name
-        self.icon_path = icon_path
-        self.executable_path = executable_path
-        self.command_args = command_args
-        self.website_link = website_link
-        self.launch_option = launch_option
+    def edit_triggered(self):
+        MEDIA_PLAYER.pause()
+        # Before this I need to set it into edit mode.
+        #menu = Menu(None, self.row, self.col, parent=None)
+        #main_window_width, main_window_height = self.get_view_size()
+        #dialog_width = main_window_width / 2
+        #dialog_height = main_window_height / 2
+        #menu.resize(dialog_width, dialog_height)
+        #menu.exec()
+        # After this it should go back to normal mode.
+        MEDIA_PLAYER.play()
 
 
+    def get_view_size(self):
+        # Get the list of views from the scene
+        views = self.scene().views()
+        
+        if views:
+            # Assume there's only one view and get the first one
+            view = views[0]
+
+            # Get the size of the QGraphicsView
+            view_size = view.size()
+            view_width = view_size.width()
+            view_height = view_size.height()
+
+            return view_width, view_height
+
+        return None  # If there are no views
+
+    
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = DesktopGrid()
+    window.show()
+    sys.exit(app.exec())

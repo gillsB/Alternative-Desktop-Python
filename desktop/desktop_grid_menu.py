@@ -26,15 +26,18 @@ LAUNCH_OPTIONS = 0
 
 
 class Menu(QDialog):
-    def __init__(self, urls, parent=None):
+    def __init__(self, urls, row = None, col = None, parent=None):
         super().__init__(parent)
 
         
         global ROW 
         global COL 
-
-        ROW = self.parent().get_row()
-        COL = self.parent().get_col()
+        if row != None and col != None:
+            ROW = row
+            COL = col
+        else:
+            ROW = self.parent().get_row()
+            COL = self.parent().get_col()
 
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
 
@@ -51,7 +54,7 @@ class Menu(QDialog):
         self.icon_path_le = ClearableLineEdit()
         self.exec_path_le = ClearableLineEdit()
         self.web_link_le = ClearableLineEdit()
-        self.parent().selected_border(10)
+        #self.parent().selected_border(10)
 
         self.icon_path_le.textChanged.connect(self.preview_icon_path)
 
@@ -119,11 +122,11 @@ class Menu(QDialog):
 
 
 
-        self.setWindowTitle(f"Editing [{self.parent().get_row()}, {self.parent().get_col()}]: {self.name_le.text()}")
+        self.setWindowTitle(f"Editing [{ROW}, {COL}]: {self.name_le.text()}")
         if urls != None:
             self.get_drop(urls)
 
-        self.parent().edit_mode_icon()
+        #self.parent().edit_mode_icon()
 
         auto_gen_icon_button = QPushButton("Auto generate icon")
         auto_gen_icon_button.clicked.connect(self.auto_gen_button)
@@ -141,7 +144,7 @@ class Menu(QDialog):
 
     def closeEvent(self, event):
         logger.info("closed edit menu")
-        self.parent().normal_mode_icon()
+        #self.parent().normal_mode_icon()
         super().closeEvent(event)
 
     def keyPressEvent(self, event):
@@ -154,10 +157,12 @@ class Menu(QDialog):
     
     def preview_icon_path(self):
         if os.path.isfile(self.icon_path_le.text()):
-            self.parent().set_icon_path(self.icon_path_le.text())
+            #self.parent().set_icon_path(self.icon_path_le.text())
+            pass
         else:
-            self.parent().set_icon_path("assets/images/unknown.png")
-        self.parent().edit_mode_icon()
+            #self.parent().set_icon_path("assets/images/unknown.png")
+            pass
+        #self.parent().edit_mode_icon()
     
 
     ## clean up common problems with file path, i.e. copying a file and pasting into exec_path produces file:///C:/...
@@ -223,7 +228,7 @@ class Menu(QDialog):
             self.icon_path_le.setText("")
             logger.info("User chose to overwrite icon (OK). Generating icon.")
         self.auto_gen_icon()
-        self.parent().edit_mode_icon()
+        #self.parent().edit_mode_icon()
 
     def auto_gen_icon(self):
 
