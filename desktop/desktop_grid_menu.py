@@ -28,16 +28,13 @@ LAUNCH_OPTIONS = 0
 class Menu(QDialog):
     def __init__(self, urls, row = None, col = None, parent=None):
         super().__init__(parent)
-
+        assert parent is not None
         
         global ROW 
         global COL 
-        if row != None and col != None:
-            ROW = row
-            COL = col
-        else:
-            ROW = self.parent().get_row()
-            COL = self.parent().get_col()
+
+        ROW = row
+        COL = col
 
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
 
@@ -232,7 +229,7 @@ class Menu(QDialog):
 
     def auto_gen_icon(self):
 
-        data_path = self.parent().get_data_icon_dir()
+        data_path = self.parent().get_data_icon_dir(ROW, COL)
         icon_size = self.parent().get_autogen_icon_size()
 
         #default icon saves:
@@ -371,7 +368,7 @@ class Menu(QDialog):
                 data_directory = get_data_directory()
                 # if icon does not start with the default data directory
                 if not self.icon_path_le.text().startswith(data_directory):
-                    new_dir = make_local_icon(self.icon_path_le.text(), self.parent().get_data_icon_dir())
+                    new_dir = make_local_icon(self.icon_path_le.text(), self.parent().get_data_icon_dir(ROW,COL))
                     self.icon_path_le.setText(new_dir)
 
         #.lnks do not have command line arguments supported (possible but annoying to implement)
@@ -468,7 +465,7 @@ class Menu(QDialog):
         logger.info(f"Selected index: {index}, option: {self.launch_option_cb.currentText()}")
     
     def upscale_ico(self, file_path):
-        data_path = self.parent().get_data_icon_dir()
+        data_path = self.parent().get_data_icon_dir(ROW,COL)
         output_path = os.path.join(data_path, "icon.png")
         icon_size = self.parent().get_autogen_icon_size()
 

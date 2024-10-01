@@ -4,7 +4,7 @@ from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default
+from util.config import get_item_data, create_paths, is_default, get_data_directory
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
@@ -25,6 +25,7 @@ VERTICAL_PADDING = 50  # Padding between icons
 HORIZONTAL_PADDING = 10
 
 MEDIA_PLAYER = None
+AUTOGEN_ICON_SIZE = 256
 
 BACKGROUND_VIDEO = ""
 BACKGROUND_IMAGE = ""
@@ -331,12 +332,26 @@ class DesktopGrid(QGraphicsView):
 
 
     def show_grid_menu(self, row, col):
-        menu = Menu(None, row, col, parent=None)
+        menu = Menu(None, row, col, parent=self)
         main_window_size = self.parent().size()
         dialog_width = main_window_size.width() / 2
         dialog_height = main_window_size.height() / 2
         menu.resize(dialog_width, dialog_height)
         menu.exec()
+
+    # returns base DATA_DIRECTORY/[row, col]
+    def get_data_icon_dir(self, row, col):
+        data_directory = get_data_directory()
+        data_path = os.path.join(data_directory, f'[{row}, {col}]')
+        #make file if no file (new)
+        if not os.path.exists(data_path):
+            logger.info(f"Making directory at {data_path}")
+            os.makedirs(data_path)
+        logger.info(f"get_data_icon_dir: {data_path}")
+        return data_path
+    
+    def get_autogen_icon_size(self):
+        return AUTOGEN_ICON_SIZE
     
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
