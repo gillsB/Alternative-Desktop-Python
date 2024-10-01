@@ -353,6 +353,9 @@ class DesktopGrid(QGraphicsView):
     def get_autogen_icon_size(self):
         return AUTOGEN_ICON_SIZE
     
+    def set_icon_path(self, row, col, new_icon_path):
+        self.desktop_icons[row][col].update_icon_path(new_icon_path)
+    
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
 
@@ -700,7 +703,9 @@ class DesktopIcon(QGraphicsItem):
 
         return None  # If there are no views
 
-    
+    def update_icon_path(self, icon_path):
+        self.icon_path = icon_path
+        self.update()
 
 
 

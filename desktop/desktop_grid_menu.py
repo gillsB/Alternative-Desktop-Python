@@ -154,10 +154,10 @@ class Menu(QDialog):
     
     def preview_icon_path(self):
         if os.path.isfile(self.icon_path_le.text()):
-            #self.parent().set_icon_path(self.icon_path_le.text())
+            self.parent().set_icon_path(ROW, COL, self.icon_path_le.text())
             pass
         else:
-            #self.parent().set_icon_path("assets/images/unknown.png")
+            self.parent().set_icon_path(ROW, COL, "assets/images/unknown.png")
             pass
         #self.parent().edit_mode_icon()
     
