@@ -329,6 +329,14 @@ class DesktopGrid(QGraphicsView):
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
 
+
+    def show_grid_menu(self, row, col):
+        menu = Menu(None, row, col, parent=None)
+        main_window_size = self.parent().size()
+        dialog_width = main_window_size.width() / 2
+        dialog_height = main_window_size.height() / 2
+        menu.resize(dialog_width, dialog_height)
+        menu.exec()
     
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
@@ -417,9 +425,7 @@ class DesktopIcon(QGraphicsItem):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.setSelected(True)
-
-    def mouseDoubleClickEvent(self, event):
-        print(f"icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
+        
 
     def calculate_text_height(self, text):
         font_metrics = QFontMetrics(self.font)
@@ -491,12 +497,12 @@ class DesktopIcon(QGraphicsItem):
         self.update()
 
     def mouseDoubleClickEvent(self, event):
+        print(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
             MEDIA_PLAYER.pause()
             #menu = Menu(None, parent=self)
-            main_window_width, main_window_height = self.get_view_size()
-            dialog_width = main_window_width / 2
-            dialog_height = main_window_height / 2
+            view = self.scene().views()[0]
+            view.show_grid_menu(self.row, self.col)
             #menu.resize(dialog_width, dialog_height)
             
             #menu.exec()
@@ -650,6 +656,8 @@ class DesktopIcon(QGraphicsItem):
     def edit_triggered(self):
         MEDIA_PLAYER.pause()
         # Before this I need to set it into edit mode.
+        view = self.scene().views()[0]
+        view.show_grid_menu(self.row, self.col)
         #menu = Menu(None, self.row, self.col, parent=None)
         #main_window_width, main_window_height = self.get_view_size()
         #dialog_width = main_window_width / 2
