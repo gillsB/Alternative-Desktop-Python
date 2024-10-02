@@ -220,6 +220,8 @@ class DesktopGrid(QGraphicsView):
 
     def update_icon_size(self, size):
         # Update the size of each icon and adjust their position
+        global ICON_SIZE
+        ICON_SIZE = size
         for x in range(self.rows):
             for y in range(self.cols):
                 self.desktop_icons[x][y].update_size(size)
@@ -334,6 +336,7 @@ class DesktopGrid(QGraphicsView):
     def show_grid_menu(self, row, col):
         menu = Menu(None, row, col, parent=self)
         main_window_size = self.parent().size()
+        main_window_height = main_window_size.height()
         dialog_width = main_window_size.width() / 3
         dialog_height = main_window_size.height() / 2
 
@@ -346,25 +349,21 @@ class DesktopGrid(QGraphicsView):
         # Available space around the icon (based on global screen coordinates)
         screen_geometry = self.parent().screen().geometry()
         space_left = global_icon_pos.x()
-        # Needs to also subtract size and padding as it is not spawning at global_icon_pos.x() but the right side of it
-        space_right = screen_geometry.width() - global_icon_pos.x() - ICON_SIZE - HORIZONTAL_PADDING 
-        space_top = global_icon_pos.y()  # Space above the icon
-        # Needs to also subtract size and padding as it is not spawning at global_icon_pos.y() but the completely below it
-        space_bottom = screen_geometry.height() - global_icon_pos.y() -ICON_SIZE - VERTICAL_PADDING
+        space_right = screen_geometry.width() - global_icon_pos.x() - ICON_SIZE - HORIZONTAL_PADDING
 
-        # Decide menu position based on available space
-        if space_right >= dialog_width:
+        # If menu would extend below, adjust y to fit within main window
+        if global_icon_pos.y() + dialog_height > main_window_height:  
+            adjusted_y = main_window_height - dialog_height
+        else:
+            adjusted_y = global_icon_pos.y()
+
+        # Compare available space and decide menu placement based on the side with more room
+        if space_right >= space_left and space_right >= dialog_width:
             logger.info("Menu right")
-            menu.move(global_icon_pos.x() + (ICON_SIZE + HORIZONTAL_PADDING), global_icon_pos.y())
+            menu.move(global_icon_pos.x() + (ICON_SIZE + HORIZONTAL_PADDING), adjusted_y)
         elif space_left >= dialog_width:
             logger.info("Menu left")
-            menu.move(global_icon_pos.x() - dialog_width, global_icon_pos.y())
-        elif space_bottom >= dialog_height:
-            logger.info("Menu below")
-            menu.move(global_icon_pos.x(), global_icon_pos.y() + ICON_SIZE + VERTICAL_PADDING)
-        elif space_top >= dialog_height:
-            logger.info("Menu above")
-            menu.move(global_icon_pos.x(), global_icon_pos.y() - dialog_height)
+            menu.move(global_icon_pos.x() - dialog_width, adjusted_y)
         else:
             logger.info("Menu center")
             menu.move(
