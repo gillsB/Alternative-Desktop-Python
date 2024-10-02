@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
@@ -334,10 +334,56 @@ class DesktopGrid(QGraphicsView):
     def show_grid_menu(self, row, col):
         menu = Menu(None, row, col, parent=self)
         main_window_size = self.parent().size()
-        dialog_width = main_window_size.width() / 2
+        dialog_width = main_window_size.width() / 3
         dialog_height = main_window_size.height() / 2
+
+        # Get the desktop icon's screen position (relative to QGraphicsView)
+        icon_pos = self.get_icon_position(row, col)
+        
+        # Convert the icon's position to global screen coordinates
+        global_icon_pos = self.mapToGlobal(icon_pos)
+
+        # Available space around the icon (based on global screen coordinates)
+        screen_geometry = self.parent().screen().geometry()
+        space_left = global_icon_pos.x()
+        # Needs to also subtract size and padding as it is not spawning at global_icon_pos.x() but the right side of it
+        space_right = screen_geometry.width() - global_icon_pos.x() - ICON_SIZE - HORIZONTAL_PADDING 
+        space_top = global_icon_pos.y()  # Space above the icon
+        # Needs to also subtract size and padding as it is not spawning at global_icon_pos.y() but the completely below it
+        space_bottom = screen_geometry.height() - global_icon_pos.y() -ICON_SIZE - VERTICAL_PADDING
+
+        # Decide menu position based on available space
+        if space_right >= dialog_width:
+            logger.info("Menu right")
+            menu.move(global_icon_pos.x() + (ICON_SIZE + HORIZONTAL_PADDING), global_icon_pos.y())
+        elif space_left >= dialog_width:
+            logger.info("Menu left")
+            menu.move(global_icon_pos.x() - dialog_width, global_icon_pos.y())
+        elif space_bottom >= dialog_height:
+            logger.info("Menu below")
+            menu.move(global_icon_pos.x(), global_icon_pos.y() + ICON_SIZE + VERTICAL_PADDING)
+        elif space_top >= dialog_height:
+            logger.info("Menu above")
+            menu.move(global_icon_pos.x(), global_icon_pos.y() - dialog_height)
+        else:
+            logger.info("Menu center")
+            menu.move(
+                (screen_geometry.width() - dialog_width) / 2,
+                (screen_geometry.height() - dialog_height) / 2,
+            )
+
         menu.resize(dialog_width, dialog_height)
         menu.exec()
+
+    def get_icon_position(self, row, col):
+        # Calculate the position of the icon based on row and col
+        x_pos = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
+        y_pos = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
+        
+        # Return the position as a QPoint
+        return QPoint(x_pos, y_pos)
+
+
 
     # returns base DATA_DIRECTORY/[row, col]
     def get_data_icon_dir(self, row, col):
@@ -433,7 +479,7 @@ class DesktopIcon(QGraphicsItem):
             if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
             else:
-                painter.drawPixmap(0, 0, self.icon_size-2, self.icon_size-2, QPixmap(self.icon_path))
+                painter.drawPixmap(2, 2, self.icon_size-4, self.icon_size-2, QPixmap(self.icon_path))
 
             painter.setFont(self.font)
 
