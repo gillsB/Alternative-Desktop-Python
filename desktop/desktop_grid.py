@@ -355,6 +355,12 @@ class DesktopGrid(QGraphicsView):
     
     def set_icon_path(self, row, col, new_icon_path):
         self.desktop_icons[row][col].update_icon_path(new_icon_path)
+
+    def edit_mode_icon(self, row, col):
+        self.desktop_icons[row][col].edit_mode_icon()
+
+    def normal_mode_icon(self, row, col):
+        self.desktop_icons[row][col].normal_mode_icon()
     
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
@@ -388,6 +394,11 @@ class DesktopIcon(QGraphicsItem):
         self.padding = 30
         self.font = QFont(FONT, FONT_SIZE)
 
+        self.border_width = 5
+        self.border_color = QColor(Qt.red)
+
+        self.edit_mode = False
+
 
 
     def update_size(self, new_size):
@@ -397,14 +408,32 @@ class DesktopIcon(QGraphicsItem):
     def boundingRect(self) -> QRectF:
         text_height = self.calculate_text_height(self.icon_text)
         return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
+    
+    def edit_mode_icon(self):
+        self.edit_mode = True
+        self.update() 
+    
+    def normal_mode_icon(self):
+        self.edit_mode = False
+        self.update() 
 
     def paint(self, painter: QPainter, option, widget=None):
+        if self.edit_mode:
+            pen = QPen(self.border_color, self.border_width)
+            painter.setPen(pen)
+            rect = self.boundingRect()
+            # Draw the border inside the square, adjusted for the border width
+            adjusted_rect = rect.adjusted(self.border_width / 2, 
+                                          self.border_width / 2, 
+                                          -self.border_width / 2, 
+                                          -self.border_width / 2)
+            painter.drawRect(adjusted_rect)
 
         if not is_default(self.row, self.col):
             if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
             else:
-                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap(self.icon_path))
+                painter.drawPixmap(0, 0, self.icon_size-2, self.icon_size-2, QPixmap(self.icon_path))
 
             painter.setFont(self.font)
 
@@ -660,7 +689,7 @@ class DesktopIcon(QGraphicsItem):
         CONTEXT_OPEN = True
         context_menu = QMenu()
 
-        #self.edit_mode_icon()
+        self.edit_mode_icon()
 
         # Edit Icon section
         
@@ -669,7 +698,15 @@ class DesktopIcon(QGraphicsItem):
         edit_action = QAction('Edit Icon', context_menu)
         edit_action.triggered.connect(self.edit_triggered)
         context_menu.addAction(edit_action)
+
+        context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
+
+    def context_menu_closed(self):
+        logger.debug("Context menu closed")
+        self.normal_mode_icon()
+        #self.timer_right_click.timeout.connect(self.context_close)
+        #self.timer_right_click.start(100) 
 
     def edit_triggered(self):
         MEDIA_PLAYER.pause()
