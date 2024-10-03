@@ -1,10 +1,10 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QPointF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory
+from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
@@ -58,20 +58,15 @@ class DesktopGrid(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+        self.setDragMode(QGraphicsView.NoDrag)
 
-        # Video background stuff
-        global MEDIA_PLAYER
-        self.load_video, self.load_image = self.background_setting()
-        self.video_item = QGraphicsVideoItem()
-        self.scene.addItem(self.video_item)
-        MEDIA_PLAYER = QMediaPlayer()
-        MEDIA_PLAYER.setVideoOutput(self.video_item)
-        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
+
+
 
         # Initialize 2D array for icon items
         self.desktop_icons = []
 
-        self.populate_icons()
+        
 
         # Initialize a timer for debouncing update_icon_visibility
         self.resize_timer = QTimer()
@@ -85,8 +80,17 @@ class DesktopGrid(QGraphicsView):
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
 
+        self.scene.clear()
+        self.populate_icons()
 
-        
+        # Video background stuff
+        global MEDIA_PLAYER
+        self.load_video, self.load_image = self.background_setting()
+        self.video_item = QGraphicsVideoItem()
+        self.scene.addItem(self.video_item)
+        MEDIA_PLAYER = QMediaPlayer()
+        MEDIA_PLAYER.setVideoOutput(self.video_item)
+        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
 
         # Only run _fresh_ for launch to init all visibilities.
         self.update_fresh_icon_visiblity()
@@ -406,7 +410,21 @@ class DesktopGrid(QGraphicsView):
 
     def normal_mode_icon(self, row, col):
         self.desktop_icons[row][col].normal_mode_icon()
+
+    def icon_dropped(self, pos):
+        col = round((pos.x() - SIDE_PADDING) / (ICON_SIZE + HORIZONTAL_PADDING))
+        row = round((pos.y() - TOP_PADDING) / (ICON_SIZE + VERTICAL_PADDING))
+
+        # Return the snapped position using your grid setup formula
+        snapped_x = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
+        snapped_y = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
+
+        return row, col
     
+    def swap_icons(self, old_row, old_col, new_row, new_col):
+        logger.info(f"Swapping {old_row},{old_col} with {new_row}, {new_col}")
+        swap_items_by_position(old_row, old_col, new_row, new_col)
+
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
 
@@ -429,7 +447,7 @@ class DesktopIcon(QGraphicsItem):
         self.website_link = website_link
         self.launch_option = launch_option
 
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
         self.icon_text = self.name
@@ -788,6 +806,52 @@ class DesktopIcon(QGraphicsItem):
     def update_icon_path(self, icon_path):
         self.icon_path = icon_path
         self.update()
+
+    # Override mousePressEvent
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.start_pos = event.pos()  # Store the initial position
+            event.accept()
+
+    # Override mouseMoveEvent (to track dragging without moving)
+    def mouseMoveEvent(self, event):
+        if self.dragging:
+            # Calculate the distance moved, but don't move the item
+            distance = (event.pos() - self.start_pos).manhattanLength()
+            if distance > 5:  # A threshold to consider as dragging
+                # Optionally, you can change the cursor to indicate dragging
+                self.setCursor(Qt.ClosedHandCursor)  # Example: Change cursor appearance
+
+
+    def mouseReleaseEvent(self, event):
+        views = self.scene().views()
+
+        if event.button() == Qt.RightButton:
+            # If right-click, do not perform any action related to swapping
+            return
+        
+        if views:
+            # Assume there's only one view and get the first one
+            view = views[0]
+
+            old_row = self.row
+            old_col = self.col
+
+            # Get the mouse release position in the scene
+            mouse_pos = event.pos()  # This gives you the position relative to the item
+            
+            # Convert the mouse position from item coordinates to scene coordinates
+            scene_pos = self.mapToScene(mouse_pos)
+
+            # Call icon_dropped with the scene position
+            self.row, self.col = view.icon_dropped(scene_pos)
+            
+            # Swap icons
+            view.swap_icons(old_row, old_col, self.row, self.col)
+            print(f"row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
+            
+            self.update()
 
 
 
