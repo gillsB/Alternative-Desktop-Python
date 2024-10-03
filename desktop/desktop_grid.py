@@ -412,18 +412,55 @@ class DesktopGrid(QGraphicsView):
         self.desktop_icons[row][col].normal_mode_icon()
 
     def icon_dropped(self, pos):
-        col = round((pos.x() - SIDE_PADDING) / (ICON_SIZE + HORIZONTAL_PADDING))
-        row = round((pos.y() - TOP_PADDING) / (ICON_SIZE + VERTICAL_PADDING))
+        # Calculate the column based on the X position of the mouse
+        col = (pos.x() - SIDE_PADDING) // (ICON_SIZE + HORIZONTAL_PADDING)
 
-        # Return the snapped position using your grid setup formula
-        snapped_x = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
-        snapped_y = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
+        # Calculate the row based on the Y position of the mouse
+        row = (pos.y() - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING)
 
-        return row, col
+        # Ensure the calculated row and column are within valid ranges
+        if 0 <= col < self.cols and 0 <= row < self.rows:
+            return int(row), int(col)
+
+        # If out of bounds, return None
+        return None, None
+
     
     def swap_icons(self, old_row, old_col, new_row, new_col):
-        logger.info(f"Swapping {old_row},{old_col} with {new_row}, {new_col}")
+        # Get the items to swap
+        item1 = self.desktop_icons[old_row][old_col]
+        item2 = self.desktop_icons[new_row][new_col]
+        
+        if item1 is None or item2 is None:
+            # Handle cases where one of the items does not exist
+            print("One of the items does not exist.")
+            return
+
+        # Calculate new positions
+        icon_size = ICON_SIZE
+        item1_new_pos = (SIDE_PADDING + new_col * (icon_size + HORIZONTAL_PADDING),
+                        TOP_PADDING + new_row * (icon_size + VERTICAL_PADDING))
+        item2_new_pos = (SIDE_PADDING + old_col * (icon_size + HORIZONTAL_PADDING),
+                        TOP_PADDING + old_row * (icon_size + VERTICAL_PADDING))
+        
+        # Swap positions
+        item1.setPos(*item1_new_pos)
+        item2.setPos(*item2_new_pos)
+
+        item1.row = new_row
+        item1.col = new_col
+        item2.row = old_row
+        item2.col = old_col
+
+        # Update the desktop_icons array to reflect the swap
+        self.desktop_icons[old_row][old_col], self.desktop_icons[new_row][new_col] = (
+            self.desktop_icons[new_row][new_col],
+            self.desktop_icons[old_row][old_col]
+        )
+
         swap_items_by_position(old_row, old_col, new_row, new_col)
+
+        print(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
@@ -826,6 +863,7 @@ class DesktopIcon(QGraphicsItem):
 
     def mouseReleaseEvent(self, event):
         views = self.scene().views()
+        self.dragging = False
 
         if event.button() == Qt.RightButton:
             # If right-click, do not perform any action related to swapping
@@ -846,12 +884,20 @@ class DesktopIcon(QGraphicsItem):
 
             # Call icon_dropped with the scene position
             self.row, self.col = view.icon_dropped(scene_pos)
-            
+            print(f"old_row: {old_row} old_col: {old_col} row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
             # Swap icons
-            view.swap_icons(old_row, old_col, self.row, self.col)
-            print(f"row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
+            if self.row == None or self.col == None:
+                logger.error("Returned out of range for drop location.")
+            elif old_row != self.row or old_col != self.col:
+                logger.info("Swapping icons.")
+                view.swap_icons(old_row, old_col, self.row, self.col)
+            else:
+                logger.info("Icon dropped at same location")
+            
             
             self.update()
+
+
 
 
 
