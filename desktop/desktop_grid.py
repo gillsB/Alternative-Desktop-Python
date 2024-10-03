@@ -419,7 +419,7 @@ class DesktopGrid(QGraphicsView):
         row = (pos.y() - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING)
 
         # Ensure the calculated row and column are within valid ranges
-        if 0 <= col < self.cols and 0 <= row < self.rows:
+        if 0 <= row < self.prev_max_visible_rows and 0 <= col < self.prev_max_visible_columns:
             return int(row), int(col)
 
         # If out of bounds, return None
@@ -887,7 +887,9 @@ class DesktopIcon(QGraphicsItem):
             print(f"old_row: {old_row} old_col: {old_col} row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
             # Swap icons
             if self.row == None or self.col == None:
-                logger.error("Returned out of range for drop location.")
+                self.row = old_row
+                self.col = old_col
+                logger.error("Icon dropped outside of visible icon range or bad return from icon_dropped, resetting self.row/self.col to old_row/old_col")
             elif old_row != self.row or old_col != self.col:
                 logger.info("Swapping icons.")
                 view.swap_icons(old_row, old_col, self.row, self.col)
