@@ -4,10 +4,10 @@ from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position
+from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
-from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error
+from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning
 from desktop.desktop_grid_menu import Menu
 import sys
 import os
@@ -459,8 +459,38 @@ class DesktopGrid(QGraphicsView):
         )
 
         swap_items_by_position(old_row, old_col, new_row, new_col)
+        self.swap_folders(old_row, old_col, new_row, new_col)
 
         print(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
+
+    def swap_folders(self, old_row, old_col, new_row, new_col):
+
+        new_dir = self.get_data_icon_dir(new_row, new_col)
+        exist_dir = self.get_data_icon_dir(old_row, old_col)
+        if os.path.exists(new_dir) and os.path.exists(exist_dir):
+            # Swap folder names using temporary folder
+            temp_folder = new_dir + '_temp'
+            temp_folder = self.get_unique_folder_name(temp_folder)
+            logger.info(f"making new folder name = {temp_folder}")
+            os.rename(new_dir, temp_folder)
+            os.rename(exist_dir, new_dir)
+            os.rename(temp_folder, exist_dir)
+        else:
+            # get_data_directory should create the folders if they don't exist so this should theoretically never be called
+            logger.error("One or both folders do not exist")
+        update_folder(new_row, new_col)
+        update_folder(old_row, old_col)
+
+
+    def get_unique_folder_name(self, folder_path):
+        counter = 1
+        new_folder = folder_path
+        while os.path.exists(new_folder):
+            logger.Error(f"Temp file seems to already exist {new_folder}, which seems to not have been removed/renamed after last cleanup.")
+            display_failed_cleanup_warning(new_folder)
+            new_folder = f"{folder_path}{counter}"
+            counter += 1
+        return new_folder
 
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
