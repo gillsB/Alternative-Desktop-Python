@@ -465,7 +465,7 @@ class DesktopGrid(QGraphicsView):
         # Row/col should be changed like the above, then call a refresh.
         item1.reload_from_config()
         item2.reload_from_config()
-        print(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
+        logger.info(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
     def swap_folders(self, old_row, old_col, new_row, new_col):
         new_dir = self.get_data_icon_dir(new_row, new_col)
@@ -911,6 +911,9 @@ class DesktopIcon(QGraphicsItem):
             # If right-click, do not perform any action related to swapping
             return
         
+        if is_default(self.row, self.col):
+            return
+        
         if views:
             # Assume there's only one view and get the first one
             view = views[0]
@@ -926,7 +929,7 @@ class DesktopIcon(QGraphicsItem):
 
             # Call icon_dropped with the scene position
             self.row, self.col = view.icon_dropped(scene_pos)
-            print(f"old_row: {old_row} old_col: {old_col} row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
+            logger.info(f"old_row: {old_row} old_col: {old_col} row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
             # Swap icons
             if self.row == None or self.col == None:
                 self.row = old_row
