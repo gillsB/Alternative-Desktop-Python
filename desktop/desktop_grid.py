@@ -461,10 +461,13 @@ class DesktopGrid(QGraphicsView):
         swap_items_by_position(old_row, old_col, new_row, new_col)
         self.swap_folders(old_row, old_col, new_row, new_col)
 
+        # Reload their fields to update their icon_path. This is a way to refresh fields, but will not update rows/col.
+        # Row/col should be changed like the above, then call a refresh.
+        item1.reload_from_config()
+        item2.reload_from_config()
         print(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
     def swap_folders(self, old_row, old_col, new_row, new_col):
-
         new_dir = self.get_data_icon_dir(new_row, new_col)
         exist_dir = self.get_data_icon_dir(old_row, old_col)
         if os.path.exists(new_dir) and os.path.exists(exist_dir):
@@ -480,6 +483,7 @@ class DesktopGrid(QGraphicsView):
             logger.error("One or both folders do not exist")
         update_folder(new_row, new_col)
         update_folder(old_row, old_col)
+
 
 
     def get_unique_folder_name(self, folder_path):
@@ -529,6 +533,14 @@ class DesktopIcon(QGraphicsItem):
 
         self.edit_mode = False
 
+    def reload_from_config(self):
+        data = get_item_data(self.row, self.col)
+        self.name = data['name']
+        self.icon_path = data['icon_path']
+        self.executable_path = data['executable_path']
+        self.command_args = data['command_args']
+        self.website_link = data['website_link']
+        self.launch_option = data['launch_option']
 
 
     def update_size(self, new_size):
