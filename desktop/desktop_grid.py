@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QPointF
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -433,7 +433,7 @@ class DesktopGrid(QGraphicsView):
         
         if item1 is None or item2 is None:
             # Handle cases where one of the items does not exist
-            print("One of the items does not exist.")
+            logger.error("One of the items attempting to swap does not exist.")
             return
 
         # Calculate new positions
@@ -518,6 +518,9 @@ class DesktopIcon(QGraphicsItem):
         self.website_link = website_link
         self.launch_option = launch_option
 
+        self.movie = None # For loading a gif
+        self.init_movie() # Load movie if .gif icon_path
+
         #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
@@ -574,6 +577,14 @@ class DesktopIcon(QGraphicsItem):
         if not is_default(self.row, self.col):
             if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
+                    # Add elif condition for GIF support
+            elif self.movie:
+                # Get the current frame and draw it
+                frame = self.movie.currentPixmap()
+                if not frame.isNull():
+                    painter.drawPixmap(2, 2, self.icon_size - 4, self.icon_size - 2, frame)
+                else:
+                    logger.error(f"Warning: Frame: {frame} is null.")
             else:
                 painter.drawPixmap(2, 2, self.icon_size-4, self.icon_size-2, QPixmap(self.icon_path))
 
@@ -610,6 +621,25 @@ class DesktopIcon(QGraphicsItem):
                 # paint nothing
                 pass
                 
+
+    def init_movie(self):
+        if self.icon_path.lower().endswith('.gif'):
+            logger.info(f"Loading GIF: {self.icon_path}")
+            self.movie = QMovie(self.icon_path)
+            if not self.movie.isValid():
+                logger.error("Error: GIF failed to load.")
+                self.movie = None
+                return
+
+            # Connect the frameChanged signal to update the item
+            self.movie.frameChanged.connect(self.on_frame_changed)
+            self.movie.start()
+        else:
+            self.movie = None
+    
+    def on_frame_changed(self, frame):
+        if frame != -1:
+            self.update()  # Repaint this QGraphicsItem
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -686,7 +716,7 @@ class DesktopIcon(QGraphicsItem):
         self.update()
 
     def mouseDoubleClickEvent(self, event):
-        print(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
+        logger.info(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
             MEDIA_PLAYER.pause()
             #menu = Menu(None, parent=self)
@@ -883,7 +913,9 @@ class DesktopIcon(QGraphicsItem):
         return None  # If there are no views
 
     def update_icon_path(self, icon_path):
-        self.icon_path = icon_path
+        if self.icon_path != icon_path:
+            self.icon_path = icon_path
+            self.init_movie() # Load gif into movie if icon_path is .gif
         self.update()
 
     # Override mousePressEvent
