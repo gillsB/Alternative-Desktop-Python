@@ -24,6 +24,9 @@ SIDE_PADDING = 20  # Padding from the left side of the window
 VERTICAL_PADDING = 50  # Padding between icons
 HORIZONTAL_PADDING = 10
 
+MAX_ROWS = 10
+MAX_COLS = 40
+
 MEDIA_PLAYER = None
 AUTOGEN_ICON_SIZE = 256
 
@@ -45,8 +48,10 @@ class DesktopGrid(QGraphicsView):
         # Build paths for config and data directories (stored in config.py)
         create_paths()
 
-        global ICON_SIZE
+        global ICON_SIZE, MAX_ROWS, MAX_COLS
         ICON_SIZE = get_setting("icon_size", 100)
+        MAX_ROWS = get_setting("max_rows")
+        MAX_COLS = get_setting("max_cols")
 
         self.prev_max_visible_columns = 0
         self.prev_max_visible_rows = 0
@@ -98,14 +103,12 @@ class DesktopGrid(QGraphicsView):
 
     def populate_icons(self):
         icon_size = ICON_SIZE
-        self.cols = 40
-        self.rows = 10
 
         # Create a 2D array for icon items
-        self.desktop_icons = [[None for _ in range(self.cols)] for _ in range(self.rows)]
+        self.desktop_icons = [[None for _ in range(MAX_COLS)] for _ in range(MAX_ROWS)]
 
-        for row in range(self.rows):
-            for col in range(self.cols):
+        for row in range(MAX_ROWS):
+            for col in range(MAX_COLS):
                 data = get_item_data(row, col)
                 icon_item = DesktopIcon(
                     row, 
@@ -124,7 +127,7 @@ class DesktopGrid(QGraphicsView):
                 self.scene.addItem(icon_item)
 
         # Initially update visibility based on the current window size
-        self.update_icon_visibility()
+        self.update_fresh_icon_visiblity()
 
 
 
@@ -148,9 +151,9 @@ class DesktopGrid(QGraphicsView):
         view_height = self.viewport().height()
 
         # Calculate current max visible row and column based on icon size and padding
-        # min() ensures max_visible_rows/columns cannot exceed the self.rows/self.cols values.
-        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING), self.rows)
-        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING), self.cols)
+        # min() ensures max_visible_rows/columns cannot exceed the MAX_ROWS/MAX_COLS values.
+        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING), MAX_ROWS)
+        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING), MAX_COLS)
         print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
 
 
@@ -161,29 +164,29 @@ class DesktopGrid(QGraphicsView):
         # Add rows as visible
         if max_visible_rows > self.prev_max_visible_rows:
             for x in range(self.prev_max_visible_rows, max_visible_rows):
-                for y in range(min(max_visible_columns, self.cols)):
-                    if x < self.rows and y < self.cols:  
+                for y in range(min(max_visible_columns, MAX_COLS)):
+                    if x < MAX_ROWS and y < MAX_COLS:  
                         self.desktop_icons[x][y].setVisible(True)
 
         # Add columns as visible
         if max_visible_columns > self.prev_max_visible_columns:
             for y in range(self.prev_max_visible_columns, max_visible_columns):
-                for x in range(min(max_visible_rows, self.rows)):
-                    if x < self.rows and y < self.cols:  
+                for x in range(min(max_visible_rows, MAX_ROWS)):
+                    if x < MAX_ROWS and y < MAX_COLS:  
                         self.desktop_icons[x][y].setVisible(True)
 
         # Remove Rows as visible
         if max_visible_rows < self.prev_max_visible_rows:
             for y in range(self.prev_max_visible_columns +1):
                 for x in range(max(max_visible_rows, 0), self.prev_max_visible_rows +1):
-                    if x < self.rows and y < self.cols:  
+                    if x < MAX_ROWS and y < MAX_COLS:  
                         self.desktop_icons[x][y].setVisible(False)
         
         # Remove Columns as visbile
         if max_visible_columns < self.prev_max_visible_columns:
             for x in range(self.prev_max_visible_rows +1):
                 for y in range(max(max_visible_columns, 0), self.prev_max_visible_columns +1):
-                    if x < self.rows and y < self.cols:  
+                    if x < MAX_ROWS and y < MAX_COLS:  
                         self.desktop_icons[x][y].setVisible(False)
         
         
@@ -199,8 +202,8 @@ class DesktopGrid(QGraphicsView):
 
         max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING)
         max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING)
-        for x in range(self.rows):
-            for y in range(self.cols):
+        for x in range(MAX_ROWS):
+            for y in range(MAX_COLS):
                 if x < max_visible_rows and y < max_visible_columns:
                     self.desktop_icons[x][y].setVisible(True)
                 else:
@@ -226,8 +229,8 @@ class DesktopGrid(QGraphicsView):
         # Update the size of each icon and adjust their position
         global ICON_SIZE
         ICON_SIZE = size
-        for x in range(self.rows):
-            for y in range(self.cols):
+        for x in range(MAX_ROWS):
+            for y in range(MAX_COLS):
                 self.desktop_icons[x][y].update_size(size)
                 self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + HORIZONTAL_PADDING), 
                                 TOP_PADDING + x * (size + VERTICAL_PADDING))
@@ -242,14 +245,14 @@ class DesktopGrid(QGraphicsView):
         largest_visible_column = -1
 
         # Find the largest visible row
-        for row in range(self.rows):
-            for column in range(self.cols):
+        for row in range(MAX_ROWS):
+            for column in range(MAX_COLS):
                 if self.desktop_icons[row][column].isVisible():
                     largest_visible_row = max(largest_visible_row, row)
 
         # Find the largest visible column
-        for column in range(self.cols):
-            for row in range(self.rows):
+        for column in range(MAX_COLS):
+            for row in range(MAX_ROWS):
                 if self.desktop_icons[row][column].isVisible():
                     largest_visible_column = max(largest_visible_column, column)
 
@@ -496,6 +499,15 @@ class DesktopGrid(QGraphicsView):
             new_folder = f"{folder_path}{counter}"
             counter += 1
         return new_folder
+    
+    def change_max_rows(self, rows):
+        global MAX_ROWS
+        MAX_ROWS = rows
+        self.populate_icons()
+    def change_max_cols(self, cols):
+        global MAX_COLS
+        MAX_COLS = cols
+        self.populate_icons()
 
 
     #### Delete these Temporarily included just to allow changing icons sizes by setting.
