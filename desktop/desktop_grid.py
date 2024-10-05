@@ -377,6 +377,7 @@ class DesktopGrid(QGraphicsView):
 
         menu.resize(dialog_width, dialog_height)
         menu.exec()
+        self.desktop_icons[row][col].reload_from_config()
 
     def get_icon_position(self, row, col):
         # Calculate the position of the icon based on row and col
@@ -524,7 +525,6 @@ class DesktopIcon(QGraphicsItem):
         #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
-        self.icon_text = self.name
         self.icon_size = icon_size
         self.setAcceptHoverEvents(True)
         self.hovered = False
@@ -546,12 +546,13 @@ class DesktopIcon(QGraphicsItem):
         self.launch_option = data['launch_option']
 
 
+
     def update_size(self, new_size):
         self.icon_size = new_size
         self.prepareGeometryChange()
 
     def boundingRect(self) -> QRectF:
-        text_height = self.calculate_text_height(self.icon_text)
+        text_height = self.calculate_text_height(self.name)
         return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
     
     def edit_mode_icon(self):
@@ -590,7 +591,7 @@ class DesktopIcon(QGraphicsItem):
 
             painter.setFont(self.font)
 
-            lines = self.get_multiline_text(self.font, self.icon_text)
+            lines = self.get_multiline_text(self.font, self.name)
 
             # Define the outline color and main text color
             outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
