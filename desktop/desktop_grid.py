@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 # Global Padding Variables
 TOP_PADDING = 20  # Padding from the top of the window
 SIDE_PADDING = 20  # Padding from the left side of the window
-VERTICAL_PADDING = 50  # Padding between icons
-HORIZONTAL_PADDING = 10
+VERTICAL_PADDING = 50  # Padding between image icons (space for icon Names)
+HORIZONTAL_PADDING = 10 
 
 MAX_ROWS = 10
 MAX_COLS = 40
@@ -65,22 +65,14 @@ class DesktopGrid(QGraphicsView):
 
         self.setDragMode(QGraphicsView.NoDrag)
 
-
-
-
         # Initialize 2D array for icon items
         self.desktop_icons = []
-
-        
 
         # Initialize a timer for debouncing update_icon_visibility
         self.resize_timer = QTimer()
         self.resize_timer.setInterval(200)  # Adjust the interval to your preference (in ms)
         self.resize_timer.setSingleShot(True)
         self.resize_timer.timeout.connect(self.update_icon_visibility)
-
-        # Example of calling a function for a DesktopIcon
-        # self.desktop_icons[3][1].set_color("black") function removed but calling remains the same syntax
 
         # Set the scene rectangle to be aligned with the top-left corner with padding
         self.scene.setSceneRect(0, 0, self.width(), self.height())
@@ -97,8 +89,6 @@ class DesktopGrid(QGraphicsView):
         MEDIA_PLAYER.setVideoOutput(self.video_item)
         MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
 
-        # Only run _fresh_ for launch to init all visibilities.
-        self.update_fresh_icon_visiblity()
         self.render_bg()
 
     def populate_icons(self):
@@ -390,8 +380,6 @@ class DesktopGrid(QGraphicsView):
         # Return the position as a QPoint
         return QPoint(x_pos, y_pos)
 
-
-
     # returns base DATA_DIRECTORY/[row, col]
     def get_data_icon_dir(self, row, col):
         data_directory = get_data_directory()
@@ -507,13 +495,6 @@ class DesktopGrid(QGraphicsView):
         self.scene.clear()
         self.populate_icons()
 
-
-    #### Delete these Temporarily included just to allow changing icons sizes by setting.
-
-    # Change this call from settings_menu.py when fully swapping new_grid and desktop_grid
-    def update_label_size(self,size):
-        self.update_icon_size(size)
-
     
 
 
@@ -532,7 +513,6 @@ class DesktopIcon(QGraphicsItem):
         self.movie = None # For loading a gif
         self.init_movie() # Load movie if .gif icon_path
 
-        #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
         self.icon_size = icon_size
@@ -642,7 +622,6 @@ class DesktopIcon(QGraphicsItem):
                 self.movie = None
                 return
 
-            # Connect the frameChanged signal to update the item
             self.movie.frameChanged.connect(self.on_frame_changed)
             self.movie.start()
         else:
@@ -650,7 +629,7 @@ class DesktopIcon(QGraphicsItem):
     
     def on_frame_changed(self, frame):
         if frame != -1:
-            self.update()  # Repaint this QGraphicsItem
+            self.update() 
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -730,14 +709,11 @@ class DesktopIcon(QGraphicsItem):
         logger.info(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
             MEDIA_PLAYER.pause()
-            #menu = Menu(None, parent=self)
             view = self.scene().views()[0]
             view.show_grid_menu(self.row, self.col)
-            #menu.resize(dialog_width, dialog_height)
-            
-            #menu.exec()
             MEDIA_PLAYER.play()
-        #if icon has an executable_path already (icon exists with path)
+        # if Icon is non-default. Note: This does not mean it has a valid exec_path or website_link.
+        # No or invalid exec_path/website_link will either give an error like not found. Or No successful launch detected.
         elif event.button() == Qt.LeftButton:
             self.run_program()
     
@@ -888,21 +864,11 @@ class DesktopIcon(QGraphicsItem):
     def context_menu_closed(self):
         logger.debug("Context menu closed")
         self.normal_mode_icon()
-        #self.timer_right_click.timeout.connect(self.context_close)
-        #self.timer_right_click.start(100) 
 
     def edit_triggered(self):
         MEDIA_PLAYER.pause()
-        # Before this I need to set it into edit mode.
         view = self.scene().views()[0]
         view.show_grid_menu(self.row, self.col)
-        #menu = Menu(None, self.row, self.col, parent=None)
-        #main_window_width, main_window_height = self.get_view_size()
-        #dialog_width = main_window_width / 2
-        #dialog_height = main_window_height / 2
-        #menu.resize(dialog_width, dialog_height)
-        #menu.exec()
-        # After this it should go back to normal mode.
         MEDIA_PLAYER.play()
 
 
@@ -942,8 +908,7 @@ class DesktopIcon(QGraphicsItem):
             # Calculate the distance moved, but don't move the item
             distance = (event.pos() - self.start_pos).manhattanLength()
             if distance > 5:  # A threshold to consider as dragging
-                # Optionally, you can change the cursor to indicate dragging
-                self.setCursor(Qt.ClosedHandCursor)  # Example: Change cursor appearance
+                self.setCursor(Qt.ClosedHandCursor) 
 
 
     def mouseReleaseEvent(self, event):
@@ -986,13 +951,3 @@ class DesktopIcon(QGraphicsItem):
             
             
             self.update()
-
-
-
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = DesktopGrid()
-    window.show()
-    sys.exit(app.exec())

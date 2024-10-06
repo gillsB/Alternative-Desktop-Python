@@ -235,7 +235,7 @@ class SettingsDialog(QDialog):
 
     def label_size_changed(self, i):
         self.set_changed()
-        self.parent().grid_widget.update_label_size(i)
+        self.parent().grid_widget.update_icon_size(i)
 
 
     def save_settings(self):
@@ -335,7 +335,7 @@ class SettingsDialog(QDialog):
         window_opacity = self.settings.get("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
-        self.parent().grid_widget.update_label_size(self.settings.get("icon_size"))
+        self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
