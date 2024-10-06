@@ -500,13 +500,11 @@ class DesktopGrid(QGraphicsView):
             counter += 1
         return new_folder
     
-    def change_max_rows(self, rows):
-        global MAX_ROWS
+    def change_max_grid_dimensions(self, rows, cols):
+        global MAX_ROWS, MAX_COLS
         MAX_ROWS = rows
-        self.populate_icons()
-    def change_max_cols(self, cols):
-        global MAX_COLS
         MAX_COLS = cols
+        self.scene.clear()
         self.populate_icons()
 
 

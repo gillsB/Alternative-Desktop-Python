@@ -287,8 +287,7 @@ class SettingsDialog(QDialog):
 
             # Can be a quite heavy impact so only redraw when these values have changed.
             if self.redraw_request:
-                self.parent().grid_widget.change_max_rows(self.max_rows_sb.value())
-                self.parent().grid_widget.change_max_cols(self.max_cols_sb.value())
+                self.parent().grid_widget.change_max_grid_dimensions(self.max_rows_sb.value(), self.max_cols_sb.value())
         
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
         self.accept()
