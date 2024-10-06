@@ -4,7 +4,7 @@ from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder
+from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder, change_launch
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning
@@ -501,8 +501,12 @@ class DesktopGrid(QGraphicsView):
 class DesktopIcon(QGraphicsItem):
     def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
         super().__init__(parent)
+
+        # Need to be changed manually usually by DesktopGrid (self.desktop_icons[row][col].row = X)
         self.row = row
         self.col = col
+
+        # Reloaded fields can simply be refreshed to match current config by reload_from_config()
         self.name = name
         self.icon_path = icon_path
         self.executable_path = executable_path
@@ -527,6 +531,7 @@ class DesktopIcon(QGraphicsItem):
         self.edit_mode = False
 
     def reload_from_config(self):
+        logger.info("Reloaded self fields from config.")
         data = get_item_data(self.row, self.col)
         self.name = data['name']
         self.icon_path = data['icon_path']
@@ -858,6 +863,28 @@ class DesktopIcon(QGraphicsItem):
         edit_action.triggered.connect(self.edit_triggered)
         context_menu.addAction(edit_action)
 
+        context_menu.addSeparator()
+
+        #Launch Options submenu section
+        launch_options_sm = QMenu("Launch Options", context_menu)
+    
+        action_names = [
+            "Launch first found",
+            "Prioritize Website links",
+            "Ask upon launching",
+            "Executable only",
+            "Website Link only"
+        ]
+    
+        for i, name in enumerate(action_names, start=0):
+            action = QAction(name, context_menu)
+            action.triggered.connect(lambda checked, pos=i: self.update_launch_option(pos))
+            action.setCheckable(True)
+            action.setChecked(i ==  self.launch_option)
+            launch_options_sm.addAction(action)
+
+        context_menu.addMenu(launch_options_sm)
+
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
 
@@ -870,6 +897,10 @@ class DesktopIcon(QGraphicsItem):
         view = self.scene().views()[0]
         view.show_grid_menu(self.row, self.col)
         MEDIA_PLAYER.play()
+
+    def update_launch_option(self, pos):
+        change_launch(pos, self.row, self.col)
+        self.reload_from_config()
 
 
     def get_view_size(self):
