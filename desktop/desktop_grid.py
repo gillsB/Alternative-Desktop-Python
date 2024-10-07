@@ -891,6 +891,12 @@ class DesktopIcon(QGraphicsItem):
         executable_action.triggered.connect(self.run_executable)
         context_menu.addAction(executable_action)
 
+        website_link_action = QAction('Open Website in browser', context_menu)
+        website_link_action.triggered.connect(self.run_website_link)
+        context_menu.addAction(website_link_action)
+
+        context_menu.addSeparator()
+
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
 
