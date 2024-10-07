@@ -7,7 +7,7 @@ from util.settings import get_setting
 from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder, change_launch
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
-from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning
+from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, display_path_and_parent_not_exist_warning
 from desktop.desktop_grid_menu import Menu
 import sys
 import os
@@ -897,6 +897,15 @@ class DesktopIcon(QGraphicsItem):
 
         context_menu.addSeparator()
 
+        #Open Icon and Executable section
+        icon_path_action = QAction('Open Icon location', context_menu)
+        icon_path_action.triggered.connect(lambda: self.open_path(self.icon_path))
+        context_menu.addAction(icon_path_action)
+
+        exec_path_action = QAction('Open Executable location', context_menu)
+        exec_path_action.triggered.connect(lambda: self.open_path(self.executable_path))
+        context_menu.addAction(exec_path_action)
+
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
 
@@ -913,6 +922,26 @@ class DesktopIcon(QGraphicsItem):
     def update_launch_option(self, pos):
         change_launch(pos, self.row, self.col)
         self.reload_from_config()
+
+    def open_path(self, path):
+        normalized_path = os.path.normpath(path)
+        
+        # Check if the file exists
+        if os.path.exists(normalized_path):
+            # Open the folder and highlight the file in Explorer
+            subprocess.run(['explorer', '/select,', normalized_path])
+        else:
+            # Get the parent directory
+            parent_directory = os.path.dirname(normalized_path)
+            
+            # Check if the parent directory exists
+            if os.path.exists(parent_directory):
+                # Open the parent directory in Explorer
+                subprocess.run(['explorer', parent_directory])
+            else:
+                # Show error if neither the file nor the parent directory exists
+                logger.warning(f"Tried to open file directory but path: {normalized_path} does not exist nor its parent: {parent_directory} exist")
+                display_path_and_parent_not_exist_warning(normalized_path)
 
 
     def get_view_size(self):
