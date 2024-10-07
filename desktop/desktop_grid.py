@@ -573,7 +573,6 @@ class DesktopIcon(QGraphicsItem):
         if not is_default(self.row, self.col):
             if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
-                    # Add elif condition for GIF support
             elif self.movie:
                 # Get the current frame and draw it
                 frame = self.movie.currentPixmap()
@@ -884,6 +883,13 @@ class DesktopIcon(QGraphicsItem):
             launch_options_sm.addAction(action)
 
         context_menu.addMenu(launch_options_sm)
+
+        context_menu.addSeparator()
+
+        # Launch executable or website section
+        executable_action = QAction('Run Executable', context_menu)
+        executable_action.triggered.connect(self.run_executable)
+        context_menu.addAction(executable_action)
 
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
