@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QPointF
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -1015,6 +1015,7 @@ class DesktopIcon(QGraphicsItem):
     def mouseReleaseEvent(self, event):
         views = self.scene().views()
         self.dragging = False
+        self.setCursor(Qt.ArrowCursor) 
 
         if event.button() == Qt.RightButton:
             # If right-click, do not perform any action related to swapping
