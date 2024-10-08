@@ -1,19 +1,20 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QPointF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder, change_launch
+from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder, change_launch, set_entry_to_default
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
-from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, display_path_and_parent_not_exist_warning
+from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, display_path_and_parent_not_exist_warning, display_delete_icon_warning
 from desktop.desktop_grid_menu import Menu
 import sys
 import os
 import logging
 import shlex
 import subprocess
+import send2trash
 
 logger = logging.getLogger(__name__)
 
@@ -482,7 +483,7 @@ class DesktopGrid(QGraphicsView):
         counter = 1
         new_folder = folder_path
         while os.path.exists(new_folder):
-            logger.Error(f"Temp file seems to already exist {new_folder}, which seems to not have been removed/renamed after last cleanup.")
+            logger.error(f"Temp file seems to already exist {new_folder}, which seems to not have been removed/renamed after last cleanup.")
             display_failed_cleanup_warning(new_folder)
             new_folder = f"{folder_path}{counter}"
             counter += 1
@@ -906,6 +907,12 @@ class DesktopIcon(QGraphicsItem):
         exec_path_action.triggered.connect(lambda: self.open_path(self.executable_path))
         context_menu.addAction(exec_path_action)
 
+        context_menu.addSeparator()
+
+        delte_action = QAction('Delete Icon', context_menu)
+        delte_action.triggered.connect(self.delete_triggered)
+        context_menu.addAction(delte_action)
+
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
 
@@ -942,6 +949,28 @@ class DesktopIcon(QGraphicsItem):
                 # Show error if neither the file nor the parent directory exists
                 logger.warning(f"Tried to open file directory but path: {normalized_path} does not exist nor its parent: {parent_directory} exist")
                 display_path_and_parent_not_exist_warning(normalized_path)
+
+    def delete_triggered(self):
+        logger.info(f"User attempted to delete {self.name}, at {self.row}, {self.col}")
+        # Show delete confirmation warning, if Ok -> delete icon. if Cancel -> do nothing.
+        if display_delete_icon_warning(self.name, self.row, self.col) == QMessageBox.Yes:   
+            logger.info(f"User confirmed deletion for {self.name}, at {self.row}, {self.col}")
+            set_entry_to_default(self.row, self.col)
+            self.delete_folder_items()
+            self.reload_from_config()
+    
+    def delete_folder_items(self):
+        # Check if the directory exists
+        data_directory = get_data_directory()
+        folder_path = os.path.join(data_directory, f'[{self.row}, {self.col}]')
+        if os.path.exists(folder_path) and os.path.isdir(folder_path):
+            # Loop through all the items in the directory
+            for item in os.listdir(folder_path):
+                item_path = os.path.join(folder_path, item)
+                logger.info(f"Deleting ITEM = {item_path}")
+                send2trash.send2trash(item_path)
+        else:
+            logger.warning(f"{folder_path} does not exist or is not a directory.")
 
 
     def get_view_size(self):
