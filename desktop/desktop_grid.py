@@ -496,6 +496,9 @@ class DesktopGrid(QGraphicsView):
         self.scene.clear()
         self.populate_icons()
 
+    def set_cursor(self, cursor):
+        QApplication.setOverrideCursor(QCursor(cursor))
+
     
 
 

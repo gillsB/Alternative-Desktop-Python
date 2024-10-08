@@ -228,7 +228,7 @@ class Menu(QDialog):
         self.parent().edit_mode_icon(ROW, COL)
 
     def auto_gen_icon(self):
-
+        self.parent().set_cursor(Qt.BusyCursor) 
         data_path = self.parent().get_data_icon_dir(ROW, COL)
         icon_size = self.parent().get_autogen_icon_size()
 
@@ -325,6 +325,8 @@ class Menu(QDialog):
                     logger.info(f"Favicon not found, created default browser image instead, saved to {path_fav_icon}")
                     fav_file = True
 
+        # Done loading time for selection.
+        self.parent().set_cursor(Qt.ArrowCursor) 
 
         if self.has_multiple_icons(path_ico_icon, path_exe_icon, path_lnk_icon, path_url_icon, path_fav_icon, path_default_file_icon):
             logger.info(f"Multiple icons detected: ico:{path_ico_icon}, exe:{path_exe_icon}, lnk:{path_lnk_icon}, url:{path_url_icon}, fav:{path_fav_icon}, default:{path_default_file_icon}")
