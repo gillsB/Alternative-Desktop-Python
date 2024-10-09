@@ -494,11 +494,16 @@ class DesktopGrid(QGraphicsView):
         global MAX_ROWS, MAX_COLS
         MAX_ROWS = rows
         MAX_COLS = cols
-        self.scene.clear()
+        self.clear_icons()
         self.populate_icons()
 
     def set_cursor(self, cursor):
         QApplication.setOverrideCursor(QCursor(cursor))
+
+    def clear_icons(self):
+        for item in self.scene.items():
+            if item != self.video_item:
+                self.scene.removeItem(item)
 
     
 
