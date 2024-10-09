@@ -26,10 +26,10 @@ LAUNCH_OPTIONS = 0
 
 
 class Menu(QDialog):
-    def __init__(self, urls, row = None, col = None, parent=None):
+    def __init__(self, urls, row = None, col = None, dropped_path = None, parent=None):
         super().__init__(parent)
         assert parent is not None
-        
+        print(f"Dropped path = {dropped_path}")
         global ROW 
         global COL 
 
@@ -136,6 +136,17 @@ class Menu(QDialog):
         main_layout.addWidget(save_button)
 
         self.setLayout(main_layout)
+        if dropped_path != None:
+            self.dropped_file(dropped_path)
+
+    
+    def dropped_file(self, dropped_path):
+        image_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.svg', '.webp')
+        # If dropped file appears to be an image file, change image_path, else set it as executable path.
+        if dropped_path.lower().endswith(image_extensions):
+            self.icon_path_le.setText(dropped_path)
+        else:
+            self.exec_path_le.setText(dropped_path)
 
 
 

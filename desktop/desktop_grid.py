@@ -45,6 +45,7 @@ class DesktopGrid(QGraphicsView):
         super().__init__()
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
+        self.setAcceptDrops(True)
 
         # Build paths for config and data directories (stored in config.py)
         create_paths()
@@ -332,8 +333,9 @@ class DesktopGrid(QGraphicsView):
             MEDIA_PLAYER.play()
 
 
-    def show_grid_menu(self, row, col):
-        menu = Menu(None, row, col, parent=self)
+    def show_grid_menu(self, row, col, dropped_path=None):
+        MEDIA_PLAYER.pause()
+        menu = Menu(None, row, col, dropped_path, parent=self)
         main_window_size = self.parent().size()
         main_window_height = main_window_size.height()
         dialog_width = main_window_size.width() / 3
@@ -372,6 +374,7 @@ class DesktopGrid(QGraphicsView):
 
         menu.resize(dialog_width, dialog_height)
         menu.exec()
+        MEDIA_PLAYER.play()
         self.desktop_icons[row][col].reload_from_config()
 
     def get_icon_position(self, row, col):
@@ -528,6 +531,7 @@ class DesktopIcon(QGraphicsItem):
         self.init_movie() # Load movie if .gif icon_path
 
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        self.setAcceptDrops(True)
 
         self.icon_size = icon_size
         self.setAcceptHoverEvents(True)
@@ -722,10 +726,8 @@ class DesktopIcon(QGraphicsItem):
     def mouseDoubleClickEvent(self, event):
         logger.info(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
-            MEDIA_PLAYER.pause()
             view = self.scene().views()[0]
             view.show_grid_menu(self.row, self.col)
-            MEDIA_PLAYER.play()
         # if Icon is non-default. Note: This does not mean it has a valid exec_path or website_link.
         # No or invalid exec_path/website_link will either give an error like not found. Or No successful launch detected.
         elif event.button() == Qt.LeftButton:
@@ -930,10 +932,8 @@ class DesktopIcon(QGraphicsItem):
         self.normal_mode_icon()
 
     def edit_triggered(self):
-        MEDIA_PLAYER.pause()
         view = self.scene().views()[0]
         view.show_grid_menu(self.row, self.col)
-        MEDIA_PLAYER.play()
 
     def update_launch_option(self, pos):
         change_launch(pos, self.row, self.col)
@@ -1062,3 +1062,26 @@ class DesktopIcon(QGraphicsItem):
             
             
             self.update()
+
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()  # Get the list of dropped files (as URLs)
+            if urls:
+                file_path = urls[0].toLocalFile()  # Convert the first URL to a local file path
+                self.handle_file_drop(file_path)
+                event.acceptProposedAction()
+
+    def handle_file_drop(self, file_path):
+        print(f"Item {file_path} dropped at icon: {self.row},{self.col}")
+        view = self.scene().views()[0]
+        view.show_grid_menu(self.row, self.col, file_path)
+
