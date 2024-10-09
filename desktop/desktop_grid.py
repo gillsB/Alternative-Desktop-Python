@@ -86,6 +86,7 @@ class DesktopGrid(QGraphicsView):
         self.load_video, self.load_image = self.background_setting()
         self.video_item = QGraphicsVideoItem()
         self.scene.addItem(self.video_item)
+        self.video_item.setZValue(-1)
         MEDIA_PLAYER = QMediaPlayer()
         MEDIA_PLAYER.setVideoOutput(self.video_item)
         MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
