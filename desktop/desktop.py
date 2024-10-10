@@ -23,6 +23,12 @@ class OverlayWidget(QWidget):
 
         self.version = current_version
         if get_setting("show_patch_notes") and patch_notes_exist():
+            # Changed on_close to default to 0 (Terminate the program). Was 1 so flip the setting if config already exists.
+            on_close = get_setting("on_close", -1)
+            if on_close == 0:
+                set_setting("on_close", 1)
+            elif on_close == 1:
+                set_setting("on_close", 0)
             set_setting("show_patch_notes", False)
             QTimer.singleShot(1000, self.show_patch_notes)
 
