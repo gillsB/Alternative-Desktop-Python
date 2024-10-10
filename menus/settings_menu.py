@@ -177,7 +177,7 @@ class SettingsDialog(QDialog):
 
         # On closing the program: Minimize to Tray or Terminiate the program
         self.on_close_cb = QComboBox()
-        on_close_options = ['Minimize to tray', 'Terminiate the program']
+        on_close_options = ['Terminiate the program', 'Minimize to tray']
         self.on_close_cb.addItems(on_close_options)
         layout.addRow("On closing the program:", self.on_close_cb)
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))

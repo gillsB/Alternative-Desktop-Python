@@ -93,7 +93,7 @@ class OverlayWidget(QWidget):
     # Override base CloseEvent to just hide it. (Tray item already exists)
     def closeEvent(self, event):
         # if "On closing the program" set to "terminate the program"
-        if get_setting("on_close", 0) == 1:
+        if get_setting("on_close", 0) == 0:
             logger.info("Program closing by closeEvent with on_close set to 'Terminiate the program' on close.")
             super(OverlayWidget, self).closeEvent(event)
         else:
