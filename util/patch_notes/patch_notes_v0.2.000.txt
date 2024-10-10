@@ -1,0 +1,15 @@
+### New desktop engine:
+- Replaced the desktop library with a QGraphicsView
+
+### Improvements with the new engine:
+- Faster launching. (~50% faster)
+- Faster resizing/redrawing the screen.
+- Icons have static positions (Old system used to scale padding based on max rows/columns).
+- Lower ram usage
+- Text outline is now possible (Was almost impossible in old engine)
+- Multi line comments now word wrap and fit within assigned space (For now hard capped at 3 lines)
+
+### Other (non-engine) improvements:
+- Edit Icon menu now appears relative to Icon position. (No longer appears in the center of the window).
+- Dragging icons now shows a closed hand cursor
+- Running auto generate icon now shows a loading cursor (rare cases can take a few seconds to auto generate icons).

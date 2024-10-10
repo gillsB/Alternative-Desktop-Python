@@ -12,7 +12,7 @@ class PatchNotesPopup(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Patch Notes")
-        self.resize(600, 500)
+        self.resize(900, 500)
         
         self.layout = QVBoxLayout(self)
         
