@@ -1,0 +1,5 @@
+### Bugfixes:
+- Fixed a bug which stopped a video background from loading. (Requiring a restart to work).
+
+### Other improvements:
+- Better version management and fallbacks for updating while skipping install versions.
