@@ -8,6 +8,7 @@ import qt_material
 from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler
 from menus.patch_notes import PatchNotesPopup, patch_notes_exist
+from util.updater import changes_from_older_versions
 import os
 import xml.etree.ElementTree as ET
 import logging
@@ -24,6 +25,8 @@ class OverlayWidget(QWidget):
         self.version = current_version
         if get_setting("show_patch_notes") and patch_notes_exist():
             set_setting("show_patch_notes", False)
+            # Fix some problems caused by updating from older versions (setting changed order etc.)
+            changes_from_older_versions()
             QTimer.singleShot(1000, self.show_patch_notes)
 
         #self.setAttribute(Qt.WA_TranslucentBackground)

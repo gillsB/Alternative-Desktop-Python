@@ -6,7 +6,7 @@ import logging
 from PySide6.QtWidgets import (QApplication, QMessageBox, QDialog, QVBoxLayout, 
                                QLabel, QProgressBar, QPushButton)
 from PySide6.QtCore import Qt, QThread, Signal
-from util.settings import set_setting
+from util.settings import set_setting, get_setting
 
 logger = logging.getLogger(__name__)
 CURRENT_VERSION = None
@@ -126,6 +126,7 @@ def install_or_redownload_menu(download_url):
 def run_installer():
     try:
         logger.info(f"Running installer: {FULL_LOCAL_PATH}")
+        set_setting("updated_from", CURRENT_VERSION)
         process = subprocess.Popen([FULL_LOCAL_PATH], close_fds=True)
         sys.exit(0)
         # Exit the program upon launching installer as the installer cannot install while program running.
@@ -147,6 +148,18 @@ def run_installer():
         #        logger.info(f"Deleted installer: {installer_path}")
         #    except OSError as e:
         #        logger.error(f"Error deleting installer: {e}")
+
+def changes_from_older_versions():
+    updated_from = get_setting("updated_from", "V0.1.000")
+    # updated_from setting added in v0.2.001 and defaults from start to "V0.1.000"
+
+    # on_close was swapped from 1 default to 0 default in V0.2.000.
+    # updating from v0.1.002 to v0.2.000 used a cheap trick to flip this.
+    # but going forward you can't just assume everyone updates every version in order
+    # Thus just reset on_close to 0 if the updated_from is from before version v0.2.001
+    if updated_from.lower() <= "v0.2.000":
+        print("updated from <=, updating on_close")
+        set_setting("on_close", 0)
 
 class DownloadThread(QThread):
     progress = Signal(int)
@@ -206,3 +219,4 @@ class DownloadWindow(QDialog):
             self.download_thread.terminate()
             logger.info("Download canceled.")
         self.reject()  # Close the dialog without downloading
+
