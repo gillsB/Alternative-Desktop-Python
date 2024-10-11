@@ -85,6 +85,7 @@ class DesktopGrid(QGraphicsView):
         # Video background stuff
         global MEDIA_PLAYER
         self.load_video, self.load_image = self.background_setting()
+        logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
         self.video_item = QGraphicsVideoItem()
         self.scene.addItem(self.video_item)
         self.video_item.setZValue(-1)
@@ -280,13 +281,17 @@ class DesktopGrid(QGraphicsView):
         old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
+        logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
         if self.load_video:
-            if old_bg_video != BACKGROUND_VIDEO:
+            # If BACKGROUND_VIDEO has changed or It is not currently playing a video (swapped from image/none to video playback).
+            if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
                 self.set_video_source(BACKGROUND_VIDEO)
+                logger.info("Set background video source")
             self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
             MEDIA_PLAYER.setSource(QUrl())  # Clear the media source
+            logger.warning("Disabled video playback and cleared source.")
 
         if self.load_image:
             background_pixmap = QPixmap(BACKGROUND_IMAGE)
@@ -315,12 +320,8 @@ class DesktopGrid(QGraphicsView):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
         BACKGROUND_VIDEO = get_setting("background_video")
         BACKGROUND_IMAGE = get_setting("background_image")
+        logger.info(f"Reloaded BG global variables from settings VIDEO = {BACKGROUND_VIDEO}, IMAGE = {BACKGROUND_IMAGE}")
     
-    def set_bg(self, background_video, background_image):
-        global BACKGROUND_VIDEO, BACKGROUND_IMAGE
-        BACKGROUND_VIDEO = background_video
-        BACKGROUND_IMAGE = background_image
-        self.render_bg()
 
     def set_video_source(self, video_path):
         MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))

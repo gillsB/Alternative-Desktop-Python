@@ -283,7 +283,7 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.set_bg(self.background_video.text(), self.background_image.text())
+            self.parent().grid_widget.load_bg_from_settings()
 
             # Can be a quite heavy impact so only redraw when these values have changed.
             if self.redraw_request:
