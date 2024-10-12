@@ -863,6 +863,7 @@ class DesktopIcon(QGraphicsItem):
     def contextMenuEvent(self, event):
         global CONTEXT_OPEN
         CONTEXT_OPEN = True
+        MEDIA_PLAYER.pause()
         context_menu = QMenu()
 
         self.edit_mode_icon()
@@ -927,6 +928,7 @@ class DesktopIcon(QGraphicsItem):
 
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.screenPos())
+        MEDIA_PLAYER.play()
 
     def context_menu_closed(self):
         logger.debug("Context menu closed")

@@ -198,8 +198,10 @@ class OverlayWidget(QWidget):
 
 
     def show_settings(self):
+        self.grid_widget.pause_video()
         dialog = SettingsDialog(parent=self)
         dialog.exec()
+        self.grid_widget.play_video()
     
     def change_opacity(self ,i):
         logger.info(f"Change opacity = {float(i/100)}")
