@@ -208,12 +208,17 @@ class DesktopGrid(QGraphicsView):
 
         #temporary override to test resizing icons.
         global ICON_SIZE
+        global FONT_SIZE
         if ICON_SIZE == 64:
             ICON_SIZE = 128
             self.update_icon_size(128)
+            FONT_SIZE = 18
+            self.desktop_icons[0][0].update_font()
         else:
             ICON_SIZE = 64
             self.update_icon_size(64)
+            FONT_SIZE = 10
+            self.desktop_icons[0][0].update_font()
         event.ignore()  # Ignore the event to prevent scrolling
 
 
@@ -512,6 +517,19 @@ class DesktopGrid(QGraphicsView):
     
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 class DesktopIcon(QGraphicsItem):
     def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
         super().__init__(parent)
@@ -555,6 +573,10 @@ class DesktopIcon(QGraphicsItem):
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
 
+
+    def update_font(self):
+        self.font = QFont(FONT, FONT_SIZE)
+        self.update()
 
 
     def update_size(self, new_size):
