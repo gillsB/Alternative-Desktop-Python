@@ -625,7 +625,7 @@ class DesktopIcon(QGraphicsItem):
                 painter.drawText(0, text_y, line)
         # DesktopIcon is default (no fields set)
         else:
-            if self.hovered:
+            if self.hovered and get_setting("show_+"):
                 painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/add.png"))
             else:
                 # paint nothing
