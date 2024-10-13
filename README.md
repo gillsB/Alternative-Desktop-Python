@@ -66,7 +66,7 @@ icoextract  (Extracting icons from .exe, pip install icoextract)
 qt-material (stylesheets, pip install qt-material)  
 send2trash (recycle bin instead of outright deletion of icons, pip install send2trash)  
 pywin32     (dealing with some windows functions, pip install pywin32 (can be somewhat annoying to install, if not working try: python -m pip install pywin32) or after installation: python Scripts/pywin32_postinstall.py -install)
-Markdown    (Markdown formatting, pip install markdown)
+Markdown    (Markdown formatting, pip install markdown)  
 Keyboard    (setting a hotkey, pip install keyboard)
 
 ### Step 1: Building .exe

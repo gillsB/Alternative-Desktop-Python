@@ -91,7 +91,10 @@ class DesktopGrid(QGraphicsView):
         self.video_item.setZValue(-1)
         MEDIA_PLAYER = QMediaPlayer()
         MEDIA_PLAYER.setVideoOutput(self.video_item)
+        MEDIA_PLAYER.setPlaybackRate(1.0)
         MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
+
+        self.setViewportUpdateMode(QGraphicsView.MinimalViewportUpdate)
 
         self.render_bg()
 
@@ -117,6 +120,7 @@ class DesktopGrid(QGraphicsView):
                 # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
                 icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
                     TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
+                icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
                 self.desktop_icons[row][col] = icon_item
                 self.scene.addItem(icon_item)
 
