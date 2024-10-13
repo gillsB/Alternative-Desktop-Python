@@ -101,6 +101,7 @@ class DesktopGrid(QGraphicsView):
     def populate_icons(self):
         icon_size = ICON_SIZE
 
+        self.desktop_icons = None
         # Create a 2D array for icon items
         self.desktop_icons = [[None for _ in range(MAX_COLS)] for _ in range(MAX_ROWS)]
 
@@ -600,6 +601,7 @@ class DesktopIcon(QGraphicsItem):
         self.update() 
 
     def paint(self, painter: QPainter, option, widget=None):
+        print(f"painting {self.row}, {self.col}")
         if self.edit_mode:
             pen = QPen(self.border_color, self.border_width)
             painter.setPen(pen)
