@@ -81,6 +81,7 @@ class DesktopGrid(QGraphicsView):
 
         self.scene.clear()
         self.populate_icons()
+        print(self.desktop_icons)
 
         # Video background stuff
         global MEDIA_PLAYER
@@ -107,23 +108,24 @@ class DesktopGrid(QGraphicsView):
 
         for row in range(MAX_ROWS):
             for col in range(MAX_COLS):
-                data = get_item_data(row, col)
-                icon_item = DesktopIcon(
-                    row, 
-                    col, 
-                    data['name'], 
-                    data['icon_path'], 
-                    data['executable_path'], 
-                    data['command_args'], 
-                    data['website_link'], 
-                    data['launch_option'],
-                    icon_size)
-                # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
-                icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
-                    TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
-                icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
-                self.desktop_icons[row][col] = icon_item
-                self.scene.addItem(icon_item)
+                if not is_default(row,col):
+                    data = get_item_data(row, col)
+                    icon_item = DesktopIcon(
+                        row, 
+                        col, 
+                        data['name'], 
+                        data['icon_path'], 
+                        data['executable_path'], 
+                        data['command_args'], 
+                        data['website_link'], 
+                        data['launch_option'],
+                        icon_size)
+                    # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
+                    icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
+                        TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
+                    icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
+                    self.desktop_icons[row][col] = icon_item
+                    self.scene.addItem(icon_item)
 
         # Initially update visibility based on the current window size
         self.update_fresh_icon_visiblity()
@@ -162,30 +164,32 @@ class DesktopGrid(QGraphicsView):
         
         # Add rows as visible
         if max_visible_rows > self.prev_max_visible_rows:
-            for x in range(self.prev_max_visible_rows, max_visible_rows):
+            for x in range(self.prev_max_visible_rows, max_visible_rows) :
                 for y in range(min(max_visible_columns, MAX_COLS)):
-                    if x < MAX_ROWS and y < MAX_COLS:  
+                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
                         self.desktop_icons[x][y].setVisible(True)
+                        print(f"{x}, {y} set visible")
 
         # Add columns as visible
         if max_visible_columns > self.prev_max_visible_columns:
             for y in range(self.prev_max_visible_columns, max_visible_columns):
                 for x in range(min(max_visible_rows, MAX_ROWS)):
-                    if x < MAX_ROWS and y < MAX_COLS:  
+                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
                         self.desktop_icons[x][y].setVisible(True)
+                        print(f"{x}, {y} set visible")
 
         # Remove Rows as visible
         if max_visible_rows < self.prev_max_visible_rows:
             for y in range(self.prev_max_visible_columns +1):
                 for x in range(max(max_visible_rows, 0), self.prev_max_visible_rows +1):
-                    if x < MAX_ROWS and y < MAX_COLS:  
+                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
                         self.desktop_icons[x][y].setVisible(False)
         
         # Remove Columns as visbile
         if max_visible_columns < self.prev_max_visible_columns:
             for x in range(self.prev_max_visible_rows +1):
                 for y in range(max(max_visible_columns, 0), self.prev_max_visible_columns +1):
-                    if x < MAX_ROWS and y < MAX_COLS:  
+                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
                         self.desktop_icons[x][y].setVisible(False)
         
         
@@ -203,9 +207,9 @@ class DesktopGrid(QGraphicsView):
         max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING)
         for x in range(MAX_ROWS):
             for y in range(MAX_COLS):
-                if x < max_visible_rows and y < max_visible_columns:
+                if x < max_visible_rows and y < max_visible_columns and self.desktop_icons[x][y]:
                     self.desktop_icons[x][y].setVisible(True)
-                else:
+                elif self.desktop_icons[x][y]:
                     self.desktop_icons[x][y].setVisible(False)
 
     # Override to do nothing to avoid scrolling
