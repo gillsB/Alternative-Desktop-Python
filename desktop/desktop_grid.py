@@ -55,9 +55,6 @@ class DesktopGrid(QGraphicsView):
         MAX_ROWS = get_setting("max_rows")
         MAX_COLS = get_setting("max_cols")
 
-        self.prev_max_visible_columns = 0
-        self.prev_max_visible_rows = 0
-
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
 
@@ -146,11 +143,11 @@ class DesktopGrid(QGraphicsView):
         view_width = self.viewport().width()
         view_height = self.viewport().height()
 
-        max_visible_columns = (view_width - SIDE_PADDING) // (ICON_SIZE + HORIZONTAL_PADDING)
-        max_visible_rows = (view_height - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING)
+        self.max_visible_rows = min((view_height - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING), MAX_ROWS)
+        self.max_visible_columns = min((view_width - SIDE_PADDING) // (ICON_SIZE + HORIZONTAL_PADDING), MAX_COLS)
 
         for (row, col), icon in self.desktop_icons.items():
-            if row < max_visible_rows and col < max_visible_columns:
+            if row < self.max_visible_rows and col < self.max_visible_columns:
                 icon.setVisible(True)
             else:
                 icon.setVisible(False)
@@ -370,7 +367,7 @@ class DesktopGrid(QGraphicsView):
         row = (pos.y() - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING)
 
         # Ensure the calculated row and column are within valid ranges
-        if 0 <= row < self.prev_max_visible_rows and 0 <= col < self.prev_max_visible_columns:
+        if 0 <= row < self.max_visible_rows and 0 <= col < self.max_visible_columns:
             return int(row), int(col)
 
         # If out of bounds, return None
@@ -462,6 +459,31 @@ class DesktopGrid(QGraphicsView):
             if item != self.video_item:
                 self.scene.removeItem(item)
 
+    def mouseDoubleClickEvent(self, event):
+            # Convert mouse position to scene coordinates
+            scene_pos = self.mapToScene(event.pos())
+            x = scene_pos.x()
+            y = scene_pos.y()
+
+            # Calculate the column and row from the scene coordinates
+            icon_size = ICON_SIZE
+            row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
+            col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
+
+            print(f"Double-clicked at row: {row}, column: {col}")
+
+            # Ensure that the row/col is within the valid range
+            if row < 0 or col < 0:
+                return
+            
+            if row >= self.max_visible_rows or col >= self.max_visible_columns:
+                logger.info("Icon outside of render distance would be called, thus return and do not call the icon.")
+                return
+
+            icon = self.desktop_icons.get((row, col))
+            if icon:
+                icon.double_click(event)
+                print(f"Double-clicked on icon: {icon.name}")
     
 
 
@@ -695,7 +717,7 @@ class DesktopIcon(QGraphicsItem):
         self.hovered = False
         self.update()
 
-    def mouseDoubleClickEvent(self, event):
+    def double_click(self, event):
         logger.info(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
         if event.button() == Qt.LeftButton and is_default(self.row, self.col):
             view = self.scene().views()[0]
