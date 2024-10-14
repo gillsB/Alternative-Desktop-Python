@@ -67,8 +67,6 @@ class DesktopGrid(QGraphicsView):
 
         self.setDragMode(QGraphicsView.NoDrag)
 
-        # Initialize 2D array for icon items
-        self.desktop_icons = []
 
         # Initialize a timer for debouncing update_icon_visibility
         self.resize_timer = QTimer()
@@ -102,13 +100,11 @@ class DesktopGrid(QGraphicsView):
     def populate_icons(self):
         icon_size = ICON_SIZE
 
-        self.desktop_icons = None
-        # Create a 2D array for icon items
-        self.desktop_icons = [[None for _ in range(MAX_COLS)] for _ in range(MAX_ROWS)]
+        self.desktop_icons = {}
 
         for row in range(MAX_ROWS):
             for col in range(MAX_COLS):
-                if not is_default(row,col):
+                if not is_default(row, col):
                     data = get_item_data(row, col)
                     icon_item = DesktopIcon(
                         row, 
@@ -120,15 +116,14 @@ class DesktopGrid(QGraphicsView):
                         data['website_link'], 
                         data['launch_option'],
                         icon_size)
-                    # setPos uses [column, row] equivalent so flip it. i.e. SIDEPADDING + y(column) = column position.
                     icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
-                        TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
+                                    TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
                     icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
-                    self.desktop_icons[row][col] = icon_item
+                    self.desktop_icons[(row, col)] = icon_item
                     self.scene.addItem(icon_item)
 
         # Initially update visibility based on the current window size
-        self.update_fresh_icon_visiblity()
+        self.update_icon_visibility()
 
 
 
@@ -145,76 +140,25 @@ class DesktopGrid(QGraphicsView):
         #self.scene.setSceneRect(0, 0, self.width(), self.height())
         #self.update_icon_visibility()
 
+
+    # Iterates through every self.desktop_icons and sets visiblity
     def update_icon_visibility(self):
-        self.scene.setSceneRect(0, 0, self.width(), self.height())
-        # Get the size of the visible area of the window
         view_width = self.viewport().width()
         view_height = self.viewport().height()
 
-        # Calculate current max visible row and column based on icon size and padding
-        # min() ensures max_visible_rows/columns cannot exceed the MAX_ROWS/MAX_COLS values.
-        max_visible_rows = min((view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING), MAX_ROWS)
-        max_visible_columns = min((view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING), MAX_COLS)
-        print(f"max columns: {max_visible_columns}, max rows: {max_visible_rows}")
+        max_visible_columns = (view_width - SIDE_PADDING) // (ICON_SIZE + HORIZONTAL_PADDING)
+        max_visible_rows = (view_height - TOP_PADDING) // (ICON_SIZE + VERTICAL_PADDING)
 
-
-        # If nothing has changed, no need to proceed
-        if max_visible_columns == self.prev_max_visible_columns and max_visible_rows == self.prev_max_visible_rows:
-            return
-        
-        # Add rows as visible
-        if max_visible_rows > self.prev_max_visible_rows:
-            for x in range(self.prev_max_visible_rows, max_visible_rows) :
-                for y in range(min(max_visible_columns, MAX_COLS)):
-                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
-                        self.desktop_icons[x][y].setVisible(True)
-                        print(f"{x}, {y} set visible")
-
-        # Add columns as visible
-        if max_visible_columns > self.prev_max_visible_columns:
-            for y in range(self.prev_max_visible_columns, max_visible_columns):
-                for x in range(min(max_visible_rows, MAX_ROWS)):
-                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
-                        self.desktop_icons[x][y].setVisible(True)
-                        print(f"{x}, {y} set visible")
-
-        # Remove Rows as visible
-        if max_visible_rows < self.prev_max_visible_rows:
-            for y in range(self.prev_max_visible_columns +1):
-                for x in range(max(max_visible_rows, 0), self.prev_max_visible_rows +1):
-                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
-                        self.desktop_icons[x][y].setVisible(False)
-        
-        # Remove Columns as visbile
-        if max_visible_columns < self.prev_max_visible_columns:
-            for x in range(self.prev_max_visible_rows +1):
-                for y in range(max(max_visible_columns, 0), self.prev_max_visible_columns +1):
-                    if x < MAX_ROWS and y < MAX_COLS and self.desktop_icons[x][y]:  
-                        self.desktop_icons[x][y].setVisible(False)
-        
-        
-
-        self.prev_max_visible_columns = max_visible_columns
-        self.prev_max_visible_rows = max_visible_rows
-
-    # Iterates through every self.desktop_icons and sets visiblity (more costly than self.update_icon_visibility)
-    # Generally only use this on launching the program to set the defaults and then update them from there normally.
-    def update_fresh_icon_visiblity(self):
-        view_width = self.viewport().width()
-        view_height = self.viewport().height()
-
-        max_visible_columns = (view_width - SIDE_PADDING) // (self.desktop_icons[0][0].icon_size + HORIZONTAL_PADDING)
-        max_visible_rows = (view_height - TOP_PADDING) // (self.desktop_icons[0][0].icon_size + VERTICAL_PADDING)
-        for x in range(MAX_ROWS):
-            for y in range(MAX_COLS):
-                if x < max_visible_rows and y < max_visible_columns and self.desktop_icons[x][y]:
-                    self.desktop_icons[x][y].setVisible(True)
-                elif self.desktop_icons[x][y]:
-                    self.desktop_icons[x][y].setVisible(False)
+        for (row, col), icon in self.desktop_icons.items():
+            if row < max_visible_rows and col < max_visible_columns:
+                icon.setVisible(True)
+            else:
+                icon.setVisible(False)
 
     # Override to do nothing to avoid scrolling
     def wheelEvent(self, event):
-
+        row, col = self.find_largest_visible_index()
+        print(f"Max row = {row} max col = {col}")
         #temporary override to test resizing icons.
         global ICON_SIZE
         global FONT_SIZE
@@ -222,12 +166,12 @@ class DesktopGrid(QGraphicsView):
             ICON_SIZE = 128
             self.update_icon_size(128)
             FONT_SIZE = 18
-            self.desktop_icons[0][0].update_font()
+            self.desktop_icons[(0,0)].update_font()
         else:
             ICON_SIZE = 64
             self.update_icon_size(64)
             FONT_SIZE = 10
-            self.desktop_icons[0][0].update_font()
+            self.desktop_icons[(0,0)].update_font()
         event.ignore()  # Ignore the event to prevent scrolling
 
 
@@ -237,11 +181,10 @@ class DesktopGrid(QGraphicsView):
         # Update the size of each icon and adjust their position
         global ICON_SIZE
         ICON_SIZE = size
-        for x in range(MAX_ROWS):
-            for y in range(MAX_COLS):
-                self.desktop_icons[x][y].update_size(size)
-                self.desktop_icons[x][y].setPos(SIDE_PADDING + y * (size + HORIZONTAL_PADDING), 
-                                TOP_PADDING + x * (size + VERTICAL_PADDING))
+        for (row, col), icon in self.desktop_icons.items():
+            icon.update_size(size)
+            icon.setPos(SIDE_PADDING + col * (size + HORIZONTAL_PADDING), 
+                            TOP_PADDING + row * (size + VERTICAL_PADDING))
 
         # Update the scene rectangle and visibility after resizing icons
         self.update_icon_visibility()
@@ -252,17 +195,13 @@ class DesktopGrid(QGraphicsView):
         largest_visible_row = -1
         largest_visible_column = -1
 
-        # Find the largest visible row
-        for row in range(MAX_ROWS):
-            for column in range(MAX_COLS):
-                if self.desktop_icons[row][column].isVisible():
-                    largest_visible_row = max(largest_visible_row, row)
-
-        # Find the largest visible column
-        for column in range(MAX_COLS):
-            for row in range(MAX_ROWS):
-                if self.desktop_icons[row][column].isVisible():
-                    largest_visible_column = max(largest_visible_column, column)
+        # Iterate through the dictionary to find the largest visible row and column
+        for (row, col), icon in self.desktop_icons.items():
+            if icon.isVisible():
+                # Update largest visible row
+                largest_visible_row = max(largest_visible_row, row)
+                # Update largest visible column
+                largest_visible_column = max(largest_visible_column, col)
 
         return largest_visible_row, largest_visible_column
     
@@ -390,7 +329,7 @@ class DesktopGrid(QGraphicsView):
         menu.resize(dialog_width, dialog_height)
         menu.exec()
         MEDIA_PLAYER.play()
-        self.desktop_icons[row][col].reload_from_config()
+        self.desktop_icons[(row, col)].reload_from_config()
 
     def get_icon_position(self, row, col):
         # Calculate the position of the icon based on row and col
@@ -415,13 +354,13 @@ class DesktopGrid(QGraphicsView):
         return AUTOGEN_ICON_SIZE
     
     def set_icon_path(self, row, col, new_icon_path):
-        self.desktop_icons[row][col].update_icon_path(new_icon_path)
+        self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
 
     def edit_mode_icon(self, row, col):
-        self.desktop_icons[row][col].edit_mode_icon()
+        self.desktop_icons[(row, col)].edit_mode_icon()
 
     def normal_mode_icon(self, row, col):
-        self.desktop_icons[row][col].normal_mode_icon()
+        self.desktop_icons[(row, col)].normal_mode_icon()
 
     def icon_dropped(self, pos):
         # Calculate the column based on the X position of the mouse
@@ -440,8 +379,8 @@ class DesktopGrid(QGraphicsView):
     
     def swap_icons(self, old_row, old_col, new_row, new_col):
         # Get the items to swap
-        item1 = self.desktop_icons[old_row][old_col]
-        item2 = self.desktop_icons[new_row][new_col]
+        item1 = self.desktop_icons[(old_row, old_col)]
+        item2 = self.desktop_icons[(new_row, new_col)]
         
         if item1 is None or item2 is None:
             # Handle cases where one of the items does not exist
@@ -465,9 +404,9 @@ class DesktopGrid(QGraphicsView):
         item2.col = old_col
 
         # Update the desktop_icons array to reflect the swap
-        self.desktop_icons[old_row][old_col], self.desktop_icons[new_row][new_col] = (
-            self.desktop_icons[new_row][new_col],
-            self.desktop_icons[old_row][old_col]
+        self.desktop_icons[(old_row, old_col)], self.desktop_icons[(new_row, new_col)] = (
+            self.desktop_icons[(new_row, new_col)],
+            self.desktop_icons[(old_row, old_col)]
         )
 
         swap_items_by_position(old_row, old_col, new_row, new_col)
@@ -543,7 +482,7 @@ class DesktopIcon(QGraphicsItem):
     def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
         super().__init__(parent)
 
-        # Need to be changed manually usually by DesktopGrid (self.desktop_icons[row][col].row = X)
+        # Need to be changed manually usually by DesktopGrid (self.desktop_icons[(row, col)].row = X)
         self.row = row
         self.col = col
 
