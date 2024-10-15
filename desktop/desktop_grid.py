@@ -326,7 +326,8 @@ class DesktopGrid(QGraphicsView):
         menu.resize(dialog_width, dialog_height)
         menu.exec()
         MEDIA_PLAYER.play()
-        self.desktop_icons[(row, col)].reload_from_config()
+        if (row, col) in self.desktop_icons:
+            self.desktop_icons[(row, col)].reload_from_config()
 
     def get_icon_position(self, row, col):
         # Calculate the position of the icon based on row and col
@@ -356,10 +357,22 @@ class DesktopGrid(QGraphicsView):
     def edit_mode_icon(self, row, col):
         if (row, col) in self.desktop_icons:
             self.desktop_icons[(row, col)].edit_mode_icon()
+        else:
+            # Add red border item
+            self.red_border_item = RedBorderItem(col, row)
+            self.red_border_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
+                            TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
+            self.scene.addItem(self.red_border_item)
 
 
     def normal_mode_icon(self, row, col):
-        self.desktop_icons[(row, col)].normal_mode_icon()
+        if (row, col) in self.desktop_icons:
+            self.desktop_icons[(row, col)].normal_mode_icon()
+
+        # Remove self.red_border_item if it exists.
+        if hasattr(self, 'red_border_item') and self.red_border_item is not None:
+            self.scene.removeItem(self.red_border_item)
+            self.red_border_item = None
 
     def icon_dropped(self, pos):
         # Calculate the column based on the X position of the mouse
@@ -514,6 +527,31 @@ class DesktopGrid(QGraphicsView):
 
 
 
+class RedBorderItem(QGraphicsItem):
+    def __init__(self, col, row):
+        super().__init__()
+        self.col = col
+        self.row = row
+        self.border_width = 5
+        self.border_color = QColor(Qt.red)
+        x_pos = SIDE_PADDING + self.col * (ICON_SIZE + HORIZONTAL_PADDING)
+        y_pos = TOP_PADDING + self.row * (ICON_SIZE + VERTICAL_PADDING)
+        self.setPos(x_pos, y_pos)
+        
+        self.border_size = ICON_SIZE
+    
+    def boundingRect(self):
+        return QRectF(0, 0, self.border_size, self.border_size)
+    
+    def paint(self, painter, option, widget=None):
+        pen = QPen(self.border_color, self.border_width)
+        painter.setPen(pen)
+        rect = self.boundingRect()
+        adjusted_rect = rect.adjusted(self.border_width / 2, 
+                                        self.border_width / 2, 
+                                        -self.border_width / 2, 
+                                        -self.border_width / 2)
+        painter.drawRect(adjusted_rect)
 
 
 
