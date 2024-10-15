@@ -204,7 +204,7 @@ class Menu(QDialog):
         elif os.path.isfile(self.exec_path_le.text()) or self.web_link_le.text() != "":
             logger.info("Called save with existing exec_path or a web_link")
             logger.info(f"Arguments: valid exec_path: {os.path.isfile(self.exec_path_le.text())} {self.exec_path_le.text()}, website_link: {self.web_link_le.text() != ''}, {self.web_link_le.text()}")
-            if self.exec_path_le != "" and not os.path.isfile(self.exec_path_le.text()):
+            if self.exec_path_le.text() != "" and not os.path.isfile(self.exec_path_le.text()):
                 # Show warning if user clicks cancel -> return and do not save, if Ok -> save
                 if display_executable_file_path_warning(self.exec_path_le.text()) == QMessageBox.Yes:
                     logger.info("User chose to save regardless")
@@ -406,8 +406,9 @@ class Menu(QDialog):
             new_config = self.edit_entry(config)
         else:
             new_config = self.add_entry(config)
+            
 
-
+        self.parent().add_icon(ROW, COL)
         save_config_to_file(new_config)
         self.close()
 

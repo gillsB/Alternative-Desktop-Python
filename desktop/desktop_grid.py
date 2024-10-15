@@ -95,12 +95,12 @@ class DesktopGrid(QGraphicsView):
         self.render_bg()
 
     def populate_icons(self):
-        icon_size = ICON_SIZE
 
         self.desktop_icons = {}
 
         for row in range(MAX_ROWS):
             for col in range(MAX_COLS):
+                # Don't add empty icons
                 if not is_default(row, col):
                     data = get_item_data(row, col)
                     icon_item = DesktopIcon(
@@ -112,9 +112,9 @@ class DesktopGrid(QGraphicsView):
                         data['command_args'], 
                         data['website_link'], 
                         data['launch_option'],
-                        icon_size)
-                    icon_item.setPos(SIDE_PADDING + col * (icon_size + HORIZONTAL_PADDING), 
-                                    TOP_PADDING + row * (icon_size + VERTICAL_PADDING))
+                        ICON_SIZE)
+                    icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
+                                    TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
                     icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
                     self.desktop_icons[(row, col)] = icon_item
                     self.scene.addItem(icon_item)
@@ -488,6 +488,28 @@ class DesktopGrid(QGraphicsView):
                 print(f"Double-clicked on icon: {icon.name}")
             else:
                 self.show_grid_menu(row, col)
+
+    
+    def add_icon(self, row, col):
+        icon = self.desktop_icons.get((row, col))
+        print(f"add_icon icon = {icon}")
+        if icon is None:
+            data = get_item_data(row, col)
+            icon_item = DesktopIcon(
+                row, 
+                col, 
+                data['name'], 
+                data['icon_path'], 
+                data['executable_path'], 
+                data['command_args'], 
+                data['website_link'], 
+                data['launch_option'],
+                ICON_SIZE)
+            icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
+                            TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
+            icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
+            self.desktop_icons[(row, col)] = icon_item
+            self.scene.addItem(icon_item)
     
 
 
