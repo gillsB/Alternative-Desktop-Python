@@ -354,7 +354,9 @@ class DesktopGrid(QGraphicsView):
         self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
 
     def edit_mode_icon(self, row, col):
-        self.desktop_icons[(row, col)].edit_mode_icon()
+        if (row, col) in self.desktop_icons:
+            self.desktop_icons[(row, col)].edit_mode_icon()
+
 
     def normal_mode_icon(self, row, col):
         self.desktop_icons[(row, col)].normal_mode_icon()
@@ -484,6 +486,8 @@ class DesktopGrid(QGraphicsView):
             if icon:
                 icon.double_click(event)
                 print(f"Double-clicked on icon: {icon.name}")
+            else:
+                self.show_grid_menu(row, col)
     
 
 
