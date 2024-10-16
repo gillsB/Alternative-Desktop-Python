@@ -529,6 +529,19 @@ class DesktopGrid(QGraphicsView):
         if icon:
             print(f"Showing context menu for icon: {icon.name}")
             icon.context_menu(event)
+        else:
+            MEDIA_PLAYER.pause()
+            context_menu = QMenu()
+            self.edit_mode_icon(row, col)
+
+            edit_action = QAction('Edit Icon', context_menu)
+            edit_action.triggered.connect(lambda: self.show_grid_menu(row, col))
+            context_menu.addAction(edit_action)
+
+            context_menu.aboutToHide.connect(lambda: self.normal_mode_icon(row, col))
+            context_menu.exec(event.globalPos())
+            MEDIA_PLAYER.play()
+
             
     
     def add_icon(self, row, col):
@@ -955,8 +968,6 @@ class DesktopIcon(QGraphicsItem):
         return True
     
     def context_menu(self, event):
-        global CONTEXT_OPEN
-        CONTEXT_OPEN = True
         MEDIA_PLAYER.pause()
         context_menu = QMenu()
 
