@@ -523,6 +523,15 @@ class DesktopGrid(QGraphicsView):
             icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
             self.desktop_icons[(row, col)] = icon_item
             self.scene.addItem(icon_item)
+
+    def delete_icon(self, row, col):
+        logger.info(f"delete_icon called with {row} {col}")
+        try:
+            self.scene.removeItem(self.desktop_icons[(row, col)])
+            del self.desktop_icons[(row, col)]
+        except Exception as e:
+            logger.error(f"Problem removing deleted item from self.desktop_icons: {e}")
+
     
 
 
@@ -1027,6 +1036,14 @@ class DesktopIcon(QGraphicsItem):
             set_entry_to_default(self.row, self.col)
             self.delete_folder_items()
             self.reload_from_config()
+
+            # Delete icon and references from QGraphicsView (To stop it from repainting on hover.)
+            views = self.scene().views()
+            if views:
+                view = views[0]
+                view.delete_icon(self.row, self.col)
+
+        
     
     def delete_folder_items(self):
         # Check if the directory exists

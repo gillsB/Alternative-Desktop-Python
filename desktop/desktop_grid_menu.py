@@ -29,7 +29,6 @@ class Menu(QDialog):
     def __init__(self, urls, row = None, col = None, dropped_path = None, parent=None):
         super().__init__(parent)
         assert parent is not None
-        print(f"Dropped path = {dropped_path}")
         global ROW 
         global COL 
 
