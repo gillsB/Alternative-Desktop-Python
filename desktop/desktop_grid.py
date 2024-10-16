@@ -475,33 +475,61 @@ class DesktopGrid(QGraphicsView):
                 self.scene.removeItem(item)
 
     def mouseDoubleClickEvent(self, event):
-            # Convert mouse position to scene coordinates
-            scene_pos = self.mapToScene(event.pos())
-            x = scene_pos.x()
-            y = scene_pos.y()
+        # Convert mouse position to scene coordinates
+        scene_pos = self.mapToScene(event.pos())
+        x = scene_pos.x()
+        y = scene_pos.y()
 
-            # Calculate the column and row from the scene coordinates
-            icon_size = ICON_SIZE
-            row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
-            col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
+        # Calculate the column and row from the scene coordinates
+        icon_size = ICON_SIZE
+        row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
+        col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
 
-            print(f"Double-clicked at row: {row}, column: {col}")
+        print(f"Double-clicked at row: {row}, column: {col}")
 
-            # Ensure that the row/col is within the valid range
-            if row < 0 or col < 0:
-                return
+        # Ensure that the row/col is within the valid range
+        if row < 0 or col < 0:
+            return
+        
+        if row >= self.max_visible_rows or col >= self.max_visible_columns:
+            logger.info("Icon outside of render distance would be called, thus return and do not call the icon.")
+            return
+
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            print(f"Double-clicked on icon: {icon.name}")
+            icon.double_click(event)  
+        else:
+            self.show_grid_menu(row, col)
+
+    def contextMenuEvent(self, event):
+        # Get the global position of the event
+        global_position = event.globalPos()
+        view_position = self.mapFromGlobal(global_position)
+        scene_position = self.mapToScene(view_position)
+        x = scene_position.x()
+        y = scene_position.y()
+
+        # Calculate the column and row from the scene coordinates
+        icon_size = ICON_SIZE
+        row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
+        col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
+
+        print(f"Right click at row: {row}, column: {col}")
+
+        # Ensure that the row/col is within the valid range
+        if row < 0 or col < 0:
+            return
+        
+        if row >= self.max_visible_rows or col >= self.max_visible_columns:
+            logger.info("Icon outside of render distance would be called, thus return and do not show a context menu")
+            return
+
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            print(f"Showing context menu for icon: {icon.name}")
+            icon.context_menu(event)
             
-            if row >= self.max_visible_rows or col >= self.max_visible_columns:
-                logger.info("Icon outside of render distance would be called, thus return and do not call the icon.")
-                return
-
-            icon = self.desktop_icons.get((row, col))
-            if icon:
-                icon.double_click(event)
-                print(f"Double-clicked on icon: {icon.name}")
-            else:
-                self.show_grid_menu(row, col)
-
     
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
@@ -926,7 +954,7 @@ class DesktopIcon(QGraphicsItem):
                 return self.run_website_link()
         return True
     
-    def contextMenuEvent(self, event):
+    def context_menu(self, event):
         global CONTEXT_OPEN
         CONTEXT_OPEN = True
         MEDIA_PLAYER.pause()
@@ -993,7 +1021,7 @@ class DesktopIcon(QGraphicsItem):
         context_menu.addAction(delte_action)
 
         context_menu.aboutToHide.connect(self.context_menu_closed)
-        context_menu.exec(event.screenPos())
+        context_menu.exec(event.globalPos())
         MEDIA_PLAYER.play()
 
     def context_menu_closed(self):
