@@ -607,7 +607,14 @@ class DesktopGrid(QGraphicsView):
         if icon:
             print(f"Dropping file to: {icon.name}")
             icon.drop_event(event)
-
+            event.acceptProposedAction()
+        else:
+            if event.mimeData().hasUrls():
+                urls = event.mimeData().urls()  # Get the list of dropped files (as URLs)
+                if urls:
+                    file_path = urls[0].toLocalFile()  # Convert the first URL to a local file path
+                    event.acceptProposedAction()
+                self.show_grid_menu(row, col, file_path)
         
 
     
