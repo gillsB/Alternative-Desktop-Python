@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QPointF
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -75,8 +75,6 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(0, 0, self.width(), self.height())
 
         self.scene.clear()
-        self.populate_icons()
-        print(self.desktop_icons)
 
         # Video background stuff
         global MEDIA_PLAYER
@@ -93,6 +91,7 @@ class DesktopGrid(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.MinimalViewportUpdate)
 
         self.render_bg()
+        self.populate_icons()
 
     def populate_icons(self):
 
@@ -102,22 +101,7 @@ class DesktopGrid(QGraphicsView):
             for col in range(MAX_COLS):
                 # Don't add empty icons
                 if not is_default(row, col):
-                    data = get_item_data(row, col)
-                    icon_item = DesktopIcon(
-                        row, 
-                        col, 
-                        data['name'], 
-                        data['icon_path'], 
-                        data['executable_path'], 
-                        data['command_args'], 
-                        data['website_link'], 
-                        data['launch_option'],
-                        ICON_SIZE)
-                    icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
-                                    TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
-                    icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
-                    self.desktop_icons[(row, col)] = icon_item
-                    self.scene.addItem(icon_item)
+                    self.add_icon(row, col)
 
         # Initially update visibility based on the current window size
         self.update_icon_visibility()
@@ -561,7 +545,6 @@ class DesktopGrid(QGraphicsView):
                 ICON_SIZE)
             icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
-            icon_item.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
             self.desktop_icons[(row, col)] = icon_item
             self.scene.addItem(icon_item)
 
@@ -665,6 +648,7 @@ class DesktopIcon(QGraphicsItem):
         # Need to be changed manually usually by DesktopGrid (self.desktop_icons[(row, col)].row = X)
         self.row = row
         self.col = col
+        self.pixmap = None
 
         # Reloaded fields can simply be refreshed to match current config by reload_from_config()
         self.name = name
@@ -690,6 +674,8 @@ class DesktopIcon(QGraphicsItem):
         self.border_color = QColor(Qt.red)
 
         self.edit_mode = False
+        self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
+        self.load_pixmap()
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
@@ -700,6 +686,7 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
+        self.load_pixmap()
 
 
     def update_font(self):
@@ -723,6 +710,39 @@ class DesktopIcon(QGraphicsItem):
         self.edit_mode = False
         self.update() 
 
+    def load_pixmap(self):
+        logger.debug(f"Loading pixmap for {self.row}, {self.col}: {self.icon_path}")
+        if self.icon_path and os.path.exists(self.icon_path):
+            cached_pixmap = QPixmapCache.find(self.icon_path)
+            if cached_pixmap:
+                logger.debug(f"Cached pixmap found for {self.icon_path}")
+                self.pixmap = cached_pixmap
+            else:
+                logger.debug(f"Loading pixmap directly: {self.icon_path}")
+                self.pixmap = QPixmap(self.icon_path)
+                if self.pixmap.isNull():
+                    logger.error(f"Failed to load pixmap from {self.icon_path}")
+                    self.load_unknown_pixmap()
+                else:
+                    QPixmapCache.insert(self.icon_path, self.pixmap)  # Cache the loaded pixmap
+            self.update()
+        else:
+            logger.warning(f"Invalid icon path: {self.icon_path}")
+            self.load_unknown_pixmap()
+
+    def load_unknown_pixmap(self):
+        unknown_path = "assets/images/unknown.png"
+        if os.path.exists(unknown_path):
+            self.pixmap = QPixmap(unknown_path)
+            if self.pixmap.isNull():
+                logger.error(f"Failed to load unknown.png")
+            else:
+                QPixmapCache.insert("unknown", self.pixmap)
+        else:
+            logger.error(f"unknown.png not found at {unknown_path}")
+        self.update()
+
+
     def paint(self, painter: QPainter, option, widget=None):
         print(f"painting {self.row}, {self.col}")
         if self.edit_mode:
@@ -737,17 +757,22 @@ class DesktopIcon(QGraphicsItem):
             painter.drawRect(adjusted_rect)
 
         if not is_default(self.row, self.col):
-            if not os.path.exists(self.icon_path) or self.icon_path == "" or self.icon_path == "unknown.png":
-                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/unknown.png"))
-            elif self.movie:
+            if self.movie:
                 # Get the current frame and draw it
                 frame = self.movie.currentPixmap()
                 if not frame.isNull():
                     painter.drawPixmap(2, 2, self.icon_size - 4, self.icon_size - 2, frame)
                 else:
                     logger.error(f"Warning: Frame: {frame} is null.")
+            elif self.pixmap and not self.pixmap.isNull():
+                painter.drawPixmap(2, 2, self.icon_size - 4, self.icon_size - 2, self.pixmap)
             else:
-                painter.drawPixmap(2, 2, self.icon_size-4, self.icon_size-2, QPixmap(self.icon_path))
+                logger.warning(f"No valid pixmap for {self.row}, {self.col}")
+                self.load_unknown_pixmap()
+                if self.pixmap and not self.pixmap.isNull():
+                    painter.drawPixmap(0, 0, self.icon_size, self.icon_size, self.pixmap)
+                else:
+                    logger.error(f"Failed to load unknown pixmap for {self.row}, {self.col}")
 
             painter.setFont(self.font)
 
@@ -766,7 +791,6 @@ class DesktopIcon(QGraphicsItem):
 
                 # Draw the text outline with a thicker pen
                 painter.setPen(QColor(outline_color))
-                painter.setPen(QColor(outline_color))
                 painter.setBrush(Qt.NoBrush)
                 painter.setPen(QPen(outline_color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)) # 4 = pixels of outline eventually will have a setting
                 painter.drawPath(path)
@@ -774,13 +798,6 @@ class DesktopIcon(QGraphicsItem):
                 # Draw the main text in the middle
                 painter.setPen(text_color)
                 painter.drawText(0, text_y, line)
-        # DesktopIcon is default (no fields set)
-        else:
-            if self.hovered and get_setting("show_+"):
-                painter.drawPixmap(0, 0, self.icon_size, self.icon_size, QPixmap("assets/images/add.png"))
-            else:
-                # paint nothing
-                pass
                 
 
     def init_movie(self):
