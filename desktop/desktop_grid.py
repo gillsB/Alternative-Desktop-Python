@@ -573,6 +573,43 @@ class DesktopGrid(QGraphicsView):
         except Exception as e:
             logger.error(f"Problem removing deleted item from self.desktop_icons: {e}")
 
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+
+    def dropEvent(self, event):
+        # Convert mouse position to scene coordinates
+        scene_pos = self.mapToScene(event.pos())
+        x = scene_pos.x()
+        y = scene_pos.y()
+
+        # Calculate the column and row from the scene coordinates
+        icon_size = ICON_SIZE
+        row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
+        col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
+
+        print(f"dropped at row: {row}, column: {col}")
+
+        # Ensure that the row/col is within the valid range
+        if row < 0 or col < 0:
+            return
+        
+        if row >= self.max_visible_rows or col >= self.max_visible_columns:
+            logger.info("Icon outside of render distance would be called, thus return and do not show a context menu")
+            return
+
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            print(f"Dropping file to: {icon.name}")
+            icon.drop_event(event)
+
+        
+
     
 
 
@@ -1188,7 +1225,7 @@ class DesktopIcon(QGraphicsItem):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
 
-    def dropEvent(self, event):
+    def drop_event(self, event):
         if event.mimeData().hasUrls():
             urls = event.mimeData().urls()  # Get the list of dropped files (as URLs)
             if urls:
