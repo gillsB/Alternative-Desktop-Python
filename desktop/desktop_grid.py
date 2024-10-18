@@ -686,6 +686,7 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
+        self.init_movie()
         self.load_pixmap()
 
 
@@ -711,6 +712,8 @@ class DesktopIcon(QGraphicsItem):
         self.update() 
 
     def load_pixmap(self):
+        if self.movie:
+            return
         logger.debug(f"Loading pixmap for {self.row}, {self.col}: {self.icon_path}")
         if self.icon_path and os.path.exists(self.icon_path):
             cached_pixmap = QPixmapCache.find(self.icon_path)
@@ -727,7 +730,7 @@ class DesktopIcon(QGraphicsItem):
                     QPixmapCache.insert(self.icon_path, self.pixmap)  # Cache the loaded pixmap
             self.update()
         else:
-            logger.warning(f"Invalid icon path: {self.icon_path}")
+            logger.warning(f"Invalid icon path: {self.icon_path} Loading unknown.png instead")
             self.load_unknown_pixmap()
 
     def load_unknown_pixmap(self):
