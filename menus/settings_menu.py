@@ -239,8 +239,10 @@ class SettingsDialog(QDialog):
         self.setWindowOpacity(1.0)
 
     def label_size_changed(self, i):
-        self.set_changed()
-        self.parent().grid_widget.update_icon_size(i)
+        self.redraw_setting_changed()
+
+        # Can cause crashing upon changing icon_size and max rows/cols in the same save.
+        #self.parent().grid_widget.update_icon_size(i)
 
 
     def save_settings(self):
@@ -268,6 +270,7 @@ class SettingsDialog(QDialog):
         # Double check keybind is set to something. Changes it to last saved setting if not. (i.e. click button but don't press anything then hit save)
         self.good_keybind()
 
+
         # More optimized to load and modify all settings then save. Than to set_setting() for each setting as set_setting() has load and save overhead.
         settings = load_settings()
         settings["update_on_launch"] = self.update_on_launch_cb.isChecked()
@@ -289,11 +292,13 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.load_bg_from_settings()
+            
 
             # Can be a quite heavy impact so only redraw when these values have changed.
             if self.redraw_request:
                 self.parent().grid_widget.change_max_grid_dimensions(self.max_rows_sb.value(), self.max_cols_sb.value())
+                self.parent().grid_widget.update_icon_size(self.icon_size_slider.value())
+                pass
         
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
         self.accept()

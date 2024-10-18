@@ -163,9 +163,12 @@ class DesktopGrid(QGraphicsView):
         global ICON_SIZE
         ICON_SIZE = size
         for (row, col), icon in self.desktop_icons.items():
+            if icon is None:
+                continue
+
             icon.update_size(size)
             icon.setPos(SIDE_PADDING + col * (size + HORIZONTAL_PADDING), 
-                            TOP_PADDING + row * (size + VERTICAL_PADDING))
+                        TOP_PADDING + row * (size + VERTICAL_PADDING))
 
         # Update the scene rectangle and visibility after resizing icons
         self.update_icon_visibility()
