@@ -345,6 +345,8 @@ class DesktopGrid(QGraphicsView):
         if (row, col) in self.desktop_icons:
             self.desktop_icons[(row, col)].edit_mode_icon()
         else:
+            # Ensure only 1 red border icon exists at a time.
+            self.remove_red_border_icon()
             # Add red border item
             self.red_border_item = RedBorderItem(col, row)
             self.red_border_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
@@ -356,7 +358,9 @@ class DesktopGrid(QGraphicsView):
         if (row, col) in self.desktop_icons:
             self.desktop_icons[(row, col)].normal_mode_icon()
 
-        # Remove self.red_border_item if it exists.
+        self.remove_red_border_icon()
+
+    def remove_red_border_icon(self):
         if hasattr(self, 'red_border_item') and self.red_border_item is not None:
             self.scene.removeItem(self.red_border_item)
             self.red_border_item = None
