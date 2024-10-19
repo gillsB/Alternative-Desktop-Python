@@ -344,7 +344,7 @@ class DesktopGrid(QGraphicsView):
         else:
             self.remove_temp_icon()
             # Add red border item
-            self.temp_icon = TempIcon(col, row)
+            self.temp_icon = TempIcon(col, row, new_icon_path)
             self.temp_icon.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
             self.scene.addItem(self.temp_icon)
@@ -653,11 +653,18 @@ class RedBorderItem(QGraphicsItem):
 
 
 class TempIcon(QGraphicsItem):
-    def __init__(self, col, row):
+    def __init__(self, col, row, new_icon_path):
         super().__init__()
         self.col = col
         self.row = row
-        self.fill_color = QColor(Qt.cyan)
+        self.image_path = new_icon_path
+
+        if os.path.exists(self.image_path):
+            self.pixmap = QPixmap(self.image_path)
+        # Grid_menu already passes back "assets/images/unknown.png" reference, if for some reason this is invalid, display a blank pixmap
+        else:
+            self.pixmap = QPixmap(ICON_SIZE, ICON_SIZE)
+            self.pixmap.fill(Qt.transparent)
         x_pos = SIDE_PADDING + self.col * (ICON_SIZE + HORIZONTAL_PADDING)
         y_pos = TOP_PADDING + self.row * (ICON_SIZE + VERTICAL_PADDING)
         self.setPos(x_pos, y_pos)
@@ -666,11 +673,10 @@ class TempIcon(QGraphicsItem):
         return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
     
     def paint(self, painter, option, widget=None):
-        brush = QBrush(self.fill_color)
-        painter.setBrush(brush)
-        painter.setPen(Qt.NoPen) 
-        rect = self.boundingRect()
-        painter.drawRect(rect)
+        scaled_pixmap = self.pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        x_offset = (ICON_SIZE - scaled_pixmap.width()) / 2
+        y_offset = (ICON_SIZE - scaled_pixmap.height()) / 2
+        painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
 
 
 
