@@ -339,7 +339,15 @@ class DesktopGrid(QGraphicsView):
         return AUTOGEN_ICON_SIZE
     
     def set_icon_path(self, row, col, new_icon_path):
-        self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
+        if (row, col) in self.desktop_icons:
+            self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
+        else:
+            self.remove_temp_icon()
+            # Add red border item
+            self.temp_icon = TempIcon(col, row)
+            self.temp_icon.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
+                            TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
+            self.scene.addItem(self.temp_icon)
 
     def edit_mode_icon(self, row, col):
         if (row, col) in self.desktop_icons:
@@ -353,17 +361,22 @@ class DesktopGrid(QGraphicsView):
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
             self.scene.addItem(self.red_border_item)
 
-
     def normal_mode_icon(self, row, col):
         if (row, col) in self.desktop_icons:
             self.desktop_icons[(row, col)].normal_mode_icon()
 
         self.remove_red_border_icon()
+        self.remove_temp_icon()
 
     def remove_red_border_icon(self):
         if hasattr(self, 'red_border_item') and self.red_border_item is not None:
             self.scene.removeItem(self.red_border_item)
             self.red_border_item = None
+    
+    def remove_temp_icon(self):
+        if hasattr(self, 'temp_icon') and self.temp_icon is not None:
+            self.scene.removeItem(self.temp_icon)
+            self.temp_icon = None
 
     def icon_dropped(self, pos):
         # Calculate the column based on the X position of the mouse
@@ -639,6 +652,25 @@ class RedBorderItem(QGraphicsItem):
 
 
 
+class TempIcon(QGraphicsItem):
+    def __init__(self, col, row):
+        super().__init__()
+        self.col = col
+        self.row = row
+        self.fill_color = QColor(Qt.cyan)
+        x_pos = SIDE_PADDING + self.col * (ICON_SIZE + HORIZONTAL_PADDING)
+        y_pos = TOP_PADDING + self.row * (ICON_SIZE + VERTICAL_PADDING)
+        self.setPos(x_pos, y_pos)
+    
+    def boundingRect(self):
+        return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
+    
+    def paint(self, painter, option, widget=None):
+        brush = QBrush(self.fill_color)
+        painter.setBrush(brush)
+        painter.setPen(Qt.NoPen) 
+        rect = self.boundingRect()
+        painter.drawRect(rect)
 
 
 
