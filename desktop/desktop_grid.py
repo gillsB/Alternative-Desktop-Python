@@ -40,6 +40,10 @@ ICON_SIZE = 128  # Overrided by settings
 FONT_SIZE = 10
 FONT = "Arial"
 
+# edit_mode_icon variables
+BORDER_WIDTH = 5
+BORDER_COLOR = QColor(Qt.red)
+
 class DesktopGrid(QGraphicsView):
     def __init__(self):
         super().__init__()
@@ -627,27 +631,18 @@ class DesktopGrid(QGraphicsView):
 class RedBorderItem(QGraphicsItem):
     def __init__(self, col, row):
         super().__init__()
-        self.col = col
-        self.row = row
-        self.border_width = 5
-        self.border_color = QColor(Qt.red)
-        x_pos = SIDE_PADDING + self.col * (ICON_SIZE + HORIZONTAL_PADDING)
-        y_pos = TOP_PADDING + self.row * (ICON_SIZE + VERTICAL_PADDING)
+        x_pos = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
+        y_pos = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
         self.setPos(x_pos, y_pos)
-        
-        self.border_size = ICON_SIZE
     
     def boundingRect(self):
-        return QRectF(0, 0, self.border_size, self.border_size)
+        return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
     
     def paint(self, painter, option, widget=None):
-        pen = QPen(self.border_color, self.border_width)
+        pen = QPen(BORDER_COLOR, BORDER_WIDTH)
         painter.setPen(pen)
         rect = self.boundingRect()
-        adjusted_rect = rect.adjusted(self.border_width / 2, 
-                                        self.border_width / 2, 
-                                        -self.border_width / 2, 
-                                        -self.border_width / 2)
+        adjusted_rect = rect.adjusted(BORDER_WIDTH/2, BORDER_WIDTH/2, -BORDER_WIDTH/2, -BORDER_WIDTH/2)
         painter.drawRect(adjusted_rect)
 
 
@@ -655,18 +650,15 @@ class RedBorderItem(QGraphicsItem):
 class TempIcon(QGraphicsItem):
     def __init__(self, col, row, new_icon_path):
         super().__init__()
-        self.col = col
-        self.row = row
-        self.image_path = new_icon_path
 
-        if os.path.exists(self.image_path):
-            self.pixmap = QPixmap(self.image_path)
+        if os.path.exists(new_icon_path):
+            self.pixmap = QPixmap(new_icon_path)
         # Grid_menu already passes back "assets/images/unknown.png" reference, if for some reason this is invalid, display a blank pixmap
         else:
             self.pixmap = QPixmap(ICON_SIZE, ICON_SIZE)
             self.pixmap.fill(Qt.transparent)
-        x_pos = SIDE_PADDING + self.col * (ICON_SIZE + HORIZONTAL_PADDING)
-        y_pos = TOP_PADDING + self.row * (ICON_SIZE + VERTICAL_PADDING)
+        x_pos = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
+        y_pos = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
         self.setPos(x_pos, y_pos)
     
     def boundingRect(self):
@@ -714,9 +706,6 @@ class DesktopIcon(QGraphicsItem):
         self.hovered = False
         self.padding = 30
         self.font = QFont(FONT, FONT_SIZE)
-
-        self.border_width = 5
-        self.border_color = QColor(Qt.red)
 
         self.edit_mode = False
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
@@ -793,16 +782,6 @@ class DesktopIcon(QGraphicsItem):
 
     def paint(self, painter: QPainter, option, widget=None):
         print(f"painting {self.row}, {self.col}")
-        if self.edit_mode:
-            pen = QPen(self.border_color, self.border_width)
-            painter.setPen(pen)
-            rect = self.boundingRect()
-            # Draw the border inside the square, adjusted for the border width
-            adjusted_rect = rect.adjusted(self.border_width / 2, 
-                                          self.border_width / 2, 
-                                          -self.border_width / 2, 
-                                          -self.border_width / 2)
-            painter.drawRect(adjusted_rect)
 
         if not is_default(self.row, self.col):
             if self.movie:
@@ -846,6 +825,14 @@ class DesktopIcon(QGraphicsItem):
                 # Draw the main text in the middle
                 painter.setPen(text_color)
                 painter.drawText(0, text_y, line)
+
+        if self.edit_mode:
+            pen = QPen(BORDER_COLOR, BORDER_WIDTH)
+            painter.setPen(pen)
+            rect = self.boundingRect()
+            # Draw the border inside the square, adjusted for the border width
+            adjusted_rect = rect.adjusted(BORDER_WIDTH/2, BORDER_WIDTH/2, -BORDER_WIDTH/2, -BORDER_WIDTH/2)
+            painter.drawRect(adjusted_rect)
                 
 
     def init_movie(self):
