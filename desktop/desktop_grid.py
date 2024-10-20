@@ -267,6 +267,7 @@ class DesktopGrid(QGraphicsView):
     def set_video_source(self, video_path):
         MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
         MEDIA_PLAYER.setPlaybackRate(1.0)
+        MEDIA_PLAYER.setLoops(QMediaPlayer.Infinite)
         MEDIA_PLAYER.play()
     
     def handle_media_status_changed(self, status):
