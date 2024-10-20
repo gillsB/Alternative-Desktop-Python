@@ -398,9 +398,17 @@ class DesktopGrid(QGraphicsView):
 
     
     def swap_icons(self, old_row, old_col, new_row, new_col):
-        # Get the items to swap
+        item1 = None
+        item2 = None
+
+        # Check the icon it was dragged to, if it exists continue this function, if default/not in self.desktop_icons call swap_with_blank_icon
+        if (new_row, new_col) in self.desktop_icons:
+            item2 = self.desktop_icons[(new_row, new_col)]
+        else:
+            self.swap_with_blank_icon(old_row, old_col, new_row, new_col)
+            return
         item1 = self.desktop_icons[(old_row, old_col)]
-        item2 = self.desktop_icons[(new_row, new_col)]
+        
         
         if item1 is None or item2 is None:
             # Handle cases where one of the items does not exist
@@ -408,11 +416,10 @@ class DesktopGrid(QGraphicsView):
             return
 
         # Calculate new positions
-        icon_size = ICON_SIZE
-        item1_new_pos = (SIDE_PADDING + new_col * (icon_size + HORIZONTAL_PADDING),
-                        TOP_PADDING + new_row * (icon_size + VERTICAL_PADDING))
-        item2_new_pos = (SIDE_PADDING + old_col * (icon_size + HORIZONTAL_PADDING),
-                        TOP_PADDING + old_row * (icon_size + VERTICAL_PADDING))
+        item1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
+                        TOP_PADDING + new_row * (ICON_SIZE + VERTICAL_PADDING))
+        item2_new_pos = (SIDE_PADDING + old_col * (ICON_SIZE + HORIZONTAL_PADDING),
+                        TOP_PADDING + old_row * (ICON_SIZE + VERTICAL_PADDING))
         
         # Swap positions
         item1.setPos(*item1_new_pos)
@@ -454,6 +461,31 @@ class DesktopGrid(QGraphicsView):
             logger.error("One or both folders do not exist")
         update_folder(new_row, new_col)
         update_folder(old_row, old_col)
+
+    def swap_with_blank_icon(self, old_row, old_col, new_row, new_col):
+        item1 = self.desktop_icons[(old_row, old_col)]
+
+        item1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
+                TOP_PADDING + new_row * (ICON_SIZE + VERTICAL_PADDING))
+        
+        item1.setPos(*item1_new_pos)
+        item1.row = new_row
+        item1.col = new_col
+        for row_col in self.desktop_icons.keys():
+            print(row_col)
+        icon = self.desktop_icons[(old_row, old_col)]
+        del self.desktop_icons[(old_row, old_col)]
+        self.desktop_icons[(new_row, new_col)] = icon
+        print("")
+        for row_col in self.desktop_icons.keys():
+            print(row_col)
+
+        swap_items_by_position(old_row, old_col, new_row, new_col)
+        self.swap_folders(old_row, old_col, new_row, new_col)
+
+        item1.reload_from_config()
+
+        logger.info(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
 
 
