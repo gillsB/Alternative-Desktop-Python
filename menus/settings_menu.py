@@ -182,11 +182,6 @@ class SettingsDialog(QDialog):
         layout.addRow("On closing the program:", self.on_close_cb)
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
-        
-        self.show_plus_cb = QCheckBox()
-        self.show_plus_cb.setChecked(self.settings.get("show_+", True))
-        self.show_plus_cb.clicked.connect(self.set_changed)
-        layout.addRow("Show + icon on default hover", self.show_plus_cb)
 
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
@@ -287,7 +282,6 @@ class SettingsDialog(QDialog):
         settings["label_color"] = self.label_color
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
-        settings["show_+"] = self.show_plus_cb.isChecked()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()

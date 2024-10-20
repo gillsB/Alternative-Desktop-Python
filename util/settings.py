@@ -21,8 +21,7 @@ DEFUALT_SETTINGS = {
         "on_close": 0,
         "show_patch_notes": True,
         "keybind_minimize": 0,
-        "updated_from": "V0.1.000",
-        "show_+": True
+        "updated_from": "V0.1.000"
 }
 SETTINGS = None
 
