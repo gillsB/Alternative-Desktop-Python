@@ -18,3 +18,4 @@ hooks/hook-pylnk3.py
 test.py
 desktop/desktop_grid_old.py
 desktop/desktop_grid_full_icon_array.py
+app_crash.log

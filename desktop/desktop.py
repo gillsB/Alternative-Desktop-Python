@@ -12,11 +12,26 @@ from util.updater import changes_from_older_versions
 import os
 import xml.etree.ElementTree as ET
 import logging
+import faulthandler
+faulthandler.enable()
 
 logger = logging.getLogger(__name__)
 APP = None
 
+def setup_crash_logging():
+    try:
+        # Open log file in append mode to capture all crash logs
+        crash_log_file = open("app_crash.log", "w")
+        
+        # Enable faulthandler and redirect to the log file
+        faulthandler.enable(crash_log_file)
+        
+        # Ensure that the faulthandler output goes to both the log file and the console
+        sys.stderr = crash_log_file
 
+        logger.info("Crash logging set up successfully.")
+    except Exception as e:
+        logger.error(f"Failed to set up crash logging: {e}", exc_info=True)
 
 class OverlayWidget(QWidget):
     def __init__(self, current_version, args):
@@ -86,6 +101,7 @@ class OverlayWidget(QWidget):
         self.restored_window = False
 
         self.first_resize = True
+        #raise ValueError("Test exception to check crash handling")
 
         
     def show_patch_notes(self):
@@ -308,12 +324,17 @@ def create_app():
         APP = QApplication(sys.argv)
 
 def main(current_version, args):
-
-    overlay = OverlayWidget(current_version, args)
-    overlay.setWindowIcon(QIcon('alt.ico'))
-    overlay.setMinimumSize(100, 100)  
-    overlay.show()
-    sys.exit(APP.exec())
+    try:
+        setup_crash_logging()
+        create_app()
+        overlay = OverlayWidget(current_version, args)
+        overlay.setWindowIcon(QIcon('alt.ico'))
+        overlay.setMinimumSize(100, 100)
+        overlay.show()
+        sys.exit(APP.exec())
+    except Exception as e:
+        logging.error(f"Exception occurred: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
