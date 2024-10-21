@@ -4,6 +4,7 @@ from datetime import datetime
 import glob
 
 LOG_DIR = None
+CURRENT_LOG_FILE = None
 MAX_LOG_FILES = 3
 
 def create_log_path():
@@ -17,12 +18,13 @@ def create_log_path():
     LOG_DIR = logs_dir
 
 def setup_logging():
+    global CURRENT_LOG_FILE
     # Ensure the log directory is set up
     create_log_path()
     
     # Generate a new log file name with a timestamp
     log_file_path = os.path.join(LOG_DIR, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-
+    CURRENT_LOG_FILE = log_file_path
     # Set up logging with a file handler for the new log file
     handler = logging.FileHandler(log_file_path)
 
@@ -46,3 +48,7 @@ def rotate_logs():
     while len(log_files) > MAX_LOG_FILES:
         oldest_log = log_files.pop(0)
         os.remove(oldest_log)
+
+
+def get_current_log_file():
+    return CURRENT_LOG_FILE

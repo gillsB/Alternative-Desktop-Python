@@ -9,6 +9,7 @@ from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler
 from menus.patch_notes import PatchNotesPopup, patch_notes_exist
 from util.updater import changes_from_older_versions
+from util.logs import get_current_log_file
 import os
 import xml.etree.ElementTree as ET
 import logging
@@ -20,8 +21,10 @@ APP = None
 
 def setup_crash_logging():
     try:
+        logging_dir = get_current_log_file()
+        logger.info(f"Attempting to setup crash logging to file: {logging_dir}")
         # Open log file in append mode to capture all crash logs
-        crash_log_file = open("app_crash.log", "w")
+        crash_log_file = open(logging_dir, "a")
         
         # Enable faulthandler and redirect to the log file
         faulthandler.enable(crash_log_file)
