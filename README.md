@@ -59,7 +59,7 @@ Python
 pip (https://pip.pypa.io/en/stable/installation/)  
 pyinstaller (only for building the executable. pip install pyinstaller)  
 Inno setup compiler (only for building the installer. https://jrsoftware.org/isdl.php)  
-requests   	(pulling updates from github, pip install requests)
+requests   	(pulling updates from github, pip install requests)  
 Pyside6 	(Qt for Python, pip install PySide6)     
 PIL 		(Python Imaging Library, pip install pillow)   
 icoextract  (Extracting icons from .exe, pip install icoextract)  
