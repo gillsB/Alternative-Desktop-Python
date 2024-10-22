@@ -45,11 +45,13 @@ BORDER_WIDTH = 5
 BORDER_COLOR = QColor(Qt.red)
 
 class DesktopGrid(QGraphicsView):
-    def __init__(self):
+    def __init__(self, args=None):
         super().__init__()
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
         self.setAcceptDrops(True)
+
+        self.args = args
 
         # Build paths for config and data directories (stored in config.py)
         create_paths()
@@ -142,22 +144,23 @@ class DesktopGrid(QGraphicsView):
 
     # Override to do nothing to avoid scrolling
     def wheelEvent(self, event):
-        row, col = self.find_largest_visible_index()
-        print(f"Max row = {row} max col = {col}")
-        #temporary override to test resizing icons.
-        global ICON_SIZE
-        global FONT_SIZE
-        if ICON_SIZE == 64:
-            ICON_SIZE = 128
-            self.update_icon_size(128)
-            FONT_SIZE = 18
-            self.desktop_icons[(0,0)].update_font()
-        else:
-            ICON_SIZE = 64
-            self.update_icon_size(64)
-            FONT_SIZE = 10
-            self.desktop_icons[(0,0)].update_font()
-        event.ignore()  # Ignore the event to prevent scrolling
+        if self.args.mode == "debug":
+            row, col = self.find_largest_visible_index()
+            print(f"Max row = {row} max col = {col}")
+            #temporary override to test resizing icons.
+            global ICON_SIZE
+            global FONT_SIZE
+            if ICON_SIZE == 64:
+                ICON_SIZE = 128
+                self.update_icon_size(128)
+                FONT_SIZE = 18
+                self.desktop_icons[(0,0)].update_font()
+            else:
+                ICON_SIZE = 64
+                self.update_icon_size(64)
+                FONT_SIZE = 10
+                self.desktop_icons[(0,0)].update_font()
+            event.ignore()  # Ignore the event to prevent scrolling
 
 
 

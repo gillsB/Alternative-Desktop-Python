@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Launch AlternativeDesktop with or without prototype mode.")
     
     # Add an optional argument to accept "prototype"
-    parser.add_argument('mode', nargs='?', default='normal', help="Mode to launch the application: 'prototype' or 'normal'")
+    parser.add_argument('mode', nargs='?', default='normal', help="Mode to launch the application: 'debug' or 'normal'")
 
     # Parse the arguments
     args = parser.parse_args()
