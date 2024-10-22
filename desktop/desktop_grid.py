@@ -1206,7 +1206,6 @@ class DesktopIcon(QGraphicsItem):
             logger.info(f"User confirmed deletion for {self.name}, at {self.row}, {self.col}")
             set_entry_to_default(self.row, self.col)
             self.delete_folder_items()
-            self.reload_from_config()
 
             # Delete icon and references from QGraphicsView (To stop it from repainting on hover.)
             views = self.scene().views()
