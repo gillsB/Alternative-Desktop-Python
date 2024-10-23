@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache
 from PySide6.QtMultimedia import QMediaPlayer
@@ -742,6 +742,8 @@ class DesktopIcon(QGraphicsItem):
         self.movie = None # For loading a gif
         self.init_movie() # Load movie if .gif icon_path
 
+        self.text_height = 0
+
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setAcceptDrops(True)
 
@@ -756,6 +758,11 @@ class DesktopIcon(QGraphicsItem):
         self.load_pixmap()
         self.log_paints = False
         self.paints = 1
+        self.hover_timer = QTimer()
+        self.hover_timer.setSingleShot(True)
+        self.hover_timer.timeout.connect(self.show_tooltip)
+        self.last_pos = None
+        self.tooltip_shown = False
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
@@ -780,8 +787,8 @@ class DesktopIcon(QGraphicsItem):
         self.prepareGeometryChange()
 
     def boundingRect(self) -> QRectF:
-        text_height = self.calculate_text_height(self.name)
-        return QRectF(0, 0, self.icon_size, self.icon_size + text_height + self.padding)
+        self.text_height = self.calculate_text_height(self.name)
+        return QRectF(0, 0, self.icon_size, self.icon_size + self.text_height + self.padding)
     
     def edit_mode_icon(self):
         self.edit_mode = True
@@ -829,7 +836,7 @@ class DesktopIcon(QGraphicsItem):
     def paint(self, painter: QPainter, option, widget=None):
         if self.log_paints:
             if self.paints % 100 == 0:
-                logger.info(f"Painted {self.row}, {self.col}  {self.paints} times.")
+                logger.warning(f"Painted {self.row}, {self.col}  {self.paints} times.")
                 self.paints = 0
             self.paints += 1
 
@@ -969,13 +976,61 @@ class DesktopIcon(QGraphicsItem):
 
         return lines
     
+    def show_tooltip(self):
+        if self.last_pos:
+            QToolTip.showText(
+                self.last_pos,
+                self.name,
+                None
+            )
+            self.tooltip_shown = True
+
     def hoverEnterEvent(self, event):
-        self.hovered = True
-        self.update()
+        pos = event.pos()
+        if self.hover_in_text_area(pos):
+            self.hover_timer.start(1500)
+            self.last_pos = event.screenPos()
+        super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
-        self.hovered = False
-        self.update()
+        # Stop the timer and hide tooltip when mouse leaves
+        self.hover_timer.stop()
+        QToolTip.hideText()
+        self.tooltip_shown = False
+        self.last_pos = None
+        super().hoverLeaveEvent(event)
+
+    def hoverMoveEvent(self, event):
+        # Hide tooltip and restart timer on mouse movement
+        pos = event.pos()
+        if self.hover_in_text_area(pos):
+            if self.tooltip_shown:
+                QToolTip.hideText()
+                self.tooltip_shown = False
+            
+            # Reset the timer
+            self.hover_timer.stop()
+            self.hover_timer.start(1500)
+            self.last_pos = event.screenPos()
+        else:
+            # If mouse moves out of text area, stop timer and hide tooltip
+            self.hover_timer.stop()
+            QToolTip.hideText()
+            self.tooltip_shown = False
+            self.last_pos = None
+        super().hoverMoveEvent(event)
+
+    def hover_in_text_area(self, pos):
+        if self.text_height == 0:
+            return False
+        bottom_rect = QRectF(
+            0,
+            self.boundingRect().height() - self.text_height - self.padding,
+            self.boundingRect().width(),
+            self.text_height
+        )
+        return bottom_rect.contains(pos)
+
 
     def double_click(self, event):
         logger.info(f"double clicked: icon fields = row: {self.row} col: {self.col} name: {self.name} icon_path: {self.icon_path}, executable path: {self.executable_path} command_args: {self.command_args} website_link: {self.website_link} launch_option: {self.launch_option} icon_size = {self.icon_size}")
