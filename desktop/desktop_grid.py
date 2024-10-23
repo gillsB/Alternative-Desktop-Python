@@ -109,6 +109,14 @@ class DesktopGrid(QGraphicsView):
                 if not is_default(row, col):
                     self.add_icon(row, col)
 
+
+        # Attach a logger which logs every 100 times the first icon in self.desktop_icons is repainted (For detecting infinite paint loops)
+        if self.desktop_icons:
+            first_icon_key = next(iter(self.desktop_icons))
+            first_icon = self.desktop_icons[first_icon_key]
+            logger.info(f"Setting {first_icon_key} to log repaints")
+            first_icon.log_paints = True
+
         # Initially update visibility based on the current window size
         self.update_icon_visibility()
 
@@ -746,6 +754,8 @@ class DesktopIcon(QGraphicsItem):
         self.edit_mode = False
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
         self.load_pixmap()
+        self.log_paints = False
+        self.paints = 1
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
@@ -817,7 +827,11 @@ class DesktopIcon(QGraphicsItem):
 
 
     def paint(self, painter: QPainter, option, widget=None):
-        print(f"painting {self.row}, {self.col}")
+        if self.log_paints:
+            if self.paints % 100 == 0:
+                logger.info(f"Painted {self.row}, {self.col}  {self.paints} times.")
+                self.paints = 0
+            self.paints += 1
 
         if not is_default(self.row, self.col):
             if self.movie:
