@@ -814,6 +814,12 @@ class DesktopIcon(QGraphicsItem):
                     logger.error(f"Failed to load pixmap from {self.icon_path}")
                     self.load_unknown_pixmap()
                 else:
+                    self.pixmap = self.pixmap.scaled(
+                        self.icon_size - 4,
+                        self.icon_size - 2,
+                        Qt.KeepAspectRatio,
+                        Qt.SmoothTransformation
+                    )
                     QPixmapCache.insert(self.icon_path, self.pixmap)  # Cache the loaded pixmap
             self.update()
         else:
@@ -827,6 +833,12 @@ class DesktopIcon(QGraphicsItem):
             if self.pixmap.isNull():
                 logger.error(f"Failed to load unknown.png")
             else:
+                self.pixmap = self.pixmap.scaled(
+                        self.icon_size - 4,
+                        self.icon_size - 2,
+                        Qt.KeepAspectRatio,
+                        Qt.SmoothTransformation
+                )
                 QPixmapCache.insert("unknown", self.pixmap)
         else:
             logger.error(f"unknown.png not found at {unknown_path}")
@@ -849,7 +861,9 @@ class DesktopIcon(QGraphicsItem):
                 else:
                     logger.error(f"Warning: Frame: {frame} is null.")
             elif self.pixmap and not self.pixmap.isNull():
-                painter.drawPixmap(2, 2, self.icon_size - 4, self.icon_size - 2, self.pixmap)
+                x_offset = (self.icon_size - self.pixmap.width()) / 2
+                y_offset = (self.icon_size - self.pixmap.height()) / 2
+                painter.drawPixmap(x_offset, y_offset, self.pixmap)
             else:
                 logger.warning(f"No valid pixmap for {self.row}, {self.col}")
                 self.load_unknown_pixmap()
@@ -1380,13 +1394,6 @@ class DesktopIcon(QGraphicsItem):
             self.update()
 
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
 
     def drop_event(self, event):
         if event.mimeData().hasUrls():
