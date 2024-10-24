@@ -234,7 +234,6 @@ class DesktopGrid(QGraphicsView):
         old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
-        logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
         if self.load_video:
             # If BACKGROUND_VIDEO has changed or It is not currently playing a video (swapped from image/none to video playback).
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
@@ -271,9 +270,12 @@ class DesktopGrid(QGraphicsView):
         
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
-        BACKGROUND_VIDEO = get_setting("background_video")
-        BACKGROUND_IMAGE = get_setting("background_image")
-        logger.info(f"Reloaded BG global variables from settings VIDEO = {BACKGROUND_VIDEO}, IMAGE = {BACKGROUND_IMAGE}")
+        bg_video = get_setting("background_video")
+        bg_img = get_setting("background_image")
+        if BACKGROUND_VIDEO != bg_video or BACKGROUND_IMAGE != bg_img:
+            BACKGROUND_VIDEO = bg_video
+            BACKGROUND_IMAGE = bg_img
+            logger.info(f"Reloaded BG global variables from settings VIDEO = {BACKGROUND_VIDEO}, IMAGE = {BACKGROUND_IMAGE}")
     
 
     def set_video_source(self, video_path):
