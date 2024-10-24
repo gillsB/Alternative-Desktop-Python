@@ -857,7 +857,11 @@ class DesktopIcon(QGraphicsItem):
                 # Get the current frame and draw it
                 frame = self.movie.currentPixmap()
                 if not frame.isNull():
-                    painter.drawPixmap(2, 2, self.icon_size - 4, self.icon_size - 2, frame)
+                    scaled_frame = frame.scaled(self.icon_size - 4, self.icon_size - 2, 
+                                             Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    x_offset = (self.icon_size - scaled_frame.width()) / 2
+                    y_offset = (self.icon_size - scaled_frame.height()) / 2
+                    painter.drawPixmap(x_offset, y_offset, scaled_frame)
                 else:
                     logger.error(f"Warning: Frame: {frame} is null.")
             elif self.pixmap and not self.pixmap.isNull():
