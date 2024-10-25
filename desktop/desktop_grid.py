@@ -486,14 +486,9 @@ class DesktopGrid(QGraphicsView):
         item1.setPos(*item1_new_pos)
         item1.row = new_row
         item1.col = new_col
-        for row_col in self.desktop_icons.keys():
-            print(row_col)
         icon = self.desktop_icons[(old_row, old_col)]
         del self.desktop_icons[(old_row, old_col)]
         self.desktop_icons[(new_row, new_col)] = icon
-        print("")
-        for row_col in self.desktop_icons.keys():
-            print(row_col)
 
         swap_items_by_position(old_row, old_col, new_row, new_col)
         self.swap_folders(old_row, old_col, new_row, new_col)
@@ -540,8 +535,6 @@ class DesktopGrid(QGraphicsView):
         row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
         col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
 
-        print(f"Double-clicked at row: {row}, column: {col}")
-
         # Ensure that the row/col is within the valid range
         if row < 0 or col < 0:
             return
@@ -552,9 +545,10 @@ class DesktopGrid(QGraphicsView):
 
         icon = self.desktop_icons.get((row, col))
         if icon:
-            print(f"Double-clicked on icon: {icon.name}")
+            logger.info(f"Double-clicked on icon: {icon.name}")
             icon.double_click(event)  
         else:
+            logger.info((f"Double-clicked at default icon row: {row}, column: {col}. Showing grid Menu."))
             self.show_grid_menu(row, col)
 
     def contextMenuEvent(self, event):
@@ -570,7 +564,7 @@ class DesktopGrid(QGraphicsView):
         row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
         col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
 
-        print(f"Right click at row: {row}, column: {col}")
+        logger.info(f"Right click at row: {row}, column: {col}")
 
         # Ensure that the row/col is within the valid range
         if row < 0 or col < 0:
@@ -582,7 +576,7 @@ class DesktopGrid(QGraphicsView):
 
         icon = self.desktop_icons.get((row, col))
         if icon:
-            print(f"Showing context menu for icon: {icon.name}")
+            logger.info(f"Showing context menu for icon: {icon.name}")
             icon.context_menu(event)
         else:
             MEDIA_PLAYER.pause()
@@ -601,7 +595,7 @@ class DesktopGrid(QGraphicsView):
     
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
-        print(f"add_icon icon = {icon}")
+        logger.info(f"add_icon icon = {icon}")
         if icon is None:
             data = get_item_data(row, col)
             icon_item = DesktopIcon(
@@ -647,7 +641,7 @@ class DesktopGrid(QGraphicsView):
         row = int((y - TOP_PADDING) // (icon_size + VERTICAL_PADDING))
         col = int((x - SIDE_PADDING) // (icon_size + HORIZONTAL_PADDING))
 
-        print(f"dropped at row: {row}, column: {col}")
+        logger.info(f"dropped at row: {row}, column: {col}")
 
         # Ensure that the row/col is within the valid range
         if row < 0 or col < 0:
