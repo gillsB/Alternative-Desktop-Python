@@ -19,18 +19,33 @@ faulthandler.enable()
 logger = logging.getLogger(__name__)
 APP = None
 
+# Writing stderr to logger AND console. (otherwise just says "Error calling..." instead of the full error in console.)
+class TeeStream:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
 def setup_crash_logging():
     try:
         logging_dir = get_current_log_file()
         logger.info(f"Attempting to setup crash logging to file: {logging_dir}")
+        
         # Open log file in append mode to capture all crash logs
         crash_log_file = open(logging_dir, "a")
-        
+
         # Enable faulthandler and redirect to the log file
         faulthandler.enable(crash_log_file)
-        
-        # Ensure that the faulthandler output goes to both the log file and the console
-        sys.stderr = crash_log_file
+
+        # Redirect stderr to both the log file and the console
+        sys.stderr = TeeStream(sys.__stderr__, crash_log_file)
 
         logger.info("Crash logging set up successfully.")
     except Exception as e:
