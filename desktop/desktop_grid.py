@@ -154,7 +154,7 @@ class DesktopGrid(QGraphicsView):
     def wheelEvent(self, event):
         if self.args.mode == "debug":
             row, col = self.find_largest_visible_index()
-            print(f"Max row = {row} max col = {col}")
+            logger.debug(f"Max row = {row} max col = {col}")
             #temporary override to test resizing icons.
             global ICON_SIZE
             global FONT_SIZE
@@ -659,7 +659,6 @@ class DesktopGrid(QGraphicsView):
 
         icon = self.desktop_icons.get((row, col))
         if icon:
-            print(f"Dropping file to: {icon.name}")
             icon.drop_event(event)
             event.acceptProposedAction()
         else:
@@ -1411,7 +1410,7 @@ class DesktopIcon(QGraphicsItem):
                 event.acceptProposedAction()
 
     def handle_file_drop(self, file_path):
-        print(f"Item {file_path} dropped at icon: {self.row},{self.col}")
+        logger.info(f"Item {file_path} dropped to existing icon: {self.name} at: {self.row},{self.col}")
         view = self.scene().views()[0]
         view.show_grid_menu(self.row, self.col, file_path)
 
