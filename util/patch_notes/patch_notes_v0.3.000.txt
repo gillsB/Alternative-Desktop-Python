@@ -1,0 +1,18 @@
+### Greatly improved video background playback.
+- Completely redesigned desktop icon storage format for better performance (Dictionary instead of 2d array).
+- Caching icons to prevent endlessly redrawing (Would lag the video background player).
+- Fixed multiple bugs causing endless redrawing (bugs which would endlessly redraw even cached icons).
+- Video Background now seamlessly loops (Fixed a problem where end of video would remove it from the scene and take ~0-1 seconds before it would be reloaded at the start).
+
+
+### Other Improvements:
+- Icons now maintain their aspect ratio. (Instead of being forced into a square aspect ratio icon).
+- Pausing video playback on settings/ right click menu.
+- Default (blank) icons now have their own right click menu (just has edit rather than reusing the full context menu for a set icon).
+- Desktop Icons now show tooltip of full icon Name on hovering the Icon name text area.
+- Improved logging to better detect endless redrawing.
+- Improved logging to better log full errors for debugging.
+- Some smaller errors no longer instantly crash the program.
+
+### Bug fixes:
+- Fixed a bug where setting Icon Name Color would not show the updated color selected.

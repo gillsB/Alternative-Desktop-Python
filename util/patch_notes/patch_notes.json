@@ -18,5 +18,9 @@
   "V0.2.001":{
     "date": "2024-10-10",
     "notes_file": "patch_notes_v0.2.001.txt"
+  },
+  "V0.3.000":{
+    "date": "2024-10-25",
+    "notes_file": "patch_notes_v0.3.000.txt"
   }
 }
