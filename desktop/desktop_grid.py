@@ -595,7 +595,6 @@ class DesktopGrid(QGraphicsView):
     
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
-        logger.info(f"add_icon icon = {icon}")
         if icon is None:
             data = get_item_data(row, col)
             icon_item = DesktopIcon(
@@ -797,14 +796,12 @@ class DesktopIcon(QGraphicsItem):
     def load_pixmap(self):
         if self.movie:
             return
-        logger.debug(f"Loading pixmap for {self.row}, {self.col}: {self.icon_path}")
         if self.icon_path and os.path.exists(self.icon_path):
             cached_pixmap = QPixmapCache.find(self.icon_path)
             if cached_pixmap:
                 logger.debug(f"Cached pixmap found for {self.icon_path}")
                 self.pixmap = cached_pixmap
             else:
-                logger.debug(f"Loading pixmap directly: {self.icon_path}")
                 self.pixmap = QPixmap(self.icon_path)
                 if self.pixmap.isNull():
                     logger.error(f"Failed to load pixmap from {self.icon_path}")
@@ -819,7 +816,8 @@ class DesktopIcon(QGraphicsItem):
                     QPixmapCache.insert(self.icon_path, self.pixmap)  # Cache the loaded pixmap
             self.update()
         else:
-            logger.warning(f"Invalid icon path: {self.icon_path} Loading unknown.png instead")
+            if self.icon_path != "":
+                logger.warning(f"Invalid icon path: {self.icon_path} Loading unknown.png instead")
             self.load_unknown_pixmap()
 
     def load_unknown_pixmap(self):

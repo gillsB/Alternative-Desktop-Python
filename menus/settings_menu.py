@@ -204,9 +204,10 @@ class SettingsDialog(QDialog):
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
     def redraw_setting_changed(self):
-        self.set_changed()
-        self.redraw_request = True
-        logger.info("Redraw request now set to True")
+        if not self.redraw_request:
+            self.set_changed()
+            self.redraw_request = True
+            logger.info("Redraw request now set to True")
             
 
     def display_theme(self):
