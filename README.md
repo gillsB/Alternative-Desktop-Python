@@ -54,6 +54,11 @@ Want to move the desktop icon? Just click and drag it!
 
 ## Developer stuff below:
 
+**Run the program through:**  
+python alternativedesktop.py dev   OR    
+python alternativedesktop.py devbug python alternativedesktop.py dev  
+**OR YOU WILL NOT SEE THE LOGS/ERRORS IN CONSOLE. ONLY IN LOGGING FILE**
+
 ### Base Requirements: 
 Python  
 pip (https://pip.pypa.io/en/stable/installation/)  

@@ -12,7 +12,7 @@
 - Desktop Icons now show tooltip of full icon Name on hovering the Icon name text area.
 - Improved logging to better detect endless redrawing.
 - Improved logging to better log full errors for debugging.
-- Some smaller errors no longer instantly crash the program.
+- Some smaller errors no longer instantly crash the program. (Can cause delayed crashing, like upon changing icon sizes etc and saving. If you see this check the log for distinct error messages)
 
 ### Bug fixes:
 - Fixed a bug where setting Icon Name Color would not show the updated color selected.
