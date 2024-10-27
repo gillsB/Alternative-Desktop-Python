@@ -7,10 +7,10 @@ import importlib.util
 import traceback
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description="Launch AlternativeDesktop with or without prototype mode.")
+parser = argparse.ArgumentParser(description="Launch AlternativeDesktop with different debugging states", formatter_class=argparse.RawTextHelpFormatter)
 
 # Add an optional argument to accept "prototype"
-parser.add_argument('mode', nargs='?', default='normal', help="Mode to launch the application: 'debug' or 'normal'")
+parser.add_argument('mode', nargs='?', default='', help="Mode to launch the application: \n'dev':      Launch version with console logging \n'devbug':   Launch debug version with console logging \n'debug':    Launch debug version")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -61,39 +61,43 @@ GITHUB_REPO = "gillsb/Alternative-Desktop"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None
 
+# Use old logging which shows in both console and logging file. note: this does not include errors in logging files, only console.
+if args.mode == "dev" or args.mode == "devbug":
+    setup_logging()
+# Installation version for logging. Required for redirecting stderr to log file.
+else:
+    class StreamToLogger:
+        def __init__(self, logger, level=logging.ERROR):
+            self.logger = logger
+            self.level = level
 
-class StreamToLogger:
-    def __init__(self, logger, level=logging.ERROR):
-        self.logger = logger
-        self.level = level
+        def write(self, message):
+            if message.strip():
+                self.logger.log(self.level, message.strip())
 
-    def write(self, message):
-        if message.strip():
-            self.logger.log(self.level, message.strip())
+        def flush(self):
+            pass  # Needed for compatibility
 
-    def flush(self):
-        pass  # Needed for compatibility
+    sys.stderr = StreamToLogger(logging.getLogger(), level=logging.ERROR)
 
-sys.stderr = StreamToLogger(logging.getLogger(), level=logging.ERROR)
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.exit(0)
+        logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        
 
-def handle_exception(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.exit(0)
-    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-    
+    sys.excepthook = handle_exception
 
-sys.excepthook = handle_exception
-
-log_folder = create_log_path()
-log_file_path = os.path.join(log_folder, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-logging.basicConfig(
-    filename=log_file_path,
-    filemode='a',
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-# Keep only 3 latest log files.
-rotate_logs(log_folder)
+    log_folder = create_log_path()
+    log_file_path = os.path.join(log_folder, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+    logging.basicConfig(
+        filename=log_file_path,
+        filemode='a',
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    # Keep only 3 latest log files.
+    rotate_logs(log_folder)
     
 
 def main():
