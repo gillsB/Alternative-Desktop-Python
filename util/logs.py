@@ -16,6 +16,7 @@ def create_log_path():
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
     LOG_DIR = logs_dir
+    return logs_dir
 
 def setup_logging():
     global CURRENT_LOG_FILE
@@ -37,12 +38,17 @@ def setup_logging():
     # Rotate the logs, keeping only the latest 3 files
     rotate_logs()
 
-def rotate_logs():
-    if LOG_DIR is None:
+# Dev logging calls with nothing, to use global LOG_DIR. Installed version calls with logs_dir.
+def rotate_logs(logs_dir = None):
+    if LOG_DIR is None and logs_dir is None:
         raise ValueError("LOG_DIR is not set. Call create_log_path() first.")
-    
-    # Get a list of log files sorted by creation time
-    log_files = sorted(glob.glob(os.path.join(LOG_DIR, "alternative_desktop_*.log")), key=os.path.getctime)
+    elif logs_dir is None:
+        # Get a list of log files sorted by creation time
+        print("Using global log dir")
+        log_files = sorted(glob.glob(os.path.join(LOG_DIR, "alternative_desktop_*.log")), key=os.path.getctime)
+    else:
+        print("using called logs dir")
+        log_files = sorted(glob.glob(os.path.join(logs_dir, "alternative_desktop_*.log")), key=os.path.getctime)
 
     # If there are more than MAX_LOG_FILES, remove the oldest ones
     while len(log_files) > MAX_LOG_FILES:

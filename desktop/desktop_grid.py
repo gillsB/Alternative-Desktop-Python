@@ -152,7 +152,7 @@ class DesktopGrid(QGraphicsView):
 
     # Override to do nothing to avoid scrolling
     def wheelEvent(self, event):
-        if self.args.mode == "debug":
+        if self.args.mode == "debug" or self.args.mode == "devbug":
             row, col = self.find_largest_visible_index()
             logger.debug(f"Max row = {row} max col = {col}")
             #temporary override to test resizing icons.
@@ -163,11 +163,15 @@ class DesktopGrid(QGraphicsView):
                 self.update_icon_size(128)
                 FONT_SIZE = 18
                 self.desktop_icons[(0,0)].update_font()
+                # ERROR on purpose to test logging exceptions/traceback.
+                print(f"{self.desktop_icons[(0,0)].names}")
             else:
                 ICON_SIZE = 64
                 self.update_icon_size(64)
                 FONT_SIZE = 10
                 self.desktop_icons[(0,0)].update_font()
+                # ERROR on purpose to test logging exceptions/traceback.
+                x = 1/0
             event.ignore()  # Ignore the event to prevent scrolling
 
 

@@ -1,7 +1,10 @@
 import sys
-import os
-import importlib.util
+import logging
 import argparse
+import os
+from datetime import datetime
+import importlib.util
+import traceback
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Launch AlternativeDesktop with or without prototype mode.")
@@ -47,8 +50,8 @@ desktop = load_module('desktop', subfolder='desktop')
 # Now use these modules
 from util.updater import check_for_updates
 from util.settings import load_settings, set_dir
+from util.logs import setup_logging, rotate_logs, create_log_path
 import logging
-from util.logs import setup_logging
 
 # Only used for pyinstaller to get the dependencies needed for the program. (pyinstaller only looks for explicit imports not load_module)
 from desktop.desktop import main
@@ -58,34 +61,77 @@ GITHUB_REPO = "gillsb/Alternative-Desktop"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 SETTINGS_FILE = None
 
-if __name__ == '__main__':
-    setup_logging()
-    # Create a logger
-    logger = logging.getLogger(__name__)
-    logger.info("Starting the application")
 
-    app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
+class StreamToLogger:
+    def __init__(self, logger, level=logging.ERROR):
+        self.logger = logger
+        self.level = level
 
-    if not os.path.exists(app_data_path):
-        os.makedirs(app_data_path)
+    def write(self, message):
+        if message.strip():
+            self.logger.log(self.level, message.strip())
 
-    config_path = os.path.join(app_data_path, 'config', 'settings.json')
-    config_dir = os.path.dirname(config_path)
-    if not os.path.exists(config_dir):
-        os.makedirs(config_dir)
+    def flush(self):
+        pass  # Needed for compatibility
 
-    logger.info(f"Configuration file path: {config_path}")
-    SETTINGS_FILE = config_path
+sys.stderr = StreamToLogger(logging.getLogger(), level=logging.ERROR)
 
-    logger.info(f"Settings file: {SETTINGS_FILE}")
-    set_dir(SETTINGS_FILE)
-    settings = load_settings()
-    logger.info(f"settings: {settings}")
-
-    # Must run before .main() and before any QApplication needs to be created
-    # Since updater(check_for_updates) uses a QApplication we call it before so that it uses the same QApplication (cannot delete one and re-create it)
-    desktop.create_app()
-    if settings.get("update_on_launch", True):
-        check_for_updates(CURRENT_VERSION, RELEASES_URL)
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.exit(0)
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
     
-    desktop.main(CURRENT_VERSION, args)
+
+sys.excepthook = handle_exception
+
+log_folder = create_log_path()
+log_file_path = os.path.join(log_folder, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+logging.basicConfig(
+    filename=log_file_path,
+    filemode='a',
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+# Keep only 3 latest log files.
+rotate_logs(log_folder)
+    
+
+def main():
+    try:
+        logger = logging.getLogger(__name__)
+        logger.info("Starting the application")
+
+        app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
+
+        if not os.path.exists(app_data_path):
+            os.makedirs(app_data_path)
+
+        config_path = os.path.join(app_data_path, 'config', 'settings.json')
+        config_dir = os.path.dirname(config_path)
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+
+        logger.info(f"Configuration file path: {config_path}")
+        SETTINGS_FILE = config_path
+
+        logger.info(f"Settings file: {SETTINGS_FILE}")
+        set_dir(SETTINGS_FILE)
+        settings = load_settings()
+        logger.info(f"settings: {settings}")
+
+        # Must run before .main() and before any QApplication needs to be created
+        # Since updater(check_for_updates) uses a QApplication we call it before so that it uses the same QApplication (cannot delete one and re-create it)
+        desktop.create_app()
+        if settings.get("update_on_launch", True):
+            check_for_updates(CURRENT_VERSION, RELEASES_URL)
+
+        desktop.main(CURRENT_VERSION, args)
+
+    except Exception as e:
+        print("An error occurred.")  # This goes to stdout
+        traceback_info = traceback.format_exc()
+        print(traceback_info)
+        logger.error("An error occurred:%s", traceback_info)
+
+if __name__ == "__main__":
+    main()
