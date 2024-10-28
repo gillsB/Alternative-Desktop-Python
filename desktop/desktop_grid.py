@@ -428,7 +428,11 @@ class DesktopGrid(QGraphicsView):
             self.swap_with_blank_icon(old_row, old_col, new_row, new_col)
             return
         item1 = self.desktop_icons[(old_row, old_col)]
-        
+        if not self.swap_folders(old_row, old_col, new_row, new_col):
+            logger.error("Failed swapping files. do not swap local icons")
+            item1.reload_from_config()
+            item2.reload_from_config()
+            return
         
         if item1 is None or item2 is None:
             # Handle cases where one of the items does not exist
@@ -457,7 +461,8 @@ class DesktopGrid(QGraphicsView):
         )
 
         swap_items_by_position(old_row, old_col, new_row, new_col)
-        self.swap_folders(old_row, old_col, new_row, new_col)
+        update_folder(new_row, new_col)
+        update_folder(old_row, old_col)
 
         # Reload their fields to update their icon_path. This is a way to refresh fields, but will not update rows/col.
         # Row/col should be changed like the above, then call a refresh.
@@ -480,7 +485,7 @@ class DesktopGrid(QGraphicsView):
             # Check for write permissions
             if not os.access(new_dir, os.W_OK) or not os.access(exist_dir, os.W_OK):
                 logger.error(f"Permission denied on one of the directories: {new_dir}, {exist_dir}")
-                return
+                return False
             
             try:
                 # Swap folder names using temporary folder
@@ -496,22 +501,31 @@ class DesktopGrid(QGraphicsView):
                         break
                     except PermissionError:
                         logger.warning(f"PermissionError when renaming {new_dir}, retrying...")
-                        time.sleep(0.5)
+                        time.sleep(0.25)
+                    except Exception as e:
+                        logger.warning(f"Unexpected error when renaming {new_dir}: {e}, retrying...")
+                        time.sleep(0.25) 
                 else:
-                    logger.error(f"Failed to rename {new_dir} after {retries} retries.")
-                    return
-                
+                    raise OSError(f"Failed to rename {new_dir} after {retries} retries.")
+
+                # Continue with the renaming process
                 os.rename(exist_dir, new_dir)
                 os.rename(temp_folder, exist_dir)
-            except PermissionError as e:
-                logger.error(f"PermissionError encountered: {e}")
+
             except Exception as e:
-                logger.error(f"Unexpected error during folder swap: {e}")
+                logger.error(f"Error during folder swap: {e}")
+                if temp_folder and os.path.exists(temp_folder):
+                    logger.info(f"Rolling back: renaming {temp_folder} back to {new_dir}.")
+                    try:
+                        os.rename(temp_folder, new_dir)
+                    except Exception as rollback_error:
+                        logger.error(f"Rollback failed: {rollback_error}")
+                return False
         else:
-            # get_data_directory should create the folders if they don't exist so this should theoretically never be called
+            # get_data_directory should create the folders if they don't exist, so this should theoretically never be called
             logger.error("One or both folders do not exist")
-        update_folder(new_row, new_col)
-        update_folder(old_row, old_col)
+            return False
+        return True
 
     def swap_with_blank_icon(self, old_row, old_col, new_row, new_col):
         item1 = self.desktop_icons[(old_row, old_col)]
@@ -528,6 +542,8 @@ class DesktopGrid(QGraphicsView):
 
         swap_items_by_position(old_row, old_col, new_row, new_col)
         self.swap_folders(old_row, old_col, new_row, new_col)
+        update_folder(new_row, new_col)
+        #update_folder(old_row, old_col)
 
         item1.reload_from_config()
 
@@ -794,6 +810,7 @@ class DesktopIcon(QGraphicsItem):
         self.hover_timer.timeout.connect(self.show_tooltip)
         self.last_pos = None
         self.tooltip_shown = False
+        self.dragging = False
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
@@ -1411,16 +1428,14 @@ class DesktopIcon(QGraphicsItem):
             scene_pos = self.mapToScene(mouse_pos)
 
             # Call icon_dropped with the scene position
-            self.row, self.col = view.icon_dropped(scene_pos)
-            logger.info(f"old_row: {old_row} old_col: {old_col} row: {self.row}, col: {self.col} (released at {scene_pos.x()}, {scene_pos.y()})")
+            new_row, new_col = view.icon_dropped(scene_pos)
+            logger.info(f"old_row: {old_row} old_col: {old_col} row: {new_row}, col: {new_col} (released at {scene_pos.x()}, {scene_pos.y()})")
             # Swap icons
-            if self.row == None or self.col == None:
-                self.row = old_row
-                self.col = old_col
-                logger.error("Icon dropped outside of visible icon range or bad return from icon_dropped, resetting self.row/self.col to old_row/old_col")
-            elif old_row != self.row or old_col != self.col:
+            if new_row == None or new_col== None:
+                logger.error("Icon dropped outside of visible icon range or bad return from icon_dropped.")
+            elif old_row != new_row or old_col != new_col:
                 logger.info("Swapping icons.")
-                view.swap_icons(old_row, old_col, self.row, self.col)
+                view.swap_icons(old_row, old_col, new_row, new_col)
             else:
                 logger.info("Icon dropped at same location")
             
