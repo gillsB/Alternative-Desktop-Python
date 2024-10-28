@@ -50,7 +50,7 @@ desktop = load_module('desktop', subfolder='desktop')
 # Now use these modules
 from util.updater import check_for_updates
 from util.settings import load_settings, set_dir
-from util.logs import setup_logging, rotate_logs, create_log_path
+from util.logs import setup_logging, setup_dev_logging, rotate_logs, create_log_path
 import logging
 
 # Only used for pyinstaller to get the dependencies needed for the program. (pyinstaller only looks for explicit imports not load_module)
@@ -63,41 +63,10 @@ SETTINGS_FILE = None
 
 # Use old logging which shows in both console and logging file. note: this does not include errors in logging files, only console.
 if args.mode == "dev" or args.mode == "devbug":
-    setup_logging()
+    setup_dev_logging()
 # Installation version for logging. Required for redirecting stderr to log file.
 else:
-    class StreamToLogger:
-        def __init__(self, logger, level=logging.ERROR):
-            self.logger = logger
-            self.level = level
-
-        def write(self, message):
-            if message.strip():
-                self.logger.log(self.level, message.strip())
-
-        def flush(self):
-            pass  # Needed for compatibility
-
-    sys.stderr = StreamToLogger(logging.getLogger(), level=logging.ERROR)
-
-    def handle_exception(exc_type, exc_value, exc_traceback):
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.exit(0)
-        logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-        
-
-    sys.excepthook = handle_exception
-
-    log_folder = create_log_path()
-    log_file_path = os.path.join(log_folder, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-    logging.basicConfig(
-        filename=log_file_path,
-        filemode='a',
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    # Keep only 3 latest log files.
-    rotate_logs(log_folder)
+    setup_logging()
     
 
 def main():
