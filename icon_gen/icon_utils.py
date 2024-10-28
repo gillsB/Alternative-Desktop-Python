@@ -71,6 +71,7 @@ def make_local_icon(icon_path, data_path):
     try:
         logger.info(f"Trying to copy {icon_path} to {output_path}")
         shutil.copy(icon_path, output_path)
+        remove_hidden_attribute(output_path)
         return output_path
     
     except Exception as e:

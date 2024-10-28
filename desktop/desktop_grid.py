@@ -15,6 +15,7 @@ import logging
 import shlex
 import subprocess
 import send2trash
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -467,14 +468,45 @@ class DesktopGrid(QGraphicsView):
     def swap_folders(self, old_row, old_col, new_row, new_col):
         new_dir = self.get_data_icon_dir(new_row, new_col)
         exist_dir = self.get_data_icon_dir(old_row, old_col)
+
+        # Stop the movie or it can receive permission errors as a file in use.
+        if (new_row, new_col) in self.desktop_icons:
+            self.desktop_icons[(new_row, new_col)].movie = None
+        if (old_row, old_col) in self.desktop_icons:
+            self.desktop_icons[(old_row, old_col)].movie = None
+        
+        
         if os.path.exists(new_dir) and os.path.exists(exist_dir):
-            # Swap folder names using temporary folder
-            temp_folder = new_dir + '_temp'
-            temp_folder = self.get_unique_folder_name(temp_folder)
-            logger.info(f"making new folder name = {temp_folder}")
-            os.rename(new_dir, temp_folder)
-            os.rename(exist_dir, new_dir)
-            os.rename(temp_folder, exist_dir)
+            # Check for write permissions
+            if not os.access(new_dir, os.W_OK) or not os.access(exist_dir, os.W_OK):
+                logger.error(f"Permission denied on one of the directories: {new_dir}, {exist_dir}")
+                return
+            
+            try:
+                # Swap folder names using temporary folder
+                temp_folder = new_dir + '_temp'
+                temp_folder = self.get_unique_folder_name(temp_folder)
+                logger.info(f"making new folder name = {temp_folder}")
+                
+                # Attempt to rename, with retries in case of temporary file locks
+                retries = 2
+                for _ in range(retries):
+                    try:
+                        os.rename(new_dir, temp_folder)
+                        break
+                    except PermissionError:
+                        logger.warning(f"PermissionError when renaming {new_dir}, retrying...")
+                        time.sleep(0.5)
+                else:
+                    logger.error(f"Failed to rename {new_dir} after {retries} retries.")
+                    return
+                
+                os.rename(exist_dir, new_dir)
+                os.rename(temp_folder, exist_dir)
+            except PermissionError as e:
+                logger.error(f"PermissionError encountered: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error during folder swap: {e}")
         else:
             # get_data_directory should create the folders if they don't exist so this should theoretically never be called
             logger.error("One or both folders do not exist")
