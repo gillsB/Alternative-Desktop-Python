@@ -1441,6 +1441,7 @@ class DesktopIcon(QGraphicsItem):
             if new_row == None or new_col== None:
                 logger.error("Icon dropped outside of visible icon range or bad return from icon_dropped.")
             elif old_row != new_row or old_col != new_col:
+                MEDIA_PLAYER.pause()
                 logger.info("Swapping icons.")
                 view.swap_icons(old_row, old_col, new_row, new_col)
             elif self.distance > 5:
@@ -1448,8 +1449,7 @@ class DesktopIcon(QGraphicsItem):
             
             
             self.update()
-
-
+        MEDIA_PLAYER.play()
 
     def drop_event(self, event):
         if event.mimeData().hasUrls():
