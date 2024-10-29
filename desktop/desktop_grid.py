@@ -811,6 +811,7 @@ class DesktopIcon(QGraphicsItem):
         self.last_pos = None
         self.tooltip_shown = False
         self.dragging = False
+        self.distance = 0
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
@@ -1389,6 +1390,7 @@ class DesktopIcon(QGraphicsItem):
     # Override mousePressEvent
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
+            self.distance = 0
             self.dragging = True
             self.start_pos = event.pos()  # Store the initial position
             event.accept()
@@ -1397,8 +1399,8 @@ class DesktopIcon(QGraphicsItem):
     def mouseMoveEvent(self, event):
         if self.dragging:
             # Calculate the distance moved, but don't move the item
-            distance = (event.pos() - self.start_pos).manhattanLength()
-            if distance > 5:  # A threshold to consider as dragging
+            self.distance = (event.pos() - self.start_pos).manhattanLength()
+            if self.distance > 5:  # A threshold to consider as dragging
                 self.setCursor(Qt.ClosedHandCursor) 
 
 
@@ -1436,7 +1438,7 @@ class DesktopIcon(QGraphicsItem):
             elif old_row != new_row or old_col != new_col:
                 logger.info("Swapping icons.")
                 view.swap_icons(old_row, old_col, new_row, new_col)
-            else:
+            elif self.distance > 5:
                 logger.info("Icon dropped at same location")
             
             
