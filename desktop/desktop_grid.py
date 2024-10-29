@@ -7,7 +7,8 @@ from util.settings import get_setting
 from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder, change_launch, set_entry_to_default
 from desktop.desktop_grid_menu import Menu
 from menus.run_menu_dialog import RunMenuDialog
-from menus.display_warning import display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, display_path_and_parent_not_exist_warning, display_delete_icon_warning
+from menus.display_warning import (display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, 
+                                   display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_cannot_swap_icons_warning)
 from desktop.desktop_grid_menu import Menu
 import sys
 import os
@@ -428,16 +429,19 @@ class DesktopGrid(QGraphicsView):
             self.swap_with_blank_icon(old_row, old_col, new_row, new_col)
             return
         item1 = self.desktop_icons[(old_row, old_col)]
-        if not self.swap_folders(old_row, old_col, new_row, new_col):
-            logger.error("Failed swapping files. do not swap local icons")
-            item1.reload_from_config()
-            item2.reload_from_config()
-            return
-        
         if item1 is None or item2 is None:
             # Handle cases where one of the items does not exist
             logger.error("One of the items attempting to swap does not exist.")
             return
+        result = self.swap_folders(old_row, old_col, new_row, new_col)
+        if result != True:
+            logger.error("Failed swapping files. do not swap local icons")
+            display_cannot_swap_icons_warning(result)
+            item1.reload_from_config()
+            item2.reload_from_config()
+            return
+        
+        logger.info("folders successfully swapped")
 
         # Calculate new positions
         item1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
@@ -493,21 +497,22 @@ class DesktopGrid(QGraphicsView):
                 temp_folder = self.get_unique_folder_name(temp_folder)
                 logger.info(f"making new folder name = {temp_folder}")
                 
-                # Attempt to rename, with retries in case of temporary file locks
                 retries = 2
+                last_exception = None 
                 for _ in range(retries):
                     try:
                         os.rename(new_dir, temp_folder)
                         break
-                    except PermissionError:
-                        logger.warning(f"PermissionError when renaming {new_dir}, retrying...")
+                    except PermissionError as e:
+                        last_exception = e
+                        logger.warning(f"PermissionError when renaming {new_dir}, retrying... ({e})")
                         time.sleep(0.25)
                     except Exception as e:
+                        last_exception = e
                         logger.warning(f"Unexpected error when renaming {new_dir}: {e}, retrying...")
                         time.sleep(0.25) 
                 else:
-                    raise OSError(f"Failed to rename {new_dir} after {retries} retries.")
-
+                    raise OSError(f"Failed to rename after {retries} retries. \nError: {last_exception}")
                 # Continue with the renaming process
                 os.rename(exist_dir, new_dir)
                 os.rename(temp_folder, exist_dir)
@@ -520,11 +525,11 @@ class DesktopGrid(QGraphicsView):
                         os.rename(temp_folder, new_dir)
                     except Exception as rollback_error:
                         logger.error(f"Rollback failed: {rollback_error}")
-                return False
+                return e
         else:
             # get_data_directory should create the folders if they don't exist, so this should theoretically never be called
             logger.error("One or both folders do not exist")
-            return False
+            return "One or both folders do not exist"
         return True
 
     def swap_with_blank_icon(self, old_row, old_col, new_row, new_col):

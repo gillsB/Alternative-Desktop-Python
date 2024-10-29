@@ -165,3 +165,10 @@ def display_multiple_working_keybind_warning(keybind):
         )
     # QTimer to not block main thread. (Async)
     QTimer.singleShot(0, show_warning)
+
+def display_cannot_swap_icons_warning(error):
+    logger.warning("Displaying warning Cannot swap icons")
+    return show_highlightable_message_box(
+        "Cannot swap icons", 
+        f"An error occurred upon trying to swap folders for icons, to ensure icon paths do not get corrupted, the swap has been cancelled. \nError: {error}"
+    )
