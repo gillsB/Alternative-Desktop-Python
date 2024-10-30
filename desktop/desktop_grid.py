@@ -280,10 +280,18 @@ class DesktopGrid(QGraphicsView):
         
     def scale_to_fit_width(self):
         video_aspect_ratio = self.get_video_aspect_ratio()
-        # Fit the width of the video to the width of the view, maintaining aspect ratio
+        # Fit the video to the width of the view, maintaining the aspect ratio
         new_height = self.width() / video_aspect_ratio
+
+        # Adjust the size of the video item
         self.video_item.setSize(QSizeF(self.width(), new_height))
 
+        # Center the video vertically within the view if it's taller than the view height
+        if new_height > self.height():
+            y_offset = (new_height - self.height()) / 2
+            self.video_item.setPos(0, -y_offset)
+        else:
+            self.video_item.setPos(0, 0)
     def get_video_aspect_ratio(self):
         video_sink = MEDIA_PLAYER.videoSink()
         if video_sink:
