@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
@@ -245,6 +245,10 @@ class DesktopGrid(QGraphicsView):
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
                 self.set_video_source(BACKGROUND_VIDEO)
                 logger.info("Set background video source")
+            scaling_mode = get_setting("video_scaling_mode", "fit_width")  # Fetch the user-selected scaling mode
+        
+            if scaling_mode == "fit_width":
+                self.scale_to_fit_width()
             self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
@@ -274,6 +278,25 @@ class DesktopGrid(QGraphicsView):
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))
         
+    def scale_to_fit_width(self):
+        video_aspect_ratio = self.get_video_aspect_ratio()
+        # Fit the width of the video to the width of the view, maintaining aspect ratio
+        new_height = self.width() / video_aspect_ratio
+        self.video_item.setSize(QSizeF(self.width(), new_height))
+
+    def get_video_aspect_ratio(self):
+        video_sink = MEDIA_PLAYER.videoSink()
+        if video_sink:
+            video_frame = video_sink.videoFrame()
+            if video_frame.isValid():
+                video_width = video_frame.size().width()
+                video_height = video_frame.size().height()
+                if video_width > 0 and video_height > 0:
+                    return video_width / video_height
+
+        # If the resolution can't be determined, default to a 16:9 aspect ratio
+        return 16 / 9 
+        
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
         bg_video = get_setting("background_video")
@@ -289,6 +312,10 @@ class DesktopGrid(QGraphicsView):
         MEDIA_PLAYER.setPlaybackRate(1.0)
         MEDIA_PLAYER.setLoops(QMediaPlayer.Infinite)
         MEDIA_PLAYER.play()
+        
+        scaling_mode = get_setting("video_scaling_mode", "fit_width")
+        if scaling_mode == "fit_width":
+            self.scale_to_fit_width()
     
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia:
