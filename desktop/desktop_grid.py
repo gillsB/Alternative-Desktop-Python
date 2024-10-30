@@ -100,6 +100,7 @@ class DesktopGrid(QGraphicsView):
 
         self.render_bg()
         self.populate_icons()
+        self.vertical_bg = 0.50
 
     def populate_icons(self):
 
@@ -154,6 +155,14 @@ class DesktopGrid(QGraphicsView):
 
     # Override to do nothing to avoid scrolling
     def wheelEvent(self, event):
+        delta = event.angleDelta().y()  # Use .y() for vertical scrolling
+
+        if delta > 0:
+            self.vertical_bg -= 0.01
+            self.scale_to_fit_width()
+        elif delta < 0:
+            self.vertical_bg += 0.01
+            self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
             row, col = self.find_largest_visible_index()
             logger.debug(f"Max row = {row} max col = {col}")
@@ -278,6 +287,7 @@ class DesktopGrid(QGraphicsView):
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))
         
+    # self.vertical_bg lower = higher viewport, 0.0 = highest section, 0.5 = centered, 1.0 = bottom lowest part.
     def scale_to_fit_width(self):
         video_aspect_ratio = self.get_video_aspect_ratio()
         # Fit the video to the width of the view, maintaining the aspect ratio
@@ -286,9 +296,13 @@ class DesktopGrid(QGraphicsView):
         # Adjust the size of the video item
         self.video_item.setSize(QSizeF(self.width(), new_height))
 
-        # Center the video vertically within the view if it's taller than the view height
+        # If the video height exceeds the view height, adjust the vertical position
         if new_height > self.height():
-            y_offset = (new_height - self.height()) / 2
+            # Calculate the total vertical overflow
+            total_vertical_overflow = new_height - self.height()
+
+            # Use self.vertical_bg to determine how much of the overflow is applied
+            y_offset = total_vertical_overflow * self.vertical_bg
             self.video_item.setPos(0, -y_offset)
         else:
             self.video_item.setPos(0, 0)
