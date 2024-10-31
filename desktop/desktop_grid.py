@@ -99,10 +99,11 @@ class DesktopGrid(QGraphicsView):
         MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
 
         self.setViewportUpdateMode(QGraphicsView.MinimalViewportUpdate)
-
+        self.vertical_bg = 0.50
+        self.zoom_bg = 1.0
         self.render_bg()
         self.populate_icons()
-        self.vertical_bg = 0.50
+
 
     def populate_icons(self):
 
@@ -160,10 +161,12 @@ class DesktopGrid(QGraphicsView):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
         if delta > 0:
-            self.vertical_bg -= 0.05
+            #self.vertical_bg -= 0.05
+            self.zoom_bg -= 0.05
             self.scale_to_fit_width()
         elif delta < 0:
-            self.vertical_bg += 0.05
+            #self.vertical_bg += 0.05
+            self.zoom_bg += 0.05
             self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
             row, col = self.find_largest_visible_index()
@@ -292,16 +295,21 @@ class DesktopGrid(QGraphicsView):
     # self.vertical_bg lower = higher viewport, 0.0 = highest section, 0.5 = centered, 1.0 = bottom lowest part.
     def scale_to_fit_width(self):
         video_aspect_ratio = self.get_video_aspect_ratio()
+        
         # Fit the video to the width of the view, maintaining the aspect ratio
         new_height = self.width() / video_aspect_ratio
 
-        # Adjust the size of the video item
-        self.video_item.setSize(QSizeF(self.width(), new_height))
+        # Apply zoom factor to both width and height
+        zoomed_width = self.width() * self.zoom_bg
+        zoomed_height = new_height * self.zoom_bg
 
-        # If the video height exceeds the view height, adjust the vertical position
-        if new_height > self.height():
+        # Adjust the size of the video item
+        self.video_item.setSize(QSizeF(zoomed_width, zoomed_height))
+
+        # Adjust the vertical position if the video height exceeds the view height
+        if zoomed_height > self.height():
             # Calculate the total vertical overflow
-            total_vertical_overflow = new_height - self.height()
+            total_vertical_overflow = zoomed_height - self.height()
 
             # Use self.vertical_bg to determine how much of the overflow is applied
             y_offset = total_vertical_overflow * self.vertical_bg
