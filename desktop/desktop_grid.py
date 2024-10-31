@@ -71,6 +71,8 @@ class DesktopGrid(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.setDragMode(QGraphicsView.NoDrag)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setRenderHint(QPainter.SmoothPixmapTransform) 
 
 
         # Initialize a timer for debouncing update_icon_visibility
