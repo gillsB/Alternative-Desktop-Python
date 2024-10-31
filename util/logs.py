@@ -28,7 +28,7 @@ def setup_dev_logging():
     log_file_path = os.path.join(LOG_DIR, f"alternative_desktop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
     CURRENT_LOG_FILE = log_file_path
     # Set up logging with a file handler for the new log file
-    handler = logging.FileHandler(log_file_path)
+    handler = logging.FileHandler(log_file_path, encoding='utf-8')
 
     logging.basicConfig(
         level=logging.DEBUG,
@@ -75,7 +75,8 @@ def setup_logging():
         filename=log_file_path,
         filemode='a',
         level=logging.DEBUG,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        encoding='utf-8'
     )
     
     # Rotate the logs, keeping only the latest 3 files

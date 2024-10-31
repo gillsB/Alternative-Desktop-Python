@@ -158,10 +158,10 @@ class DesktopGrid(QGraphicsView):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
         if delta > 0:
-            self.vertical_bg -= 0.01
+            self.vertical_bg -= 0.05
             self.scale_to_fit_width()
         elif delta < 0:
-            self.vertical_bg += 0.01
+            self.vertical_bg += 0.05
             self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
             row, col = self.find_largest_visible_index()
