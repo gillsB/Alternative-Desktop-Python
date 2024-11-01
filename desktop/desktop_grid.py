@@ -100,9 +100,18 @@ class DesktopGrid(QGraphicsView):
 
         self.setViewportUpdateMode(QGraphicsView.MinimalViewportUpdate)
         self.vertical_bg = 0.50
+        self.horizontal_bg = 0.50
         self.zoom_bg = 1.0
+        self.scaling_timer = QTimer()
+        self.scaling_timer.setSingleShot(True)
+        self.scaling_timer.timeout.connect(self.scale_to_fit_width)
+
+        # Trigger initial scaling on media load
+        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
+        
         self.render_bg()
         self.populate_icons()
+
 
 
     def populate_icons(self):
@@ -161,8 +170,8 @@ class DesktopGrid(QGraphicsView):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
         if delta > 0:
-            #self.vertical_bg -= 0.05
-            self.zoom_bg -= 0.05
+            self.vertical_bg -= 0.05
+            #self.zoom_bg -= 0.05
             self.scale_to_fit_width()
         elif delta < 0:
             #self.vertical_bg += 0.05
@@ -295,27 +304,28 @@ class DesktopGrid(QGraphicsView):
     # self.vertical_bg lower = higher viewport, 0.0 = highest section, 0.5 = centered, 1.0 = bottom lowest part.
     def scale_to_fit_width(self):
         video_aspect_ratio = self.get_video_aspect_ratio()
-        
+        if video_aspect_ratio is None:
+            # Retry scaling in 50ms if aspect ratio isn't available yet
+            self.scaling_timer.start(50)
+            return
+
         # Fit the video to the width of the view, maintaining the aspect ratio
         new_height = self.width() / video_aspect_ratio
 
-        # Apply zoom factor to both width and height
-        zoomed_width = self.width() * self.zoom_bg
-        zoomed_height = new_height * self.zoom_bg
-
         # Adjust the size of the video item
-        self.video_item.setSize(QSizeF(zoomed_width, zoomed_height))
+        self.video_item.setSize(QSizeF(self.width(), new_height))
 
-        # Adjust the vertical position if the video height exceeds the view height
-        if zoomed_height > self.height():
+        # If the video height exceeds the view height, adjust the vertical position
+        if new_height > self.height():
             # Calculate the total vertical overflow
-            total_vertical_overflow = zoomed_height - self.height()
+            total_vertical_overflow = new_height - self.height()
 
             # Use self.vertical_bg to determine how much of the overflow is applied
-            y_offset = total_vertical_overflow * self.vertical_bg
+            y_offset = total_vertical_overflow * 0.50 # 0.50 focuses on vertical center of video.
             self.video_item.setPos(0, -y_offset)
         else:
             self.video_item.setPos(0, 0)
+
     def get_video_aspect_ratio(self):
         video_sink = MEDIA_PLAYER.videoSink()
         if video_sink:
@@ -325,9 +335,7 @@ class DesktopGrid(QGraphicsView):
                 video_height = video_frame.size().height()
                 if video_width > 0 and video_height > 0:
                     return video_width / video_height
-
-        # If the resolution can't be determined, default to a 16:9 aspect ratio
-        return 16 / 9 
+        return None  # Return None if dimensions aren't yet available
         
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
@@ -353,7 +361,6 @@ class DesktopGrid(QGraphicsView):
         if status == QMediaPlayer.EndOfMedia:
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
-
 
     def show_grid_menu(self, row, col, dropped_path=None):
         MEDIA_PLAYER.pause()
