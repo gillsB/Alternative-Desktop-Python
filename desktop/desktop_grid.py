@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache, QTransform
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -85,29 +85,21 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(0, 0, self.width(), self.height())
 
         self.scene.clear()
-
-        # Video background stuff
-        global MEDIA_PLAYER
+        self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
+        self.video_manager = VideoBackgroundManager()  # Create an instance of VideoBackgroundManager
+        self.video_manager.video_item = QGraphicsVideoItem()  # Initialize the QGraphicsVideoItem
+        self.scene.addItem(self.video_manager.video_item)  # Add video item to the scene
+        self.video_manager.video_item.setZValue(-1)  # Set the Z value for rendering order
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
-        self.video_item = QGraphicsVideoItem()
-        self.scene.addItem(self.video_item)
-        self.video_item.setZValue(-1)
+        
+        # Set up the media player in the video manager
+        global MEDIA_PLAYER
         MEDIA_PLAYER = QMediaPlayer()
-        MEDIA_PLAYER.setVideoOutput(self.video_item)
+        MEDIA_PLAYER.setVideoOutput(self.video_manager.video_item)  # Set the video output
         MEDIA_PLAYER.setPlaybackRate(1.0)
-        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
+        MEDIA_PLAYER.mediaStatusChanged.connect(self.video_manager.handle_media_status_changed)
 
-        self.setViewportUpdateMode(QGraphicsView.MinimalViewportUpdate)
-        self.vertical_bg = 0.50
-        self.horizontal_bg = 0.50
-        self.zoom_bg = 1.0
-        self.scaling_timer = QTimer()
-        self.scaling_timer.setSingleShot(True)
-        self.scaling_timer.timeout.connect(self.scale_to_fit_width)
-
-        # Trigger initial scaling on media load
-        MEDIA_PLAYER.mediaStatusChanged.connect(self.handle_media_status_changed)
         
         self.render_bg()
         self.populate_icons()
@@ -140,7 +132,7 @@ class DesktopGrid(QGraphicsView):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.scene.setSceneRect(self.rect())
-        self.video_item.setSize(self.size())
+        self.video_manager.video_item.setSize(self.size())
         self.render_bg()
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
@@ -170,13 +162,15 @@ class DesktopGrid(QGraphicsView):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
         if delta > 0:
-            self.vertical_bg -= 0.05
+            #self.vertical_bg -= 0.05
             #self.zoom_bg -= 0.05
-            self.scale_to_fit_width()
+            self.video_manager.zoom_video(0.95)
+            #self.video_manager.move_video(1, 0)
+            pass
         elif delta < 0:
             #self.vertical_bg += 0.05
-            self.zoom_bg += 0.05
-            self.scale_to_fit_width()
+            self.video_manager.zoom_video(1.05)
+            #self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
             row, col = self.find_largest_visible_index()
             logger.debug(f"Max row = {row} max col = {col}")
@@ -259,19 +253,18 @@ class DesktopGrid(QGraphicsView):
         return False, False
     
     def render_bg(self):
-        # Store old version to tell if it has changed after loading new video.
         old_bg_video = BACKGROUND_VIDEO
-        self.load_bg_from_settings()
+        self.load_bg_from_settings()  # Load background settings through the manager
         self.load_video, self.load_image = self.background_setting()
+        
         if self.load_video:
-            # If BACKGROUND_VIDEO has changed or It is not currently playing a video (swapped from image/none to video playback).
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
-                self.set_video_source(BACKGROUND_VIDEO)
+                self.video_manager.set_video_source(BACKGROUND_VIDEO)  # Set video source through the manager
                 logger.info("Set background video source")
             scaling_mode = get_setting("video_scaling_mode", "fit_width")  # Fetch the user-selected scaling mode
         
             if scaling_mode == "fit_width":
-                self.scale_to_fit_width()
+                pass  # Adjust scaling through the manager
             self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
@@ -300,43 +293,8 @@ class DesktopGrid(QGraphicsView):
 
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))
-        
-    # self.vertical_bg lower = higher viewport, 0.0 = highest section, 0.5 = centered, 1.0 = bottom lowest part.
-    def scale_to_fit_width(self):
-        video_aspect_ratio = self.get_video_aspect_ratio()
-        if video_aspect_ratio is None:
-            # Retry scaling in 50ms if aspect ratio isn't available yet
-            self.scaling_timer.start(50)
-            return
+    
 
-        # Fit the video to the width of the view, maintaining the aspect ratio
-        new_height = self.width() / video_aspect_ratio
-
-        # Adjust the size of the video item
-        self.video_item.setSize(QSizeF(self.width(), new_height))
-
-        # If the video height exceeds the view height, adjust the vertical position
-        if new_height > self.height():
-            # Calculate the total vertical overflow
-            total_vertical_overflow = new_height - self.height()
-
-            # Use self.vertical_bg to determine how much of the overflow is applied
-            y_offset = total_vertical_overflow * 0.50 # 0.50 focuses on vertical center of video.
-            self.video_item.setPos(0, -y_offset)
-        else:
-            self.video_item.setPos(0, 0)
-
-    def get_video_aspect_ratio(self):
-        video_sink = MEDIA_PLAYER.videoSink()
-        if video_sink:
-            video_frame = video_sink.videoFrame()
-            if video_frame.isValid():
-                video_width = video_frame.size().width()
-                video_height = video_frame.size().height()
-                if video_width > 0 and video_height > 0:
-                    return video_width / video_height
-        return None  # Return None if dimensions aren't yet available
-        
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
         bg_video = get_setting("background_video")
@@ -345,22 +303,6 @@ class DesktopGrid(QGraphicsView):
             BACKGROUND_VIDEO = bg_video
             BACKGROUND_IMAGE = bg_img
             logger.info(f"Reloaded BG global variables from settings VIDEO = {BACKGROUND_VIDEO}, IMAGE = {BACKGROUND_IMAGE}")
-    
-
-    def set_video_source(self, video_path):
-        MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
-        MEDIA_PLAYER.setPlaybackRate(1.0)
-        MEDIA_PLAYER.setLoops(QMediaPlayer.Infinite)
-        MEDIA_PLAYER.play()
-        
-        scaling_mode = get_setting("video_scaling_mode", "fit_width")
-        if scaling_mode == "fit_width":
-            self.scale_to_fit_width()
-    
-    def handle_media_status_changed(self, status):
-        if status == QMediaPlayer.EndOfMedia:
-            MEDIA_PLAYER.setPosition(0)
-            MEDIA_PLAYER.play()
 
     def show_grid_menu(self, row, col, dropped_path=None):
         MEDIA_PLAYER.pause()
@@ -786,6 +728,86 @@ class DesktopGrid(QGraphicsView):
                 self.show_grid_menu(row, col, file_path)
         
 
+
+class VideoBackgroundManager:
+    def __init__(self):
+        self.zoom_level = 1.0  # Initial zoom level
+        self.offset_x = 0      # Initial horizontal offset
+        self.offset_y = 0      # Initial vertical offset
+        self.center_x = 0      # Center point X
+        self.center_y = 0      # Center point Y
+        self.video_width = 0   # Video width
+        self.video_height = 0  # Video height
+        self.video_item = None
+        self.aspect_timer = QTimer()
+        self.aspect_timer.setSingleShot(True)
+        self.aspect_timer.timeout.connect(self.get_video_aspect_ratio)
+        
+
+    def get_video_aspect_ratio(self):
+        print("get_video called")
+        video_sink = MEDIA_PLAYER.videoSink()
+        if video_sink:
+            print("video sink exists")
+            video_frame = video_sink.videoFrame()
+            if video_frame.isValid():
+                print("frame is valid")
+                print(f"Setting video_width to  {video_frame.size().width()}")
+                print(f"Setting video_height to  {video_frame.size().height()}")
+                self.video_width = video_frame.size().width()
+                self.video_height = video_frame.size().height()
+                if self.video_width > 0 and self.video_height > 0:
+                    self.init_center_point()
+                    return self.video_width / self.video_height
+        return None  # Return None if dimensions aren't yet available
+
+    def init_center_point(self):
+        """Update the center point based on the currently displayed size of the video."""
+        if self.video_item:
+            # Get the bounding rectangle of the video item
+            bounding_rect = self.video_item.boundingRect()
+            # Update center point based on the bounding rect
+            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
+            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
+            print(f" x = {self.center_x}, y = {self.center_y}")
+
+    def zoom_video(self, zoom_factor):
+        """Zooms the video based on the center point."""
+        # Update the zoom level
+        self.zoom_level *= zoom_factor
+        # Update the transformation
+        self.update_video_transform()
+
+    def update_video_transform(self):
+        """Applies the current zoom and offset to the video item."""
+        if self.video_item:  # Check if video item exists
+            # Create the transform
+            transform = QTransform()
+            transform.translate(self.center_x, self.center_y)  # Move to center
+            transform.scale(self.zoom_level, self.zoom_level)  # Scale
+            transform.translate(-self.center_x, -self.center_y)  # Move back
+
+            # Update the video item's transformation
+            self.video_item.setTransform(transform)
+
+    def handle_media_status_changed(self, status):
+        if status == QMediaPlayer.LoadedMedia:
+            print("loaded")
+            QTimer.singleShot(500, self.init_center_point)
+        if status == QMediaPlayer.EndOfMedia:
+            MEDIA_PLAYER.setPosition(0)
+            MEDIA_PLAYER.play()
+
+
+    def set_video_source(self, video_path):
+        MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
+        MEDIA_PLAYER.setPlaybackRate(1.0)
+        MEDIA_PLAYER.setLoops(QMediaPlayer.Infinite)
+        MEDIA_PLAYER.play()
+
+
+       
+    
     
 
 
