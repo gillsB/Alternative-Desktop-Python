@@ -164,7 +164,7 @@ class DesktopGrid(QGraphicsView):
         if delta > 0:
             #self.vertical_bg -= 0.05
             #self.zoom_bg -= 0.05
-            self.video_manager.zoom_video(0.95)
+            self.video_manager.move_video(-1000,100)
             #self.video_manager.move_video(1, 0)
             pass
         elif delta < 0:
@@ -803,13 +803,22 @@ class VideoBackgroundManager:
         # Update the transformation
         self.update_video_transform()
 
+    # These are static x_offset, y_offset i.e. calling move_video(10, 0), then move_video(5, 0) puts the video offset at (5, 0) not (15, 0)
+    def move_video(self, x_offset, y_offset):
+        self.offset_x = x_offset
+        bounding_rect = self.video_item.boundingRect()
+        self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) -self.offset_x
+        self.offset_y = y_offset
+        self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) -self.offset_y
+        self.update_video_transform()
+
     def update_video_transform(self):
         if self.video_item:  # Check if video item exists
             # Create the transform
             transform = QTransform()
-            transform.translate(self.center_x, self.center_y)  # Move to center
-            transform.scale(self.zoom_level, self.zoom_level)  # Scale
-            transform.translate(-self.center_x, -self.center_y)  # Move back
+            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y)  # Move to center + offset
+            transform.scale(self.zoom_level, self.zoom_level)  # Apply scaling
+            transform.translate(-self.center_x, -self.center_y)  # Move back to center
 
             # Update the video item's transformation
             self.video_item.setTransform(transform)
