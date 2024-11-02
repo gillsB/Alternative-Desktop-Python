@@ -743,10 +743,12 @@ class VideoBackgroundManager:
         self.center_dot = None  # New attribute for the red dot
         self.aspect_timer = QTimer()
         self.aspect_timer.setSingleShot(True)
-        self.aspect_timer.timeout.connect(self.get_video_aspect_ratio)
+        self.aspect_timer.timeout.connect(self.init_center_point)
         self.args = args
+        self.aspect_ratio = None
+        self.aspect_count = 0
         
-
+        
     def get_video_aspect_ratio(self):
         print("get_video called")
         video_sink = MEDIA_PLAYER.videoSink()
@@ -760,11 +762,22 @@ class VideoBackgroundManager:
                 self.video_width = video_frame.size().width()
                 self.video_height = video_frame.size().height()
                 if self.video_width > 0 and self.video_height > 0:
-                    self.init_center_point()
                     return self.video_width / self.video_height
         return None  # Return None if dimensions aren't yet available
 
+
     def init_center_point(self):
+        # At max wait 2.5 seconds (50 x 50ms)
+        if self.aspect_ratio is None and self.aspect_count < 50:
+            self.aspect_count += 1
+            print("aspect ratio none")
+            self.aspect_ratio = self.get_video_aspect_ratio()
+            self.aspect_timer.start(50)
+            return
+        elif self.aspect_ratio is None:
+            self.video_height = -1
+            self.video_width = -1
+            self.aspect_ratio = -1
         if self.video_item:
             bounding_rect = self.video_item.boundingRect()
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
@@ -804,7 +817,7 @@ class VideoBackgroundManager:
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.LoadedMedia:
             print("loaded")
-            QTimer.singleShot(500, self.init_center_point)
+            self.init_center_point()
         if status == QMediaPlayer.EndOfMedia:
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
