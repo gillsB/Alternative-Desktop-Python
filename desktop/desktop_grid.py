@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip, QGraphicsEllipseItem
 from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache, QTransform
 from PySide6.QtMultimedia import QMediaPlayer
@@ -87,7 +87,7 @@ class DesktopGrid(QGraphicsView):
         self.scene.clear()
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
-        self.video_manager = VideoBackgroundManager()  # Create an instance of VideoBackgroundManager
+        self.video_manager = VideoBackgroundManager(args)  # Create an instance of VideoBackgroundManager
         self.video_manager.video_item = QGraphicsVideoItem()  # Initialize the QGraphicsVideoItem
         self.scene.addItem(self.video_manager.video_item)  # Add video item to the scene
         self.video_manager.video_item.setZValue(-1)  # Set the Z value for rendering order
@@ -172,6 +172,7 @@ class DesktopGrid(QGraphicsView):
             self.video_manager.zoom_video(1.05)
             #self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
+            """
             row, col = self.find_largest_visible_index()
             logger.debug(f"Max row = {row} max col = {col}")
             #temporary override to test resizing icons.
@@ -191,7 +192,7 @@ class DesktopGrid(QGraphicsView):
                 self.desktop_icons[(0,0)].update_font()
                 # ERROR on purpose to test logging exceptions/traceback.
                 x = 1/0
-            event.ignore()  # Ignore the event to prevent scrolling
+            event.ignore()  # Ignore the event to prevent scrolling"""
 
 
 
@@ -730,7 +731,7 @@ class DesktopGrid(QGraphicsView):
 
 
 class VideoBackgroundManager:
-    def __init__(self):
+    def __init__(self, args=None):
         self.zoom_level = 1.0  # Initial zoom level
         self.offset_x = 0      # Initial horizontal offset
         self.offset_y = 0      # Initial vertical offset
@@ -739,9 +740,11 @@ class VideoBackgroundManager:
         self.video_width = 0   # Video width
         self.video_height = 0  # Video height
         self.video_item = None
+        self.center_dot = None  # New attribute for the red dot
         self.aspect_timer = QTimer()
         self.aspect_timer.setSingleShot(True)
         self.aspect_timer.timeout.connect(self.get_video_aspect_ratio)
+        self.args = args
         
 
     def get_video_aspect_ratio(self):
@@ -762,24 +765,32 @@ class VideoBackgroundManager:
         return None  # Return None if dimensions aren't yet available
 
     def init_center_point(self):
-        """Update the center point based on the currently displayed size of the video."""
         if self.video_item:
-            # Get the bounding rectangle of the video item
             bounding_rect = self.video_item.boundingRect()
-            # Update center point based on the bounding rect
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
-            print(f" x = {self.center_x}, y = {self.center_y}")
+            print(f"x = {self.center_x}, y = {self.center_y}")
+
+            # Initialize or update the red dot position
+            if self.args.mode == "debug" or self.args.mode == "devbug":
+                self.init_center_dot()
+
+    def init_center_dot(self):
+        if not self.center_dot:
+            self.center_dot = QGraphicsEllipseItem(-5, -5, 10, 10)
+            self.center_dot.setBrush(QColor("red"))
+            self.center_dot.setPen(Qt.NoPen)
+            self.video_item.scene().addItem(self.center_dot)
+
+        self.center_dot.setPos(self.center_x, self.center_y)
 
     def zoom_video(self, zoom_factor):
-        """Zooms the video based on the center point."""
-        # Update the zoom level
+        # Update the zoom level, change this eventually to use a static zoom number, not a % scaling every time its called.
         self.zoom_level *= zoom_factor
         # Update the transformation
         self.update_video_transform()
 
     def update_video_transform(self):
-        """Applies the current zoom and offset to the video item."""
         if self.video_item:  # Check if video item exists
             # Create the transform
             transform = QTransform()
