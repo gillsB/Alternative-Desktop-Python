@@ -134,6 +134,7 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(self.rect())
         self.video_manager.video_item.setSize(self.size())
         self.video_manager.init_center_point()
+        # self.video_manager.move_video(get_setting("setting_for_x", 0.5), get_setting("setting_for_y", 1.0)) # This would be loading x/y adjustments from settings
         self.render_bg()
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
@@ -165,7 +166,7 @@ class DesktopGrid(QGraphicsView):
         if delta > 0:
             #self.vertical_bg -= 0.05
             #self.zoom_bg -= 0.05
-            self.video_manager.move_video(-1000,100)
+            self.video_manager.move_video(0.5,1) #Arguments are float values: -1.0 = bottom/left of video, 0.0 = center,  1.0 = top/right of video
             #self.video_manager.move_video(1, 0)
             pass
         elif delta < 0:
@@ -806,14 +807,18 @@ class VideoBackgroundManager:
         # Update the transformation
         self.update_video_transform()
 
-    # These are static x_offset, y_offset i.e. calling move_video(10, 0), then move_video(5, 0) puts the video offset at (5, 0) not (15, 0)
+    # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
+    # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video
     def move_video(self, x_offset, y_offset):
-        self.offset_x = x_offset
-        bounding_rect = self.video_item.boundingRect()
-        self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) -self.offset_x
-        self.offset_y = y_offset
-        self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) -self.offset_y
-        self.update_video_transform()
+        if self.video_item:
+            bounding_rect = self.video_item.boundingRect()
+            self.offset_x = -x_offset * (bounding_rect.width()/2)
+            self.offset_y = y_offset * (bounding_rect.height()/2)
+            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) -self.offset_x
+            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) -self.offset_y
+            self.update_video_transform()
+        else:
+            logger.warning("Trying to move a video_item that does not exist")
 
     def update_video_transform(self):
         if self.video_item:  # Check if video item exists
