@@ -21,7 +21,10 @@ DEFUALT_SETTINGS = {
         "on_close": 0,
         "show_patch_notes": True,
         "keybind_minimize": 0,
-        "updated_from": "V0.1.000"
+        "updated_from": "V0.1.000",
+        "video_x_offset": 0.00,
+        "video_y_offset": 0.00,
+        "video_zoom": 0.00
 }
 SETTINGS = None
 
