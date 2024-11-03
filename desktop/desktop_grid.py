@@ -133,6 +133,7 @@ class DesktopGrid(QGraphicsView):
         super().resizeEvent(event)
         self.scene.setSceneRect(self.rect())
         self.video_manager.video_item.setSize(self.size())
+        self.video_manager.init_center_point()
         self.render_bg()
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
@@ -730,6 +731,8 @@ class DesktopGrid(QGraphicsView):
         
 
 
+
+
 class VideoBackgroundManager:
     def __init__(self, args=None):
         self.zoom_level = 1.0  # Initial zoom level
@@ -826,7 +829,7 @@ class VideoBackgroundManager:
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.LoadedMedia:
             print("loaded")
-            self.init_center_point()
+            #self.init_center_point() # Already called in resizeEvent()
         if status == QMediaPlayer.EndOfMedia:
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
