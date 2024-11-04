@@ -164,15 +164,12 @@ class DesktopGrid(QGraphicsView):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
         if delta > 0:
-            #self.vertical_bg -= 0.05
             #self.zoom_bg -= 0.05
             self.video_manager.move_video(0.5,1) #Arguments are float values: -1.0 = bottom/left of video, 0.0 = center,  1.0 = top/right of video
             #self.video_manager.move_video(1, 0)
             pass
         elif delta < 0:
-            #self.vertical_bg += 0.05
             self.video_manager.zoom_video(1.05)
-            #self.scale_to_fit_width()
         if self.args.mode == "debug" or self.args.mode == "devbug":
             """
             row, col = self.find_largest_visible_index()
@@ -257,17 +254,13 @@ class DesktopGrid(QGraphicsView):
     
     def render_bg(self):
         old_bg_video = BACKGROUND_VIDEO
-        self.load_bg_from_settings()  # Load background settings through the manager
+        self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
         
         if self.load_video:
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
-                self.video_manager.set_video_source(BACKGROUND_VIDEO)  # Set video source through the manager
-                logger.info("Set background video source")
-            scaling_mode = get_setting("video_scaling_mode", "fit_width")  # Fetch the user-selected scaling mode
-        
-            if scaling_mode == "fit_width":
-                pass  # Adjust scaling through the manager
+                self.video_manager.set_video_source(BACKGROUND_VIDEO)
+                logger.info(f"Set background video source = {BACKGROUND_VIDEO}")
             self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
