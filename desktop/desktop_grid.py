@@ -134,7 +134,6 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(self.rect())
         self.video_manager.video_item.setSize(self.size())
         self.video_manager.init_center_point()
-        self.video_manager.move_video(-get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
         self.render_bg()
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
@@ -747,13 +746,13 @@ class VideoBackgroundManager:
         
         
     def get_video_aspect_ratio(self):
-        print("get_video called")
+        #print("get_video called")
         video_sink = MEDIA_PLAYER.videoSink()
         if video_sink:
-            print("video sink exists")
+            #print("video sink exists")
             video_frame = video_sink.videoFrame()
             if video_frame.isValid():
-                print("frame is valid")
+                #print("frame is valid")
                 print(f"Setting video_width to  {video_frame.size().width()}")
                 print(f"Setting video_height to  {video_frame.size().height()}")
                 self.video_width = video_frame.size().width()
@@ -784,6 +783,8 @@ class VideoBackgroundManager:
             # Initialize or update the red dot position
             if self.args.mode == "debug" or self.args.mode == "devbug":
                 self.init_center_dot()
+
+            self.move_video(-1 * get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
 
     def init_center_dot(self):
         if not self.center_dot:
