@@ -134,7 +134,7 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(self.rect())
         self.video_manager.video_item.setSize(self.size())
         self.video_manager.init_center_point()
-        self.video_manager.move_video(get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
+        self.video_manager.move_video(-get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
         self.render_bg()
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.

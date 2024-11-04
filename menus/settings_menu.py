@@ -125,6 +125,15 @@ class SettingsDialog(QDialog):
         image_folder_button.setIconSize(QSize(16,16))
         image_folder_button.setFocusPolicy(Qt.NoFocus)
         image_folder_button.clicked.connect(self.image_folder_button_clicked)
+
+        # video background alignment
+        self.video_horizontal_slider = QSlider(Qt.Orientation.Horizontal)
+        self.video_horizontal_slider.setMinimum(-150)
+        self.video_horizontal_slider.setMaximum(150)
+        self.video_horizontal_slider.setSingleStep(1)
+        self.video_horizontal_slider.setSliderPosition( self.settings.get("video_x_offset", 0)* 100)
+        self.video_horizontal_slider.valueChanged.connect(self.video_horizontal_changed)
+        layout.addRow("Video horizontal adjustment: ", self.video_horizontal_slider)
     
         # layouts to add folder buttons
         video_folder_layout = QHBoxLayout()
@@ -239,6 +248,11 @@ class SettingsDialog(QDialog):
         # Can cause crashing upon changing icon_size and max rows/cols in the same save.
         #self.parent().grid_widget.update_icon_size(i)
 
+    
+    def video_horizontal_changed(self):
+        self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.value()/ 100.0), 0) #update for vertical when added
+        self.set_changed()
+
 
     def save_settings(self):
 
@@ -282,10 +296,12 @@ class SettingsDialog(QDialog):
         settings["label_color"] = self.label_color
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
+        settings["video_x_offset"] = float (self.video_horizontal_slider.value()/ 100.0)
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
+            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.value()/ 100.0), 0) #update for vertical when added
             
 
             # Can be a quite heavy impact so only redraw when these values have changed.
@@ -341,6 +357,7 @@ class SettingsDialog(QDialog):
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
+        self.parent().grid_widget.video_manager.move_video((-1 * get_setting("video_x_offset")), 0) #update for vertical when added
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
