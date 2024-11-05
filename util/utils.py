@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle, QSlider, QSpinBox, QHBoxLayout, QWidget
+from PySide6.QtCore import Qt, Signal
 
 
 class ClearableLineEdit(QLineEdit):
@@ -44,3 +44,45 @@ class ClearableLineEdit(QLineEdit):
         # Show clear button if line edit has text
         self.clear_button.setVisible(bool(text))
 
+
+class SliderWithInput(QWidget):
+    valueChanged = Signal(int)
+
+    def __init__(self, min, max, step, init_value):
+        super().__init__()
+
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setRange(min, max)
+        self.slider.setSingleStep(step)
+
+        self.text_input = QSpinBox()
+        self.text_input.setRange(min, max)
+        self.text_input.setFixedWidth(70)
+        self.text_input.setAlignment(Qt.AlignLeft)
+
+        self.slider.setValue(init_value)
+        self.text_input.setValue(int(init_value))
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.slider)
+        layout.addWidget(self.text_input)
+        self.setLayout(layout)
+
+        # Connect signals
+        self.slider.valueChanged.connect(self.update_text_input)
+        self.text_input.textChanged.connect(self.update_slider_position)
+
+        self.slider.valueChanged.connect(self.valueChanged.emit)
+
+    def update_text_input(self, value):
+        # Update text input when the slider value changes
+        self.text_input.setValue(int(value))
+
+    def update_slider_position(self):
+        # Update slider when text input changes, ensuring it's an integer
+        text = self.text_input.text()
+        if text:
+            self.slider.setValue(int(text))
+
+    def get_value(self):
+        return self.slider.value()

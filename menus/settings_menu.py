@@ -1,7 +1,7 @@
-from PySide6.QtWidgets import QPushButton, QMessageBox, QVBoxLayout, QWidget, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QLineEdit
-from PySide6.QtCore import Qt, QEvent, QSize, QTimer, Signal
-from PySide6.QtGui import QKeySequence, QIntValidator
-from util.utils import ClearableLineEdit
+from PySide6.QtWidgets import QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
+from PySide6.QtCore import Qt, QEvent, QSize, QTimer
+from PySide6.QtGui import QKeySequence
+from util.utils import ClearableLineEdit, SliderWithInput
 from util.settings import get_setting, set_setting, load_settings, save_settings
 from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_multiple_working_keybind_warning
 import os
@@ -568,44 +568,3 @@ class KeybindButton(QPushButton):
         self.setText(get_setting("toggle_overlay_keybind", "alt+d"))
 
 
-class SliderWithInput(QWidget):
-    valueChanged = Signal(int)
-
-    def __init__(self, min, max, step, init_value):
-        super().__init__()
-
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setRange(min, max)
-        self.slider.setSingleStep(step)
-
-        self.text_input = QSpinBox()
-        self.text_input.setRange(min, max)
-        self.text_input.setFixedWidth(70)
-        self.text_input.setAlignment(Qt.AlignLeft)
-
-        self.slider.setValue(init_value)
-        self.text_input.setValue(int(init_value))
-
-        layout = QHBoxLayout()
-        layout.addWidget(self.slider)
-        layout.addWidget(self.text_input)
-        self.setLayout(layout)
-
-        # Connect signals
-        self.slider.valueChanged.connect(self.update_text_input)
-        self.text_input.textChanged.connect(self.update_slider_position)
-
-        self.slider.valueChanged.connect(self.valueChanged.emit)
-
-    def update_text_input(self, value):
-        # Update text input when the slider value changes
-        self.text_input.setValue(int(value))
-
-    def update_slider_position(self):
-        # Update slider when text input changes, ensuring it's an integer
-        text = self.text_input.text()
-        if text:
-            self.slider.setValue(int(text))
-
-    def get_value(self):
-        return self.slider.value()
