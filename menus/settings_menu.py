@@ -308,6 +308,7 @@ class SettingsDialog(QDialog):
             if self.redraw_request:
                 self.parent().grid_widget.change_max_grid_dimensions(self.max_rows_sb.value(), self.max_cols_sb.value())
                 self.parent().grid_widget.update_icon_size(self.icon_size_slider.value())
+                self.parent().grid_widget.video_manager.init_center_point()
                 pass
         
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.

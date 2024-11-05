@@ -787,11 +787,10 @@ class VideoBackgroundManager:
             self.move_video(-1 * get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
 
     def init_center_dot(self):
-        if not self.center_dot:
-            self.center_dot = QGraphicsEllipseItem(-5, -5, 10, 10)
-            self.center_dot.setBrush(QColor("red"))
-            self.center_dot.setPen(Qt.NoPen)
-            self.video_item.scene().addItem(self.center_dot)
+        self.center_dot = QGraphicsEllipseItem(-5, -5, 10, 10)
+        self.center_dot.setBrush(QColor("red"))
+        self.center_dot.setPen(Qt.NoPen)
+        self.video_item.scene().addItem(self.center_dot)
 
         self.center_dot.setPos(self.center_x, self.center_y)
 
