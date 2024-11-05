@@ -581,7 +581,7 @@ class DesktopGrid(QGraphicsView):
 
     def clear_icons(self):
         for item in self.scene.items():
-            if item != self.video_item:
+            if item != self.video_manager.video_item:
                 self.scene.removeItem(item)
 
     def mouseDoubleClickEvent(self, event):
