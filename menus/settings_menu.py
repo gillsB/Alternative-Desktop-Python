@@ -580,6 +580,8 @@ class SliderWithInput(QWidget):
 
         self.text_input = QLineEdit()
         self.text_input.setValidator(QIntValidator(min, max))
+        self.text_input.setFixedWidth(60)
+        self.text_input.setAlignment(Qt.AlignLeft)
 
         self.slider.setValue(init_value)
         self.text_input.setText(str(int(init_value)))
