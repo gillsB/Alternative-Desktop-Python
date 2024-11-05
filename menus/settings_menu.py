@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QPushButton, QMessageBox, QVBoxLayout, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
-from PySide6.QtCore import Qt, QEvent, QSize, QTimer
-from PySide6.QtGui import QKeySequence
+from PySide6.QtWidgets import QPushButton, QMessageBox, QVBoxLayout, QWidget, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QLineEdit
+from PySide6.QtCore import Qt, QEvent, QSize, QTimer, Signal
+from PySide6.QtGui import QKeySequence, QIntValidator
 from util.utils import ClearableLineEdit
 from util.settings import get_setting, set_setting, load_settings, save_settings
 from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_multiple_working_keybind_warning
@@ -127,11 +127,11 @@ class SettingsDialog(QDialog):
         image_folder_button.clicked.connect(self.image_folder_button_clicked)
 
         # video background alignment
-        self.video_horizontal_slider = QSlider(Qt.Orientation.Horizontal)
-        self.video_horizontal_slider.setMinimum(-150)
-        self.video_horizontal_slider.setMaximum(150)
-        self.video_horizontal_slider.setSingleStep(1)
-        self.video_horizontal_slider.setSliderPosition( self.settings.get("video_x_offset", 0)* 100)
+        self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
+        #self.video_horizontal_slider.setMinimum(-150)
+        #self.video_horizontal_slider.setMaximum(150)
+        #self.video_horizontal_slider.setSingleStep(1)
+        #self.video_horizontal_slider.setSliderPosition( self.settings.get("video_x_offset", 0)* 100)
         self.video_horizontal_slider.valueChanged.connect(self.video_horizontal_changed)
         layout.addRow("Video horizontal adjustment: ", self.video_horizontal_slider)
     
@@ -250,7 +250,7 @@ class SettingsDialog(QDialog):
 
     
     def video_horizontal_changed(self):
-        self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.value()/ 100.0), 0) #update for vertical when added
+        self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), 0) #update for vertical when added
         self.set_changed()
 
 
@@ -296,12 +296,12 @@ class SettingsDialog(QDialog):
         settings["label_color"] = self.label_color
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
-        settings["video_x_offset"] = float (self.video_horizontal_slider.value()/ 100.0)
+        settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.value()/ 100.0), 0) #update for vertical when added
+            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), 0) #update for vertical when added
             
 
             # Can be a quite heavy impact so only redraw when these values have changed.
@@ -566,3 +566,44 @@ class KeybindButton(QPushButton):
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
         self.setText(get_setting("toggle_overlay_keybind", "alt+d"))
+
+
+class SliderWithInput(QWidget):
+    valueChanged = Signal(int)
+
+    def __init__(self, min, max, step, init_value):
+        super().__init__()
+
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setRange(min, max)
+        self.slider.setSingleStep(step)
+
+        self.text_input = QLineEdit()
+        self.text_input.setValidator(QIntValidator(min, max))
+
+        self.slider.setValue(init_value)
+        self.text_input.setText(str(int(init_value)))
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.slider)
+        layout.addWidget(self.text_input)
+        self.setLayout(layout)
+
+        # Connect signals
+        self.slider.valueChanged.connect(self.update_text_input)
+        self.text_input.textChanged.connect(self.update_slider_position)
+
+        self.slider.valueChanged.connect(self.valueChanged.emit)
+
+    def update_text_input(self, value):
+        # Update text input when the slider value changes
+        self.text_input.setText(str(value))
+
+    def update_slider_position(self):
+        # Update slider when text input changes, ensuring it's an integer
+        text = self.text_input.text()
+        if text:
+            self.slider.setValue(int(text))
+
+    def get_value(self):
+        return self.slider.value()
