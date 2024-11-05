@@ -578,13 +578,13 @@ class SliderWithInput(QWidget):
         self.slider.setRange(min, max)
         self.slider.setSingleStep(step)
 
-        self.text_input = QLineEdit()
-        self.text_input.setValidator(QIntValidator(min, max))
-        self.text_input.setFixedWidth(60)
+        self.text_input = QSpinBox()
+        self.text_input.setRange(min, max)
+        self.text_input.setFixedWidth(70)
         self.text_input.setAlignment(Qt.AlignLeft)
 
         self.slider.setValue(init_value)
-        self.text_input.setText(str(int(init_value)))
+        self.text_input.setValue(int(init_value))
 
         layout = QHBoxLayout()
         layout.addWidget(self.slider)
@@ -599,7 +599,7 @@ class SliderWithInput(QWidget):
 
     def update_text_input(self, value):
         # Update text input when the slider value changes
-        self.text_input.setText(str(value))
+        self.text_input.setValue(int(value))
 
     def update_slider_position(self):
         # Update slider when text input changes, ensuring it's an integer
