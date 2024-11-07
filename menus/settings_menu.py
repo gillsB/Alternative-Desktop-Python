@@ -128,12 +128,12 @@ class SettingsDialog(QDialog):
 
         # video background alignment
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
-        #self.video_horizontal_slider.setMinimum(-150)
-        #self.video_horizontal_slider.setMaximum(150)
-        #self.video_horizontal_slider.setSingleStep(1)
-        #self.video_horizontal_slider.setSliderPosition( self.settings.get("video_x_offset", 0)* 100)
-        self.video_horizontal_slider.valueChanged.connect(self.video_horizontal_changed)
+        self.video_horizontal_slider.valueChanged.connect(self.video_location_changed)
         layout.addRow("Video horizontal adjustment: ", self.video_horizontal_slider)
+
+        self.video_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("video_y_offset", 0)* 100)
+        self.video_vertical_slider.valueChanged.connect(self.video_location_changed)
+        layout.addRow("Video vertical adjustment: ", self.video_vertical_slider)
     
         # layouts to add folder buttons
         video_folder_layout = QHBoxLayout()
@@ -249,10 +249,9 @@ class SettingsDialog(QDialog):
         #self.parent().grid_widget.update_icon_size(i)
 
     
-    def video_horizontal_changed(self):
-        self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), 0) #update for vertical when added
+    def video_location_changed(self):
+        self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0)) 
         self.set_changed()
-
 
     def save_settings(self):
 
@@ -297,11 +296,12 @@ class SettingsDialog(QDialog):
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
+        settings["video_y_offset"] = -float (self.video_vertical_slider.get_value()/ 100.0)
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), 0) #update for vertical when added
+            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0)) #update for vertical when added
             
 
             # Can be a quite heavy impact so only redraw when these values have changed.
