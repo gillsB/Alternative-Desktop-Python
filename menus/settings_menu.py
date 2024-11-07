@@ -134,6 +134,12 @@ class SettingsDialog(QDialog):
         self.video_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("video_y_offset", 0)* 100)
         self.video_vertical_slider.valueChanged.connect(self.video_location_changed)
         layout.addRow("Video vertical adjustment: ", self.video_vertical_slider)
+
+        initial_zoom = self.settings.get("video_zoom", 1.00)
+        self.video_zoom_slider = SliderWithInput(0, 200, 1, self.video_zoom_to_slider(initial_zoom))
+        self.video_zoom_slider.valueChanged.connect(self.video_zoom_changed)
+        layout.addRow("Video zoom adjustment: ", self.video_zoom_slider)
+
     
         # layouts to add folder buttons
         video_folder_layout = QHBoxLayout()
@@ -253,6 +259,22 @@ class SettingsDialog(QDialog):
         self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0)) 
         self.set_changed()
 
+    def video_zoom_changed(self):
+        print("Zoom changed")
+
+    # Override and call with min_zoom, max_zoom for further scaling in/out.
+    def video_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0):
+        # min_zoom must be < 1.00, and max_zoom must be > 1.00
+        if min_zoom >= 1.0 or max_zoom <= 1.00:
+            logger.error(f"user is a dumbass and overrided min_zoom or max_zoom incorrectly: min_zoom = {min_zoom}, max_zoom = {max_zoom}")
+            return
+        if zoom_factor <= 1.0:
+            # Scale linearly between min_zoom and 1.0 for slider range 0–100
+            return int((zoom_factor - min_zoom) / (1.0 - min_zoom) * 100)
+        else:
+            # Scale linearly between 1.0 and max_zoom for slider range 101–200
+            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) * 100)
+
     def save_settings(self):
 
         #cleanup background paths
@@ -297,6 +319,7 @@ class SettingsDialog(QDialog):
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
         settings["video_y_offset"] = -float (self.video_vertical_slider.get_value()/ 100.0)
+        #settings["video_zoom"] = 
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
