@@ -168,7 +168,7 @@ class DesktopGrid(QGraphicsView):
             #self.video_manager.move_video(1, 0)
             pass
         elif delta < 0:
-            self.video_manager.zoom_video(1.05)
+            self.video_manager.zoom_video(0.15)
         if self.args.mode == "debug" or self.args.mode == "devbug":
             """
             row, col = self.find_largest_visible_index()
@@ -796,7 +796,7 @@ class VideoBackgroundManager:
 
     def zoom_video(self, zoom_factor):
         # Update the zoom level, change this eventually to use a static zoom number, not a % scaling every time its called.
-        self.zoom_level *= zoom_factor
+        self.zoom_level = zoom_factor
         # Update the transformation
         self.update_video_transform()
 
