@@ -273,17 +273,18 @@ class SettingsDialog(QDialog):
             # Scale linearly between min_zoom and 1.0 for slider range 0–100
             return int((zoom_factor - min_zoom) / (1.0 - min_zoom) * 100)
         else:
-            # Scale linearly between 1.0 and max_zoom for slider range 101–200
-            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) * 100)
+            # Scale NON-linearly between 1.0 and max_zoom for slider range 101–200
+            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) ** (1 / 1.5) * 100)
         
     def slider_to_video_zoom(self, min_zoom=0.15, max_zoom=15.0):
         slider_value = self.video_zoom_slider.get_value()
         if slider_value <= 100:
             # Reverse linear scaling from slider range 0–100 to zoom range min_zoom–1.0
-            return min_zoom + (slider_value / 100) * (1.0 - min_zoom)
+            return min_zoom + (slider_value / 100.0) * (1.0 - min_zoom)
         else:
-            # Reverse linear scaling from slider range 101–200 to zoom range 1.0–max_zoom
-            return 1.0 + ((slider_value - 100) / 100) * (max_zoom - 1.0)
+            # Reverse NON-linear scaling (difference between 100 and 101 is < difference between 199 and 200) from slider range 101–200 to zoom range 1.0–max_zoom
+            normalized_value = (slider_value - 100) / 100.0
+            return 1.0 + (normalized_value ** 1.5) * (max_zoom - 1.0)
 
     def save_settings(self):
 
