@@ -785,6 +785,7 @@ class VideoBackgroundManager:
                 self.init_center_dot()
 
             self.move_video(-1 * get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
+            self.zoom_video(get_setting("video_zoom", 1.00))
 
     def init_center_dot(self):
         self.center_dot = QGraphicsEllipseItem(-5, -5, 10, 10)

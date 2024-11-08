@@ -260,7 +260,8 @@ class SettingsDialog(QDialog):
         self.set_changed()
 
     def video_zoom_changed(self):
-        print("Zoom changed")
+        self.parent().grid_widget.video_manager.zoom_video(self.slider_to_video_zoom())
+        self.set_changed()
 
     # Override and call with min_zoom, max_zoom for further scaling in/out.
     def video_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0):
@@ -274,6 +275,15 @@ class SettingsDialog(QDialog):
         else:
             # Scale linearly between 1.0 and max_zoom for slider range 101–200
             return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) * 100)
+        
+    def slider_to_video_zoom(self, min_zoom=0.15, max_zoom=15.0):
+        slider_value = self.video_zoom_slider.get_value()
+        if slider_value <= 100:
+            # Reverse linear scaling from slider range 0–100 to zoom range min_zoom–1.0
+            return min_zoom + (slider_value / 100) * (1.0 - min_zoom)
+        else:
+            # Reverse linear scaling from slider range 101–200 to zoom range 1.0–max_zoom
+            return 1.0 + ((slider_value - 100) / 100) * (max_zoom - 1.0)
 
     def save_settings(self):
 
@@ -319,12 +329,14 @@ class SettingsDialog(QDialog):
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
         settings["video_y_offset"] = -float (self.video_vertical_slider.get_value()/ 100.0)
-        #settings["video_zoom"] = 
+        settings["video_zoom"] = self.slider_to_video_zoom()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
             self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0))
+            self.parent().grid_widget.video_manager.zoom_video(self.slider_to_video_zoom())
+            
             
 
             # Can be a quite heavy impact so only redraw when these values have changed.
@@ -381,7 +393,8 @@ class SettingsDialog(QDialog):
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
-        self.parent().grid_widget.video_manager.move_video((-1 * get_setting("video_x_offset")), get_setting("video_y_offset"))
+        self.parent().grid_widget.video_manager.move_video((-1 * self.settings.get("video_x_offset")), self.settings.get("video_y_offset"))
+        self.parent().grid_widget.video_manager.zoom_video(self.settings.get("video_zoom"))
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
