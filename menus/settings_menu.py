@@ -324,7 +324,7 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0)) #update for vertical when added
+            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0))
             
 
             # Can be a quite heavy impact so only redraw when these values have changed.
@@ -381,7 +381,7 @@ class SettingsDialog(QDialog):
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
-        self.parent().grid_widget.video_manager.move_video((-1 * get_setting("video_x_offset")), 0) #update for vertical when added
+        self.parent().grid_widget.video_manager.move_video((-1 * get_setting("video_x_offset")), get_setting("video_y_offset"))
 
     def change_button(self, text):
         self.toggle_overlay_keybind_button.setText(text)
