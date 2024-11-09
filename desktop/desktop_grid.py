@@ -162,15 +162,7 @@ class DesktopGrid(QGraphicsView):
     def wheelEvent(self, event):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
-        if delta > 0:
-            #self.zoom_bg -= 0.05
-            self.video_manager.move_video(0.5,1) #Arguments are float values: -1.0 = bottom/left of video, 0.0 = center,  1.0 = top/right of video
-            #self.video_manager.move_video(1, 0)
-            pass
-        elif delta < 0:
-            self.video_manager.zoom_video(0.15)
         if self.args.mode == "debug" or self.args.mode == "devbug":
-            """
             row, col = self.find_largest_visible_index()
             logger.debug(f"Max row = {row} max col = {col}")
             #temporary override to test resizing icons.
@@ -190,7 +182,7 @@ class DesktopGrid(QGraphicsView):
                 self.desktop_icons[(0,0)].update_font()
                 # ERROR on purpose to test logging exceptions/traceback.
                 x = 1/0
-            event.ignore()  # Ignore the event to prevent scrolling"""
+            event.ignore()  # Ignore the event to prevent scrolling
 
 
 
