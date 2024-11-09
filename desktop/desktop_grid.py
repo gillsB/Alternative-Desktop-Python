@@ -788,6 +788,8 @@ class VideoBackgroundManager:
             self.zoom_video(get_setting("video_zoom", 1.00))
 
     def init_center_dot(self):
+        if self.center_dot:
+            self.video_item.scene().removeItem(self.center_dot)
         self.center_dot = QGraphicsEllipseItem(-5, -5, 10, 10)
         self.center_dot.setBrush(QColor("red"))
         self.center_dot.setPen(Qt.NoPen)
