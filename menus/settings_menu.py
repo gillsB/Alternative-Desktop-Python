@@ -264,7 +264,7 @@ class SettingsDialog(QDialog):
         self.set_changed()
 
     # Override and call with min_zoom, max_zoom for further scaling in/out.
-    def video_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0):
+    def video_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
         # min_zoom must be < 1.00, and max_zoom must be > 1.00
         if min_zoom >= 1.0 or max_zoom <= 1.00:
             logger.error(f"user is a dumbass and overrided min_zoom or max_zoom incorrectly: min_zoom = {min_zoom}, max_zoom = {max_zoom}")
@@ -274,9 +274,9 @@ class SettingsDialog(QDialog):
             return int((zoom_factor - min_zoom) / (1.0 - min_zoom) * 100)
         else:
             # Scale NON-linearly between 1.0 and max_zoom for slider range 101–200
-            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) ** (1 / 1.5) * 100)
+            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) ** (1 / scale_factor) * 100)
         
-    def slider_to_video_zoom(self, min_zoom=0.15, max_zoom=15.0):
+    def slider_to_video_zoom(self, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
         slider_value = self.video_zoom_slider.get_value()
         if slider_value <= 100:
             # Reverse linear scaling from slider range 0–100 to zoom range min_zoom–1.0
@@ -284,7 +284,7 @@ class SettingsDialog(QDialog):
         else:
             # Reverse NON-linear scaling (difference between 100 and 101 is < difference between 199 and 200) from slider range 101–200 to zoom range 1.0–max_zoom
             normalized_value = (slider_value - 100) / 100.0
-            return 1.0 + (normalized_value ** 1.5) * (max_zoom - 1.0)
+            return 1.0 + (normalized_value ** scale_factor) * (max_zoom - 1.0)
 
     def save_settings(self):
 
