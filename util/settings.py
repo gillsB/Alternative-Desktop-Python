@@ -21,7 +21,7 @@ DEFUALT_SETTINGS = {
         "on_close": 0,
         "show_patch_notes": True,
         "keybind_minimize": 0,
-        "updated_from": "V0.1.000",
+        "updated_from": "V0.3.000",
         "video_x_offset": 0.00,
         "video_y_offset": 0.00,
         "video_zoom": 1.00
@@ -35,7 +35,7 @@ SETTINGS = None
 # image_only = Image only
 # none = None
 
-#on_close: default set to 1 (terminate the program)
+#on_close: default set to 0 (terminate the program)
 
     
 def load_settings():
