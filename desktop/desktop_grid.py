@@ -174,6 +174,7 @@ class DesktopGrid(QGraphicsView):
                 FONT_SIZE = 18
                 self.desktop_icons[(0,0)].update_font()
                 # ERROR on purpose to test logging exceptions/traceback.
+                logger.error("Error triggering on purpose (debug mode enabled for this test)")
                 print(f"{self.desktop_icons[(0,0)].names}")
             else:
                 ICON_SIZE = 64
@@ -181,6 +182,7 @@ class DesktopGrid(QGraphicsView):
                 FONT_SIZE = 10
                 self.desktop_icons[(0,0)].update_font()
                 # ERROR on purpose to test logging exceptions/traceback.
+                logger.error("Error triggering on purpose (debug mode enabled for this test)")
                 x = 1/0
             event.ignore()  # Ignore the event to prevent scrolling
 
@@ -738,15 +740,12 @@ class VideoBackgroundManager:
         
         
     def get_video_aspect_ratio(self):
-        #print("get_video called")
         video_sink = MEDIA_PLAYER.videoSink()
         if video_sink:
-            #print("video sink exists")
             video_frame = video_sink.videoFrame()
             if video_frame.isValid():
-                #print("frame is valid")
-                print(f"Setting video_width to  {video_frame.size().width()}")
-                print(f"Setting video_height to  {video_frame.size().height()}")
+                logger.info(f"Setting video_width to  {video_frame.size().width()}")
+                logger.info(f"Setting video_height to  {video_frame.size().height()}")
                 self.video_width = video_frame.size().width()
                 self.video_height = video_frame.size().height()
                 if self.video_width > 0 and self.video_height > 0:
@@ -755,10 +754,9 @@ class VideoBackgroundManager:
 
 
     def init_center_point(self):
-        # At max wait 2.5 seconds (50 x 50ms)
-        if self.aspect_ratio is None and self.aspect_count < 50:
+        # At max wait 5 seconds (100 x 50ms)
+        if self.aspect_ratio is None and self.aspect_count < 100:
             self.aspect_count += 1
-            print("aspect ratio none")
             self.aspect_ratio = self.get_video_aspect_ratio()
             self.aspect_timer.start(50)
             return
@@ -770,7 +768,7 @@ class VideoBackgroundManager:
             bounding_rect = self.video_item.boundingRect()
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
-            print(f"x = {self.center_x}, y = {self.center_y}")
+            logger.info(f"Center point x = {self.center_x}, y = {self.center_y}")
 
             # Initialize or update the red dot position
             if self.args.mode == "debug" or self.args.mode == "devbug":
@@ -790,13 +788,11 @@ class VideoBackgroundManager:
         self.center_dot.setPos(self.center_x, self.center_y)
 
     def zoom_video(self, zoom_factor):
-        # Update the zoom level, change this eventually to use a static zoom number, not a % scaling every time its called.
         self.zoom_level = zoom_factor
-        # Update the transformation
         self.update_video_transform()
 
     # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
-    # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video
+    # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
     def move_video(self, x_offset, y_offset):
         if self.video_item:
             bounding_rect = self.video_item.boundingRect()
@@ -821,8 +817,7 @@ class VideoBackgroundManager:
 
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.LoadedMedia:
-            print("loaded")
-            #self.init_center_point() # Already called in resizeEvent()
+            logger.info("QMediaPlayer loaded media")
         if status == QMediaPlayer.EndOfMedia:
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
