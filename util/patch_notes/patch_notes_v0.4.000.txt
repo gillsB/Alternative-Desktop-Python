@@ -1,0 +1,15 @@
+### Video background Adjustment
+- Can now adjust a video background, horizontally, vertically, and zoom in/out, to better fit users style and viewport.
+- Video background now has antialiasing and smoother video scaling (less pixelated).
+
+### New settings
+- "Video Horizontal Adjustment" Change the horizontal adjustment of the video
+- "Video vertical adjustment" Change the vertical adjustment of the video.
+- "Video zoom adjustment" Change the zoom of the video.
+
+### Improvements
+- Prevents swapping icons and displays a warning if an error was detected in swapping folders. (Prevents accidental corruption of icon paths).
+
+### Bug fixes:
+- Fixed a bug which prevented gif icons from being able to swap folders.
+- Fixed a problem with logging non english characters.
