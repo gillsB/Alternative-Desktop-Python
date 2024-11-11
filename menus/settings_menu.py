@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog
+from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout,
+                               QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
 from PySide6.QtCore import Qt, QEvent, QSize, QTimer
 from PySide6.QtGui import QKeySequence
 from util.utils import ClearableLineEdit, SliderWithInput
@@ -16,8 +17,13 @@ class SettingsDialog(QDialog):
     is_changed = False
     def initUI(self):
         self.setWindowTitle("Settings")
-        layout = QFormLayout()
-        self.setLayout(layout)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+
+        content_widget = QWidget()
+        layout = QFormLayout(content_widget)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
@@ -198,11 +204,24 @@ class SettingsDialog(QDialog):
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
+        scroll_area.setWidget(content_widget)
+
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
         save_button.setAutoDefault(False)
         save_button.setDefault(False)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(scroll_area)
+        main_layout.addWidget(save_button)
+        self.setLayout(main_layout)
+
+        self.resize(600, 800)
+        screen_geometry = self.screen().availableGeometry()
+        self.setMaximumSize(screen_geometry.width(), screen_geometry.height())
+        self.resize(min(self.width(), screen_geometry.width()), min(self.height()-40, screen_geometry.height())) # -40 on height to account for windows taskbar
+
 
     def open_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
