@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout,
+from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
 from PySide6.QtCore import Qt, QEvent, QSize, QTimer
 from PySide6.QtGui import QKeySequence
@@ -135,7 +135,8 @@ class SettingsDialog(QDialog):
         # video background alignment
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
         self.video_horizontal_slider.valueChanged.connect(self.video_location_changed)
-        layout.addRow("Video horizontal adjustment: ", self.video_horizontal_slider)
+        self.video_horizontal_label = QLabel("Video horizontal adjustment:")
+        layout.addRow(self.video_horizontal_label, self.video_horizontal_slider)
 
         self.video_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("video_y_offset", 0)* 100)
         self.video_vertical_slider.valueChanged.connect(self.video_location_changed)
@@ -206,12 +207,19 @@ class SettingsDialog(QDialog):
 
         scroll_area.setWidget(content_widget)
 
+        
+        # Save button (appears outside scroll area)
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_settings)
         layout.addWidget(save_button)
         save_button.setAutoDefault(False)
         save_button.setDefault(False)
 
+        # Adding/hiding rows
+        self.update_video_sliders_visbility()
+        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
+
+        # Finish Layout and resize to fit screen.
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(scroll_area)
         main_layout.addWidget(save_button)
@@ -227,7 +235,13 @@ class SettingsDialog(QDialog):
         logger.info(f"Setting maximum size for window: {screen_geometry.width()},  {screen_geometry.height()-40}")
         self.setMaximumSize(screen_geometry.width(), screen_geometry.height()-40) # -40 on height to account for windows taskbar
         
-
+    def update_video_sliders_visbility(self):
+        if self.background_selector.currentIndex() in [0, 1, 2]:  # Show for "First found", "Both", or "Video Only"
+            self.video_horizontal_label.show()
+            self.video_horizontal_slider.show()
+        else:  # Hide video sliders for "Image Only" or "None"
+            self.video_horizontal_label.hide()
+            self.video_horizontal_slider.hide()
 
     def open_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
