@@ -217,10 +217,16 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(save_button)
         self.setLayout(main_layout)
 
-        self.resize(600, 800)
         screen_geometry = self.screen().availableGeometry()
-        self.setMaximumSize(screen_geometry.width(), screen_geometry.height())
-        self.resize(min(self.width(), screen_geometry.width()), min(self.height()-40, screen_geometry.height())) # -40 on height to account for windows taskbar
+
+        # sizeHint is important for accurate height of the save_button.
+        target_height = min(content_widget.height() + save_button.sizeHint().height(), screen_geometry.height())
+        target_width = min(content_widget.width(), screen_geometry.width())
+        logger.info(f"resizing to ideal target width = {target_width}, target height = {target_height}")
+        self.resize(target_width, target_height)
+        logger.info(f"Setting maximum size for window: {screen_geometry.width()},  {screen_geometry.height()-40}")
+        self.setMaximumSize(screen_geometry.width(), screen_geometry.height()-40) # -40 on height to account for windows taskbar
+        
 
 
     def open_color_dialog(self):
