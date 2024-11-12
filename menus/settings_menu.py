@@ -18,14 +18,11 @@ class SettingsDialog(QDialog):
     def initUI(self):
         self.setWindowTitle("Settings")
 
-        self.init_width = 0  # Stores initial width of window when it appears
-        self.init_height = 0 # Stores initial height of window when it appears
-
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
 
-        content_widget = QWidget()
-        layout = QFormLayout(content_widget)
+        self.content_widget = QWidget()
+        layout = QFormLayout(self.content_widget)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Small optimization to load settings once for the entire file then use .get() from that
@@ -210,37 +207,25 @@ class SettingsDialog(QDialog):
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
-        scroll_area.setWidget(content_widget)
+        scroll_area.setWidget(self.content_widget)
 
-        
         # Save button (appears outside scroll area)
-        save_button = QPushButton("Save")
-        save_button.clicked.connect(self.save_settings)
-        layout.addWidget(save_button)
-        save_button.setAutoDefault(False)
-        save_button.setDefault(False)
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_settings)
+        layout.addWidget(self.save_button)
+        self.save_button.setAutoDefault(False)
+        self.save_button.setDefault(False)
 
-        # Adding/hiding rows
+        # Finish Layout
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(scroll_area)
+        main_layout.addWidget(self.save_button)
+        self.setLayout(main_layout)
+
+        # Adding/hiding rows and resize to fit screen.
         self.update_video_sliders_visbility()
         self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
 
-        # Finish Layout and resize to fit screen.
-        main_layout = QVBoxLayout(self)
-        main_layout.addWidget(scroll_area)
-        main_layout.addWidget(save_button)
-        self.setLayout(main_layout)
-
-        screen_geometry = self.screen().availableGeometry()
-
-        # sizeHint is important for accurate height of the save_button.
-        target_height = min(content_widget.height() + save_button.sizeHint().height(), screen_geometry.height())
-        target_width = min(content_widget.width(), screen_geometry.width())
-        logger.info(f"resizing to ideal target width = {target_width}, target height = {target_height}")
-        self.resize(target_width, target_height)
-        logger.info(f"Setting maximum size for window: {screen_geometry.width()},  {screen_geometry.height()-40}")
-        self.setMaximumSize(screen_geometry.width(), screen_geometry.height()-40) # -40 on height to account for windows taskbar
-        self.init_width = self.width()
-        self.init_height = self.height()
         
     def update_video_sliders_visbility(self):
         if self.background_selector.currentIndex() in [0, 1, 2]:  # Show for "First found", "Both", or "Video Only"
@@ -250,10 +235,6 @@ class SettingsDialog(QDialog):
             self.video_vertical_slider.show()
             self.video_zoom_label.show()
             self.video_zoom_slider.show()
-            setting = get_setting("background_source", "first_found")
-            # Only run for swapping after init finishes, and the saved setting is not a video bg setting
-            if self.init_height != 0 and (setting != "first_found" and setting != "both" and setting !="video_only"): 
-                self.resize_window(0, 174) # 174 height is the height of 3 SliderWithInputs
         else:  # Hide video sliders for "Image Only" or "None"
             self.video_horizontal_label.hide()
             self.video_horizontal_slider.hide()
@@ -261,11 +242,13 @@ class SettingsDialog(QDialog):
             self.video_vertical_slider.hide()
             self.video_zoom_label.hide()
             self.video_zoom_slider.hide()
+        self.resize_window()
     
     def resize_window(self, width=0, height=0):
         screen_geometry = self.screen().availableGeometry()
-        target_height = self.init_height + height
-        target_width = self.init_width + width
+        # 30 height is for top window bar, 30 width is for padding.
+        target_height = min(self.content_widget.sizeHint().height() + 30 + self.save_button.sizeHint().height() + height, screen_geometry.height())
+        target_width = min(self.content_widget.sizeHint().width() + 30 + width, screen_geometry.width())
         logger.info(f"resizing to ideal target width = {target_width}, target height = {target_height}")
         self.resize(target_width, target_height)
         logger.info(f"Setting maximum size for window: {screen_geometry.width()},  {screen_geometry.height()-40}")
