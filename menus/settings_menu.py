@@ -140,12 +140,14 @@ class SettingsDialog(QDialog):
 
         self.video_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("video_y_offset", 0)* 100)
         self.video_vertical_slider.valueChanged.connect(self.video_location_changed)
-        layout.addRow("Video vertical adjustment: ", self.video_vertical_slider)
+        self.video_vertical_label = QLabel("Video vertical adjustment:")
+        layout.addRow(self.video_vertical_label, self.video_vertical_slider)
 
         initial_zoom = self.settings.get("video_zoom", 1.00)
         self.video_zoom_slider = SliderWithInput(0, 200, 1, self.video_zoom_to_slider(initial_zoom))
         self.video_zoom_slider.valueChanged.connect(self.video_zoom_changed)
-        layout.addRow("Video zoom adjustment: ", self.video_zoom_slider)
+        self.video_zoom_label = QLabel("Video zoom adjustment:")
+        layout.addRow(self.video_zoom_label, self.video_zoom_slider)
 
     
         # layouts to add folder buttons
@@ -239,10 +241,17 @@ class SettingsDialog(QDialog):
         if self.background_selector.currentIndex() in [0, 1, 2]:  # Show for "First found", "Both", or "Video Only"
             self.video_horizontal_label.show()
             self.video_horizontal_slider.show()
+            self.video_vertical_label.show()
+            self.video_vertical_slider.show()
+            self.video_zoom_label.show()
+            self.video_zoom_slider.show()
         else:  # Hide video sliders for "Image Only" or "None"
             self.video_horizontal_label.hide()
             self.video_horizontal_slider.hide()
-
+            self.video_vertical_label.hide()
+            self.video_vertical_slider.hide()
+            self.video_zoom_label.hide()
+            self.video_zoom_slider.hide()
     def open_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
         # Open the color dialog and get the selected color
