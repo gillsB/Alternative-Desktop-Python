@@ -195,6 +195,8 @@ class SettingsDialog(QDialog):
         self.label_color_box = QPushButton("", self)
         self.label_color_box.clicked.connect(self.open_color_dialog)
         self.label_color_box.setFixedSize(QSize(75, 30))
+        self.label_color_box.setAutoDefault(False)
+        self.label_color_box.setDefault(False)
 
         self.update_color_box(self.label_color)
         layout.addRow("Icon Name color: ", self.label_color_box)
