@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel,
+from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
 from PySide6.QtCore import Qt, QEvent, QSize, QTimer
 from PySide6.QtGui import QKeySequence
@@ -40,7 +40,6 @@ class SettingsDialog(QDialog):
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
-        self.toggle_overlay_keybind_button.setFocusPolicy(Qt.ClickFocus)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
         self.toggle_overlay_keybind_button.setDefault(False)
 
@@ -227,6 +226,18 @@ class SettingsDialog(QDialog):
         # Adding/hiding rows and resize to fit screen.
         self.update_video_sliders_visbility()
         self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
+
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.KeyPress:
+            if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+                # If a button is focused, trigger its click on Enter
+                focused_widget = QApplication.focusWidget()
+                if isinstance(focused_widget, QPushButton):
+                    focused_widget.click()
+                    return True
+        return super().eventFilter(obj, event)
 
         
     def update_video_sliders_visbility(self):
