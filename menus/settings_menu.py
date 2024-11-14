@@ -237,6 +237,9 @@ class SettingsDialog(QDialog):
                 if isinstance(focused_widget, QPushButton):
                     focused_widget.click()
                     return True
+                elif isinstance(focused_widget, QComboBox):
+                    focused_widget.showPopup()
+                    return True
         return super().eventFilter(obj, event)
 
         
