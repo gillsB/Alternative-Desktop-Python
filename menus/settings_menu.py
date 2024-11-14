@@ -123,12 +123,14 @@ class SettingsDialog(QDialog):
         video_folder_button = QPushButton(self)
         video_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
         video_folder_button.setIconSize(QSize(16,16))
-        video_folder_button.setFocusPolicy(Qt.NoFocus)
+        video_folder_button.setAutoDefault(False)
+        video_folder_button.setDefault(False)
         video_folder_button.clicked.connect(self.video_folder_button_clicked)
         image_folder_button = QPushButton(self)
         image_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
         image_folder_button.setIconSize(QSize(16,16))
-        image_folder_button.setFocusPolicy(Qt.NoFocus)
+        image_folder_button.setAutoDefault(False)
+        image_folder_button.setDefault(False)
         image_folder_button.clicked.connect(self.image_folder_button_clicked)
 
         # video background alignment

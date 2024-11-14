@@ -10,6 +10,7 @@ class ClearableLineEdit(QLineEdit):
         self.clear_button = QToolButton(self)
         self.clear_button.setIcon(self.style().standardIcon(QStyle.SP_LineEditClearButton))  
         self.clear_button.setCursor(Qt.ArrowCursor)
+        self.clear_button.setFocusPolicy(Qt.NoFocus)
         self.clear_button.setStyleSheet("""
                 QToolButton {
                     border: none;
