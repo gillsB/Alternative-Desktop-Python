@@ -240,6 +240,9 @@ class SettingsDialog(QDialog):
                 elif isinstance(focused_widget, QComboBox):
                     focused_widget.showPopup()
                     return True
+                elif isinstance(focused_widget, QCheckBox):
+                    focused_widget.toggle()
+                    return True
         return super().eventFilter(obj, event)
 
         
