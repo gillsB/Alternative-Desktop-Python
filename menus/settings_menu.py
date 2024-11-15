@@ -58,11 +58,6 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.value_changed)
-        self.window_opacity_slider.setStyleSheet("""
-            QSlider::handle:focus {
-                border: 2px solid #005499;
-            }
-        """)
         
 
         
@@ -300,23 +295,39 @@ class SettingsDialog(QDialog):
             self.redraw_request = True
             logger.info("Redraw request now set to True")
             
+    def update_theme(self):
+        category = self.theme_selector.currentText().lower()
+        color = self.color_selector.currentText().lower()
+        theme = f"{category}_{color}.xml"
+        logger.info(f"Selected theme: {theme}")
+        self.parent().change_theme(theme)
+        self.display_theme()
+        self.is_changed = True
 
     def display_theme(self):
         selected_theme = self.theme_selector.currentText()
         
         if selected_theme == 'None':
             self.color_selector.hide()  # Hide color selector if 'None' is selected
+            self.enable_stylesheet(False)
         else:
             self.color_selector.show()  # Show color selector for other themes
+            self.enable_stylesheet(True)
 
-    def update_theme(self):
-        self.display_theme()
-        category = self.theme_selector.currentText().lower()
-        color = self.color_selector.currentText().lower()
-        theme = f"{category}_{color}.xml"
-        logger.info(f"Selected theme: {theme}")
-        self.parent().change_theme(theme)
-        self.is_changed = True
+    def enable_stylesheet(self, bool):
+        self.primary_color = getattr(self.parent(), 'primary_color', '#202020')
+        if bool:
+            print(f"setting to color {self.primary_color}")
+            self.setStyleSheet((f"""
+                QSlider::handle:focus {{
+                    border: 2px solid {self.primary_color};
+                }}
+            """))
+        else:
+            self.setStyleSheet("")
+        
+
+
 
     def value_changed(self, i):
         self.set_changed()

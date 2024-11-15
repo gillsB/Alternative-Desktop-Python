@@ -76,6 +76,14 @@ class OverlayWidget(QWidget):
         self.hotkey_handler = HotkeyHandler(self)
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
 
+        self.primary_color = None
+        self.primary_light_color = None
+        self.secondary_color = None
+        self.secondary_light_color = None
+        self.secondary_dark_color = None
+        self.primary_text_color = None
+        self.secondary_text_color = None
+
         start_theme= get_setting("theme")
         self.apply_theme(start_theme)
 
@@ -84,9 +92,7 @@ class OverlayWidget(QWidget):
         self.restored_window = False
 
         self.first_resize = True
-        #raise ValueError("Test exception to check crash handling")
 
-        
     def show_patch_notes(self):
         patch_notes_menu = PatchNotesPopup(self)
         patch_notes_menu.exec()
@@ -130,27 +136,40 @@ class OverlayWidget(QWidget):
     def close_application(self):
         self.tray_icon.hide()
         QApplication.instance().quit()
+
+    def set_theme_colors(self, theme_colors):
+        if theme_colors == None:
+            logger.info("Setting variables for theme colors to None.")
+            self.primary_color = None
+            self.primary_light_color = None
+            self.secondary_color = None
+            self.secondary_light_color = None
+            self.secondary_dark_color = None
+            self.primary_text_color = None
+            self.secondary_text_color = None
+        else:
+            logger.info("Setting variables for theme colors to match theme.")
+            self.primary_color = theme_colors.get('primaryColor')
+            self.primary_light_color = theme_colors.get('primaryLightColor')
+            self.secondary_color = theme_colors.get('secondaryColor')
+            self.secondary_light_color = theme_colors.get('secondaryLightColor')
+            self.secondary_dark_color = theme_colors.get('secondaryDarkColor')
+            self.primary_text_color = theme_colors.get('primaryTextColor')
+            self.secondary_text_color = theme_colors.get('secondaryTextColor')
         
     def apply_theme(self, theme_name):
         if theme_name.startswith("none"):
             global APP
             APP.setStyleSheet("")
-            
-
+            self.set_theme_colors(None)
         try:
             # load_theme_colors excpects no file extention. so remove it before calling
             no_ext = theme_name.replace('.xml', '')
             
-            self.theme_colors = self.load_theme_colors(no_ext)
-            logger.info(f"Theme Colors Found:  {self.theme_colors}")
-            #save all colors to variables to be able to access them from child grid
-            self.primary_color = self.theme_colors.get('primaryColor')
-            self.primary_light_color = self.theme_colors.get('primaryLightColor')
-            self.secondary_color = self.theme_colors.get('secondaryColor')
-            self.secondary_light_color = self.theme_colors.get('secondaryLightColor')
-            self.secondary_dark_color = self.theme_colors.get('secondaryDarkColor')
-            self.primary_text_color = self.theme_colors.get('primaryTextColor')
-            self.secondary_text_color = self.theme_colors.get('secondaryTextColor')
+            theme_colors = self.load_theme_colors(no_ext)
+            self.set_theme_colors(theme_colors)
+            logger.info(f"Theme Colors Found:  {theme_colors}")
+
 
         except FileNotFoundError as e:
             logger.error(e)
