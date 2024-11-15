@@ -58,6 +58,11 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.value_changed)
+        self.window_opacity_slider.setStyleSheet("""
+            QSlider::handle:focus {
+                border: 2px solid #005499;
+            }
+        """)
         
 
         
