@@ -294,7 +294,7 @@ class SettingsDialog(QDialog):
             self.set_changed()
             self.redraw_request = True
             logger.info("Redraw request now set to True")
-            
+
     def update_theme(self):
         category = self.theme_selector.currentText().lower()
         color = self.color_selector.currentText().lower()
@@ -302,6 +302,7 @@ class SettingsDialog(QDialog):
         logger.info(f"Selected theme: {theme}")
         self.parent().change_theme(theme)
         self.display_theme()
+        self.resize_window()
         self.is_changed = True
 
     def display_theme(self):
