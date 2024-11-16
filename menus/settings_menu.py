@@ -30,11 +30,13 @@ class SettingsDialog(QDialog):
         layout = QFormLayout(tab_general)
         tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        tab_2 = QWidget()
+        tab_background = QWidget()
+        background_layout = QFormLayout(tab_background)
+        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         tab_general.setLayout(layout)
         tab_widget.addTab(tab_general, "General")
-        tab_widget.addTab(tab_2, "Option 2")
+        tab_widget.addTab(tab_background, "Background")
         main_layout.addWidget(tab_widget)
 
         # Small optimization to load settings once for the entire file then use .get() from that
@@ -112,7 +114,7 @@ class SettingsDialog(QDialog):
         self.background_selector = QComboBox()
         background_options = ["First found", "Both", "Video only", "Image only", "None"]
         self.background_selector.addItems(background_options)
-        layout.addRow("Background sourcing:", self.background_selector)
+        background_layout.addRow("Background sourcing:", self.background_selector)
         
         set_bg_option = self.settings.get("background_source", "First found")
         # format for background_source is no capitalize and "_" instead of " " therefore revert both
@@ -148,18 +150,18 @@ class SettingsDialog(QDialog):
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
         self.video_horizontal_slider.valueChanged.connect(self.video_location_changed)
         self.video_horizontal_label = QLabel("Video horizontal adjustment:")
-        layout.addRow(self.video_horizontal_label, self.video_horizontal_slider)
+        background_layout.addRow(self.video_horizontal_label, self.video_horizontal_slider)
 
         self.video_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("video_y_offset", 0)* 100)
         self.video_vertical_slider.valueChanged.connect(self.video_location_changed)
         self.video_vertical_label = QLabel("Video vertical adjustment:")
-        layout.addRow(self.video_vertical_label, self.video_vertical_slider)
+        background_layout.addRow(self.video_vertical_label, self.video_vertical_slider)
 
         initial_zoom = self.settings.get("video_zoom", 1.00)
         self.video_zoom_slider = SliderWithInput(0, 200, 1, self.video_zoom_to_slider(initial_zoom))
         self.video_zoom_slider.valueChanged.connect(self.video_zoom_changed)
         self.video_zoom_label = QLabel("Video zoom adjustment:")
-        layout.addRow(self.video_zoom_label, self.video_zoom_slider)
+        background_layout.addRow(self.video_zoom_label, self.video_zoom_slider)
 
     
         # layouts to add folder buttons
@@ -170,8 +172,8 @@ class SettingsDialog(QDialog):
         image_folder_layout.addWidget(self.background_image)
         image_folder_layout.addWidget(image_folder_button)
 
-        layout.addRow("Background Video path:", video_folder_layout)
-        layout.addRow("Background Image path:", image_folder_layout)
+        background_layout.addRow("Background Video path:", video_folder_layout)
+        background_layout.addRow("Background Image path:", image_folder_layout)
 
         self.local_icons_cb = QCheckBox()
         self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
