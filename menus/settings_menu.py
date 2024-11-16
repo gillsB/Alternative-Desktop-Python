@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication,
+from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication, QTabWidget,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
 from PySide6.QtCore import Qt, QEvent, QSize, QTimer
 from PySide6.QtGui import QKeySequence
@@ -22,8 +22,20 @@ class SettingsDialog(QDialog):
         scroll_area.setWidgetResizable(True)
 
         self.content_widget = QWidget()
-        layout = QFormLayout(self.content_widget)
+        main_layout = QFormLayout(self.content_widget)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        tab_widget = QTabWidget()
+        tab_general = QWidget()
+        layout = QFormLayout(tab_general)
+        tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        tab_2 = QWidget()
+
+        tab_general.setLayout(layout)
+        tab_widget.addTab(tab_general, "General")
+        tab_widget.addTab(tab_2, "Option 2")
+        main_layout.addWidget(tab_widget)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
@@ -31,7 +43,6 @@ class SettingsDialog(QDialog):
 
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
-
         self.update_on_launch_cb.setChecked(self.settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
         layout.addRow("Update on Launch", self.update_on_launch_cb)
