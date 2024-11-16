@@ -30,18 +30,16 @@ class SettingsDialog(QDialog):
         layout = QFormLayout(tab_general)
         tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        tab_background = QWidget()
-        background_layout = QFormLayout(tab_background)
-        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        tab_general.setLayout(layout)
-        tab_widget.addTab(tab_general, "General")
-        tab_widget.addTab(tab_background, "Background")
-        main_layout.addWidget(tab_widget)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
         self.settings = load_settings()
+
+
+
+        """
+            GENERAL TAB
+        """
 
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
@@ -108,8 +106,64 @@ class SettingsDialog(QDialog):
         # Add to layout
         layout.addRow("Theme", self.theme_selector)
         layout.addRow("", self.color_selector)
+        self.display_theme() # Updates stylesheet for theme loaded.
+        
+        self.local_icons_cb = QCheckBox()
+        self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
+        self.local_icons_cb.clicked.connect(self.set_changed)
+        layout.addRow("Save icons locally", self.local_icons_cb)
 
-        self.display_theme()
+        self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.icon_size_slider.setMinimum(30)
+        self.icon_size_slider.setMaximum(256)
+        self.icon_size_slider.setSingleStep(1)
+        self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
+        self.icon_size_slider.valueChanged.connect(self.label_size_changed)
+        layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
+
+        # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
+        self.redraw_request = False
+
+        self.max_rows_sb = QSpinBox()
+        self.max_rows_sb.setValue(self.settings.get("max_rows", 20))
+        self.max_rows_sb.setRange(0, 100)
+        self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
+        layout.addRow("Max rows: ", self.max_rows_sb)
+        self.max_cols_sb = QSpinBox()
+        self.max_cols_sb.setValue(self.settings.get("max_cols", 40))
+        self.max_cols_sb.setRange(0, 100)
+        self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
+        layout.addRow("Max Columns: ", self.max_cols_sb)
+
+        self.label_color = self.settings.get("label_color", "white") #default white
+        
+        # Flat color button, when clicked opens color dialog
+        self.label_color_box = QPushButton("", self)
+        self.label_color_box.clicked.connect(self.open_color_dialog)
+        self.label_color_box.setFixedSize(QSize(75, 30))
+        self.label_color_box.setAutoDefault(False)
+        self.label_color_box.setDefault(False)
+
+        self.update_color_box(self.label_color)
+        layout.addRow("Icon Name color: ", self.label_color_box)
+
+        # On closing the program: Minimize to Tray or Terminiate the program
+        self.on_close_cb = QComboBox()
+        on_close_options = ['Terminiate the program', 'Minimize to tray']
+        self.on_close_cb.addItems(on_close_options)
+        layout.addRow("On closing the program:", self.on_close_cb)
+        self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
+        self.on_close_cb.currentIndexChanged.connect(self.set_changed)
+
+
+
+
+        """
+            BACKGROUND TAB
+        """
+        tab_background = QWidget()
+        background_layout = QFormLayout(tab_background)
+        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.background_selector = QComboBox()
         background_options = ["First found", "Both", "Video only", "Image only", "None"]
@@ -163,7 +217,6 @@ class SettingsDialog(QDialog):
         self.video_zoom_label = QLabel("Video zoom adjustment:")
         background_layout.addRow(self.video_zoom_label, self.video_zoom_slider)
 
-    
         # layouts to add folder buttons
         video_folder_layout = QHBoxLayout()
         video_folder_layout.addWidget(self.background_video)
@@ -175,54 +228,12 @@ class SettingsDialog(QDialog):
         background_layout.addRow("Background Video path:", video_folder_layout)
         background_layout.addRow("Background Image path:", image_folder_layout)
 
-        self.local_icons_cb = QCheckBox()
-        self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
-        self.local_icons_cb.clicked.connect(self.set_changed)
-        layout.addRow("Save icons locally", self.local_icons_cb)
-
-        self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
-        self.icon_size_slider.setMinimum(30)
-        self.icon_size_slider.setMaximum(256)
-        self.icon_size_slider.setSingleStep(1)
-        self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
-        self.icon_size_slider.valueChanged.connect(self.label_size_changed)
-        layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
+        """
+            END OF TABS
+        """
 
 
-        # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
-        self.redraw_request = False
-
-        self.max_rows_sb = QSpinBox()
-        self.max_rows_sb.setValue(self.settings.get("max_rows", 20))
-        self.max_rows_sb.setRange(0, 100)
-        self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
-        layout.addRow("Max rows: ", self.max_rows_sb)
-        self.max_cols_sb = QSpinBox()
-        self.max_cols_sb.setValue(self.settings.get("max_cols", 40))
-        self.max_cols_sb.setRange(0, 100)
-        self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
-        layout.addRow("Max Columns: ", self.max_cols_sb)
-
-        self.label_color = self.settings.get("label_color", "white") #default white
-        
-        # Flat color button, when clicked opens color dialog
-        self.label_color_box = QPushButton("", self)
-        self.label_color_box.clicked.connect(self.open_color_dialog)
-        self.label_color_box.setFixedSize(QSize(75, 30))
-        self.label_color_box.setAutoDefault(False)
-        self.label_color_box.setDefault(False)
-
-        self.update_color_box(self.label_color)
-        layout.addRow("Icon Name color: ", self.label_color_box)
-
-        # On closing the program: Minimize to Tray or Terminiate the program
-        self.on_close_cb = QComboBox()
-        on_close_options = ['Terminiate the program', 'Minimize to tray']
-        self.on_close_cb.addItems(on_close_options)
-        layout.addRow("On closing the program:", self.on_close_cb)
-        self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
-        self.on_close_cb.currentIndexChanged.connect(self.set_changed)
-
+        # End Scroll area before save button (so save button remains separate)
         scroll_area.setWidget(self.content_widget)
 
         # Save button (appears outside scroll area)
@@ -231,6 +242,12 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.save_button)
         self.save_button.setAutoDefault(False)
         self.save_button.setDefault(False)
+
+        # Attach General and Background tab to layout.
+        tab_general.setLayout(layout)
+        tab_widget.addTab(tab_general, "General")
+        tab_widget.addTab(tab_background, "Background")
+        main_layout.addWidget(tab_widget)
 
         # Finish Layout
         main_layout = QVBoxLayout(self)
