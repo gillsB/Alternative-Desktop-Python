@@ -333,6 +333,7 @@ class SettingsDialog(QDialog):
         self.parent().change_theme(theme)
         self.display_theme()
         self.resize_window()
+        self.parent().grid_widget.pause_video()
         self.is_changed = True
 
     def display_theme(self):
