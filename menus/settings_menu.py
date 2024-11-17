@@ -106,7 +106,7 @@ class SettingsDialog(QDialog):
         # Add to layout
         layout.addRow("Theme", self.theme_selector)
         layout.addRow("", self.color_selector)
-        self.display_theme() # Updates stylesheet for theme loaded.
+        
         
         self.local_icons_cb = QCheckBox()
         self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
@@ -144,7 +144,6 @@ class SettingsDialog(QDialog):
         self.label_color_box.setAutoDefault(False)
         self.label_color_box.setDefault(False)
 
-        self.update_color_box(self.label_color)
         layout.addRow("Icon Name color: ", self.label_color_box)
 
         # On closing the program: Minimize to Tray or Terminiate the program
@@ -232,7 +231,7 @@ class SettingsDialog(QDialog):
             END OF TABS
         """
 
-
+        self.display_theme() # Updates stylesheet for theme loaded.
         # End Scroll area before save button (so save button remains separate)
         scroll_area.setWidget(self.content_widget)
 
@@ -312,11 +311,7 @@ class SettingsDialog(QDialog):
 
         if color.isValid():
             self.label_color = color.name()  # Get the hex code of the selected color
-            self.update_color_box(self.label_color)
             
-    def update_color_box(self, color_name: str):
-        logger.info(f"Updated label color box to color {color_name}")
-        self.label_color_box.setStyleSheet(f"background-color: {color_name}; border: 1px solid black;")
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
     def redraw_setting_changed(self):
@@ -346,6 +341,8 @@ class SettingsDialog(QDialog):
             self.color_selector.show()  # Show color selector for other themes
             self.enable_stylesheet(True)
 
+
+    # Directly toggles between "Theme" stylesheet and "None" stylesheet. All stylesheet changes should happen here. Anything done outside only makes it hard to keep track of.
     def enable_stylesheet(self, bool):
         self.primary_color = getattr(self.parent(), 'primary_color', '#202020')
         if bool:
@@ -355,8 +352,24 @@ class SettingsDialog(QDialog):
                     border: 2px solid {self.primary_color};
                 }}
             """))
+            self.label_color_box.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.label_color};
+                    border: 1px solid black;
+                }}
+                QPushButton:focus {{
+                    border: 3px solid {self.primary_color};
+                }}
+            """)
         else:
             self.setStyleSheet("")
+
+            # Required for changing color of the button to match the set color.
+            self.label_color_box.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.label_color};
+                }}
+            """)
         
 
 
