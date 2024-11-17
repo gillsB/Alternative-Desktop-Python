@@ -311,6 +311,7 @@ class SettingsDialog(QDialog):
 
         if color.isValid():
             self.label_color = color.name()  # Get the hex code of the selected color
+            self.display_theme()
             
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
