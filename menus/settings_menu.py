@@ -48,11 +48,12 @@ class SettingsDialog(QDialog):
         layout.addRow("Update on Launch", self.update_on_launch_cb)
     
         # Toggle Overlay Keybind
-        self.toggle_overlay_keybind_button = KeybindButton(dialog = self)
+        self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
         layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
         self.toggle_overlay_keybind_button.setDefault(False)
+        self.toggle_overlay_keybind_button.clicked.connect(self.set_changed)
 
         # When window in focus keybind: 
         self.keybind_minimize = QComboBox()
@@ -548,7 +549,7 @@ class SettingsDialog(QDialog):
             self.background_image.setText(selected_file)
 
 class KeybindButton(QPushButton):
-    def __init__(self, parent=None, dialog=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         logger.info("Keybind button initialized")
         self.listening = False
@@ -557,7 +558,6 @@ class KeybindButton(QPushButton):
         self.clicked.connect(self.enable_listening)
         self.installEventFilter(self)
         self.shift_pressed = False
-        self.dialog = dialog
 
     def enable_listening(self):
         logger.info("Enable listening called")
@@ -721,7 +721,6 @@ class KeybindButton(QPushButton):
 
         full_key_name = "+".join(modifier_names + [key_name])
         logger.info(f"Full key name: {full_key_name}")
-        self.dialog.set_changed()
         self.setText(full_key_name)
         self.listening = False
 
