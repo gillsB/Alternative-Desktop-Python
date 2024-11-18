@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication, QTabWidget,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
-from PySide6.QtCore import Qt, QEvent, QSize, QTimer
+from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint
 from PySide6.QtGui import QKeySequence
 from util.utils import ClearableLineEdit, SliderWithInput
 from util.settings import get_setting, set_setting, load_settings, save_settings
@@ -285,6 +285,8 @@ class SettingsDialog(QDialog):
         self.resize_window()
     
     def resize_window(self, width=0, height=0):
+        current_position = self.pos()
+        print(f"Current Position: {current_position}")
         screen_geometry = self.screen().availableGeometry()
         # 30 height is for top window bar, 30 width is for padding.
         target_height = min(self.content_widget.sizeHint().height() + 30 + self.save_button.sizeHint().height() + height, screen_geometry.height())
@@ -293,6 +295,15 @@ class SettingsDialog(QDialog):
         self.resize(target_width, target_height)
         logger.info(f"Setting maximum size for window: {screen_geometry.width()},  {screen_geometry.height()-40}")
         self.setMaximumSize(screen_geometry.width(), screen_geometry.height()-40) # -40 on height to account for windows taskbar
+
+        if current_position.y() + self.height() >= screen_geometry.height()-40:
+            print("Moving up to fit entire menu on screen.")
+            new_position = QPoint(current_position.x(), (screen_geometry.height()-40 - self.height()))
+            if new_position.y() < 0:
+                logger.error(f"Attempted to place the window at negative height: {new_position.y()}, args: {current_position.y()}, {self.height()}, {screen_geometry.height()-40}")
+            else:
+                self.move(new_position)
+
 
     def open_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
