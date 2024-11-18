@@ -27,30 +27,61 @@ class SettingsDialog(QDialog):
 
         tab_widget = QTabWidget()
         tab_general = QWidget()
-        layout = QFormLayout(tab_general)
+        layout_general = QFormLayout(tab_general)
         tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        tab_background = QWidget()
+        background_layout = QFormLayout(tab_background)
+        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
         self.settings = load_settings()
 
+        self.add_general_tab(layout_general)
+        self.add_background_tab(background_layout)
 
+        self.display_theme() # Updates stylesheet for theme loaded.
+        # End Scroll area before save button (so save button remains separate)
+        scroll_area.setWidget(self.content_widget)
 
-        """
-            GENERAL TAB
-        """
+        # Save button (appears outside scroll area)
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_settings)
+        main_layout.addWidget(self.save_button)
+        self.save_button.setAutoDefault(False)
+        self.save_button.setDefault(False)
+
+        # Attach General and Background tab to layout.
+        tab_general.setLayout(layout_general)
+        tab_widget.addTab(tab_general, "General")
+        tab_widget.addTab(tab_background, "Background")
+        main_layout.addWidget(tab_widget)
+
+        # Finish Layout
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(scroll_area)
+        main_layout.addWidget(self.save_button)
+        self.setLayout(main_layout)
+
+        # Adding/hiding rows and resize to fit screen.
+        self.update_video_sliders_visbility()
+        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
+
+        self.installEventFilter(self)
+
+    def add_general_tab(self, layout_general):
 
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
         self.update_on_launch_cb.setChecked(self.settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
-        layout.addRow("Update on Launch", self.update_on_launch_cb)
+        layout_general.addRow("Update on Launch", self.update_on_launch_cb)
     
         # Toggle Overlay Keybind
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
-        layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
+        layout_general.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
         self.toggle_overlay_keybind_button.setDefault(False)
         self.toggle_overlay_keybind_button.clicked.connect(self.set_changed)
@@ -59,7 +90,7 @@ class SettingsDialog(QDialog):
         self.keybind_minimize = QComboBox()
         keybind_options = ['Minimize window', 'Hide window (restore through keybind or system tray)']
         self.keybind_minimize.addItems(keybind_options)
-        layout.addRow("When in focus Keybind:", self.keybind_minimize)
+        layout_general.addRow("When in focus Keybind:", self.keybind_minimize)
         self.keybind_minimize.setCurrentIndex(self.settings.get("keybind_minimize", 0))
         self.keybind_minimize.currentIndexChanged.connect(self.set_changed)
         
@@ -69,11 +100,11 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setMaximum(100)
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
-        self.window_opacity_slider.valueChanged.connect(self.value_changed)
+        self.window_opacity_slider.valueChanged.connect(self.opacity_slider_changed)
         
 
         
-        layout.addRow("Overlay Opacity", self.window_opacity_slider)
+        layout_general.addRow("Overlay Opacity", self.window_opacity_slider)
 
         self.theme_selector = QComboBox()
         self.color_selector = QComboBox()
@@ -105,14 +136,14 @@ class SettingsDialog(QDialog):
         self.color_selector.currentIndexChanged.connect(self.update_theme)
 
         # Add to layout
-        layout.addRow("Theme", self.theme_selector)
-        layout.addRow("", self.color_selector)
+        layout_general.addRow("Theme", self.theme_selector)
+        layout_general.addRow("", self.color_selector)
         
         
         self.local_icons_cb = QCheckBox()
         self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
         self.local_icons_cb.clicked.connect(self.set_changed)
-        layout.addRow("Save icons locally", self.local_icons_cb)
+        layout_general.addRow("Save icons locally", self.local_icons_cb)
 
         self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
         self.icon_size_slider.setMinimum(30)
@@ -120,7 +151,7 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setSingleStep(1)
         self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
-        layout.addRow("Desktop Icon Size: ", self.icon_size_slider)
+        layout_general.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
         # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
         self.redraw_request = False
@@ -129,12 +160,12 @@ class SettingsDialog(QDialog):
         self.max_rows_sb.setValue(self.settings.get("max_rows", 20))
         self.max_rows_sb.setRange(0, 100)
         self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
-        layout.addRow("Max rows: ", self.max_rows_sb)
+        layout_general.addRow("Max rows: ", self.max_rows_sb)
         self.max_cols_sb = QSpinBox()
         self.max_cols_sb.setValue(self.settings.get("max_cols", 40))
         self.max_cols_sb.setRange(0, 100)
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
-        layout.addRow("Max Columns: ", self.max_cols_sb)
+        layout_general.addRow("Max Columns: ", self.max_cols_sb)
 
         self.label_color = self.settings.get("label_color", "white") #default white
         
@@ -145,26 +176,17 @@ class SettingsDialog(QDialog):
         self.label_color_box.setAutoDefault(False)
         self.label_color_box.setDefault(False)
 
-        layout.addRow("Icon Name color: ", self.label_color_box)
+        layout_general.addRow("Icon Name color: ", self.label_color_box)
 
         # On closing the program: Minimize to Tray or Terminiate the program
         self.on_close_cb = QComboBox()
         on_close_options = ['Terminiate the program', 'Minimize to tray']
         self.on_close_cb.addItems(on_close_options)
-        layout.addRow("On closing the program:", self.on_close_cb)
+        layout_general.addRow("On closing the program:", self.on_close_cb)
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
-
-
-
-        """
-            BACKGROUND TAB
-        """
-        tab_background = QWidget()
-        background_layout = QFormLayout(tab_background)
-        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
+    def add_background_tab(self, background_layout):
         self.background_selector = QComboBox()
         background_options = ["First found", "Both", "Video only", "Image only", "None"]
         self.background_selector.addItems(background_options)
@@ -228,39 +250,6 @@ class SettingsDialog(QDialog):
         background_layout.addRow("Background Video path:", video_folder_layout)
         background_layout.addRow("Background Image path:", image_folder_layout)
 
-        """
-            END OF TABS
-        """
-
-        self.display_theme() # Updates stylesheet for theme loaded.
-        # End Scroll area before save button (so save button remains separate)
-        scroll_area.setWidget(self.content_widget)
-
-        # Save button (appears outside scroll area)
-        self.save_button = QPushButton("Save")
-        self.save_button.clicked.connect(self.save_settings)
-        layout.addWidget(self.save_button)
-        self.save_button.setAutoDefault(False)
-        self.save_button.setDefault(False)
-
-        # Attach General and Background tab to layout.
-        tab_general.setLayout(layout)
-        tab_widget.addTab(tab_general, "General")
-        tab_widget.addTab(tab_background, "Background")
-        main_layout.addWidget(tab_widget)
-
-        # Finish Layout
-        main_layout = QVBoxLayout(self)
-        main_layout.addWidget(scroll_area)
-        main_layout.addWidget(self.save_button)
-        self.setLayout(main_layout)
-
-        # Adding/hiding rows and resize to fit screen.
-        self.update_video_sliders_visbility()
-        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
-
-        self.installEventFilter(self)
-
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
@@ -322,6 +311,11 @@ class SettingsDialog(QDialog):
             self.redraw_request = True
             logger.info("Redraw request now set to True")
 
+    def set_changed(self):
+        if not self.is_changed:
+            logger.info("Settings changed")
+            self.is_changed = True
+
     def update_theme(self):
         category = self.theme_selector.currentText().lower()
         color = self.color_selector.currentText().lower()
@@ -376,12 +370,13 @@ class SettingsDialog(QDialog):
 
 
 
-    def value_changed(self, i):
+    def opacity_slider_changed(self, i):
         self.set_changed()
         if self.parent():
             self.parent().change_opacity(i)
         self.setWindowOpacity(1.0)
 
+    # Depreciated, it causes crashing for attempting to preview and changing rows/cols in the same save.
     def label_size_changed(self, i):
         self.redraw_setting_changed()
 
@@ -504,10 +499,6 @@ class SettingsDialog(QDialog):
                 logger.info("User chose to cancel the close event.")
                 event.ignore()
     
-    def set_changed(self):
-        if not self.is_changed:
-            logger.info("Settings changed")
-            self.is_changed = True
 
     def cleanup_bg_paths(self):
 
@@ -530,9 +521,6 @@ class SettingsDialog(QDialog):
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
         self.parent().grid_widget.video_manager.move_video((-1 * self.settings.get("video_x_offset")), self.settings.get("video_y_offset"))
         self.parent().grid_widget.video_manager.zoom_video(self.settings.get("video_zoom"))
-
-    def change_button(self, text):
-        self.toggle_overlay_keybind_button.setText(text)
 
     def video_folder_button_clicked(self):
         self.set_changed()
