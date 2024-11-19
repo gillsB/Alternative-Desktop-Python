@@ -76,12 +76,10 @@ class SettingsDialog(QDialog):
         self.update_on_launch_cb = QCheckBox()
         self.update_on_launch_cb.setChecked(self.settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
-        #layout_general.addRow("Update on Launch", self.update_on_launch_cb)
     
         # Toggle Overlay Keybind
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
-        #layout_general.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
         self.toggle_overlay_keybind_button.setAutoDefault(False)
         self.toggle_overlay_keybind_button.setDefault(False)
         self.toggle_overlay_keybind_button.clicked.connect(self.set_changed)
@@ -90,7 +88,6 @@ class SettingsDialog(QDialog):
         self.keybind_minimize = QComboBox()
         keybind_options = ['Minimize window', 'Hide window (restore through keybind or system tray)']
         self.keybind_minimize.addItems(keybind_options)
-        #layout_general.addRow("When in focus Keybind:", self.keybind_minimize)
         self.keybind_minimize.setCurrentIndex(self.settings.get("keybind_minimize", 0))
         self.keybind_minimize.currentIndexChanged.connect(self.set_changed)
         
@@ -100,8 +97,6 @@ class SettingsDialog(QDialog):
         self.window_opacity_slider.setSingleStep(1)
         self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
         self.window_opacity_slider.valueChanged.connect(self.opacity_slider_changed)
-        
-        #layout_general.addRow("Overlay Opacity", self.window_opacity_slider)
 
         self.theme_selector = QComboBox()
         self.color_selector = QComboBox()
@@ -132,15 +127,9 @@ class SettingsDialog(QDialog):
         self.theme_selector.currentIndexChanged.connect(self.update_theme)
         self.color_selector.currentIndexChanged.connect(self.update_theme)
 
-        # Add to layout
-        #layout_general.addRow("Theme", self.theme_selector)
-        #layout_general.addRow("", self.color_selector)
-        
-        
         self.local_icons_cb = QCheckBox()
         self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
         self.local_icons_cb.clicked.connect(self.set_changed)
-        #layout_general.addRow("Save icons locally", self.local_icons_cb)
 
         self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
         self.icon_size_slider.setMinimum(30)
@@ -148,7 +137,6 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setSingleStep(1)
         self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
-        #layout_general.addRow("Desktop Icon Size: ", self.icon_size_slider)
 
         # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
         self.redraw_request = False
@@ -157,12 +145,10 @@ class SettingsDialog(QDialog):
         self.max_rows_sb.setValue(self.settings.get("max_rows", 20))
         self.max_rows_sb.setRange(0, 100)
         self.max_rows_sb.valueChanged.connect(self.redraw_setting_changed)
-        #layout_general.addRow("Max rows: ", self.max_rows_sb)
         self.max_cols_sb = QSpinBox()
         self.max_cols_sb.setValue(self.settings.get("max_cols", 40))
         self.max_cols_sb.setRange(0, 100)
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
-        #layout_general.addRow("Max Columns: ", self.max_cols_sb)
 
         self.label_color = self.settings.get("label_color", "white") #default white
         
@@ -173,13 +159,11 @@ class SettingsDialog(QDialog):
         self.label_color_box.setAutoDefault(False)
         self.label_color_box.setDefault(False)
 
-        #layout_general.addRow("Icon Name color: ", self.label_color_box)
 
         # On closing the program: Minimize to Tray or Terminiate the program
         self.on_close_cb = QComboBox()
         on_close_options = ['Terminiate the program', 'Minimize to tray']
         self.on_close_cb.addItems(on_close_options)
-        #layout_general.addRow("On closing the program:", self.on_close_cb)
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
