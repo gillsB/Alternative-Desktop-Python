@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle, QSlider, QSpinBox, QHBoxLayout, QWidget
+from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle, QSlider, QSpinBox, QHBoxLayout, QVBoxLayout, QWidget, QFrame, QLabel, QSpacerItem, QSizePolicy
 from PySide6.QtCore import Qt, Signal
 
 
@@ -87,3 +87,35 @@ class SliderWithInput(QWidget):
 
     def get_value(self):
         return self.slider.value()
+
+
+
+def create_separator(label_text):
+    vbox = QVBoxLayout()
+
+    # Add top padding with a spacer
+    top_spacer = QSpacerItem(0, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
+    vbox.addItem(top_spacer)
+
+    hbox = QHBoxLayout()
+
+    # Label for the section title
+    label = QLabel(label_text)
+    label.setStyleSheet("font-weight: bold; padding-right: 5px;")
+
+    # Horizontal line
+    line = QFrame()
+    line.setFrameShape(QFrame.HLine)
+    line.setFrameShadow(QFrame.Sunken)
+    line.setStyleSheet("color: grey;")
+
+    hbox.addWidget(label)
+    hbox.addWidget(line)
+    hbox.setStretch(1, 1)  # Expands the line while keeping the label fixed
+
+    vbox.addLayout(hbox)
+
+    bottom_spacer = QSpacerItem(0, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
+    vbox.addItem(bottom_spacer)
+
+    return vbox
