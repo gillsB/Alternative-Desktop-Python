@@ -27,7 +27,7 @@ class SettingsDialog(QDialog):
 
         tab_widget = QTabWidget()
         tab_general = QWidget()
-        layout_general = QFormLayout(tab_general)
+        layout_general = QVBoxLayout(tab_general)
         tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         tab_background = QWidget()
@@ -183,26 +183,45 @@ class SettingsDialog(QDialog):
         self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
         self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
-        # General Settings
-        layout_general.addRow(create_separator("General"))
-        layout_general.addRow("Update on Launch", self.update_on_launch_cb)
-        layout_general.addRow("On closing the program:", self.on_close_cb)
+        # Outer layout is for default padding. I.e. Separators which have no padding
+        outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(0, 0, 0, 0) # Default to no padding
 
-        # Keybindings
-        layout_general.addRow(create_separator("Keybindings"))
-        layout_general.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
-        layout_general.addRow("When in focus Keybind:", self.keybind_minimize)
+        # Padding for non-separators
+        left_padding = 20
 
-        # Appearance
-        layout_general.addRow(create_separator("Appearance"))
-        layout_general.addRow("Theme", self.theme_selector)
-        layout_general.addRow("", self.color_selector)
-        layout_general.addRow("Overlay Opacity", self.window_opacity_slider)
-        layout_general.addRow("Save icons locally", self.local_icons_cb)
-        layout_general.addRow("Desktop Icon Size: ", self.icon_size_slider)
-        layout_general.addRow("Icon Name color: ", self.label_color_box)
-        layout_general.addRow("Max rows: ", self.max_rows_sb)
-        layout_general.addRow("Max Columns: ", self.max_cols_sb)
+        # General Section
+        outer_layout.addLayout(create_separator("Program Behavior"))
+        general_inner_layout = QFormLayout()
+        general_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        general_inner_layout.addRow("Update on Launch", self.update_on_launch_cb)
+        general_inner_layout.addRow("On closing the program:", self.on_close_cb)
+        outer_layout.addLayout(general_inner_layout)
+
+        # Keybindings Section
+        outer_layout.addLayout(create_separator("Keybindings"))
+        keybindings_inner_layout = QFormLayout()
+        keybindings_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        keybindings_inner_layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
+        keybindings_inner_layout.addRow("When in focus Keybind", self.keybind_minimize)
+        outer_layout.addLayout(keybindings_inner_layout)
+
+        # Appearance Section
+        outer_layout.addLayout(create_separator("Appearance"))
+        appearance_inner_layout = QFormLayout()
+        appearance_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        appearance_inner_layout.addRow("Theme", self.theme_selector)
+        appearance_inner_layout.addRow("", self.color_selector)
+        appearance_inner_layout.addRow("Overlay Opacity", self.window_opacity_slider)
+        appearance_inner_layout.addRow("Save icons locally", self.local_icons_cb)
+        appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
+        appearance_inner_layout.addRow("Icon Name color", self.label_color_box)
+        appearance_inner_layout.addRow("Max rows", self.max_rows_sb)
+        appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
+        outer_layout.addLayout(appearance_inner_layout)
+
+        layout_general.addLayout(outer_layout)
+
 
     def add_background_tab(self, background_layout):
         self.background_selector = QComboBox()

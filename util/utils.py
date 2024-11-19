@@ -101,7 +101,7 @@ def create_separator(label_text):
 
     # Label for the section title
     label = QLabel(label_text)
-    label.setStyleSheet("font-weight: bold; padding-right: 5px;")
+    label.setStyleSheet("font-weight: bold; padding-right: 6px;")
 
     # Horizontal line
     line = QFrame()
