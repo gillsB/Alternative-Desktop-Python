@@ -307,7 +307,7 @@ class SettingsDialog(QDialog):
     
     def resize_window(self, width=0, height=0):
         current_position = self.pos()
-        print(f"Current Position: {current_position}")
+        logger.info(f"Current Position: {current_position}")
         screen_geometry = self.screen().availableGeometry()
         # 30 height is for top window bar, 30 width is for padding.
         target_height = min(self.content_widget.sizeHint().height() + 30 + self.save_button.sizeHint().height() + height, screen_geometry.height())
@@ -318,7 +318,7 @@ class SettingsDialog(QDialog):
         self.setMaximumSize(screen_geometry.width(), screen_geometry.height()-40) # -40 on height to account for windows taskbar
 
         if current_position.y() + self.height() >= screen_geometry.height()-40:
-            print("Moving up to fit entire menu on screen.")
+            logger.info("Moving up to fit entire menu on screen.")
             new_position = QPoint(current_position.x(), (screen_geometry.height()-40 - self.height()))
             if new_position.y() < 0:
                 logger.error(f"Attempted to place the window at negative height: {new_position.y()}, args: {current_position.y()}, {self.height()}, {screen_geometry.height()-40}")
@@ -374,7 +374,7 @@ class SettingsDialog(QDialog):
     def enable_stylesheet(self, bool):
         self.primary_color = getattr(self.parent(), 'primary_color', '#202020')
         if bool:
-            print(f"setting to color {self.primary_color}")
+            logger.info(f"Setting stylesheet to match qt-material, with primary color = {self.primary_color}")
             self.setStyleSheet((f"""
                 QSlider::handle:focus {{
                     border: 2px solid {self.primary_color};
