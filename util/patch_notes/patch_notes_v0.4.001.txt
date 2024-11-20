@@ -1,0 +1,10 @@
+### Settings menu changes
+- Menu is now resizable
+- Added a tab for background settings to consolidate them.
+- Menu now dynamically sizes it self to match content. (Was fixed size).
+
+### Smaller changes and bugfixes
+- Menu can no longer be taller/wider than screen (Maxes out at screen height minus some padding for windows taskbar).
+- Some fields only appear if they are relevant (Video background settings only appear if it is possible for a video background to be used).
+- Better non-mouse navigation (Tab now selects items that were unselectable in old version, and "Enter" key now works on selections like a user would expect).
+- Better at showing focus (Some default things like sliders do not show a border when selected, they now do).
