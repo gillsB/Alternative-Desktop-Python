@@ -129,8 +129,6 @@ class OverlayWidget(QWidget):
         self.toggle_window_state()
         #self.showNormal()
         #self.showMaximized()
-        #self.updateGeometry()
-        #self.grid_widget.updateGeometry()
 
     # Complete quit from Tray menu.
     def close_application(self):
@@ -218,7 +216,7 @@ class OverlayWidget(QWidget):
     def show_settings(self):
         self.grid_widget.pause_video()
         dialog = SettingsDialog(parent=self)
-        dialog.exec()
+        dialog.show()
         self.grid_widget.play_video()
     
     def change_opacity(self ,i):
