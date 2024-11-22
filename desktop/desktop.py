@@ -27,6 +27,7 @@ class OverlayWidget(QWidget):
             changes_from_older_versions()
             QTimer.singleShot(1000, self.show_patch_notes)
 
+        APP.aboutToQuit.connect(self.cleanup)
         #self.setAttribute(Qt.WA_TranslucentBackground)
         window_opacity = get_setting("window_opacity", -1)
         window_opacity = float(window_opacity/100)
@@ -103,6 +104,7 @@ class OverlayWidget(QWidget):
         # if "On closing the program" set to "terminate the program"
         if get_setting("on_close", 0) == 0:
             logger.info("Program closing by closeEvent with on_close set to 'Terminiate the program' on close.")
+            self.cleanup()
             super(OverlayWidget, self).closeEvent(event)
         else:
             event.ignore()
@@ -132,8 +134,16 @@ class OverlayWidget(QWidget):
 
     # Complete quit from Tray menu.
     def close_application(self):
-        self.tray_icon.hide()
+        self.cleanup()
         QApplication.instance().quit()
+
+    def cleanup(self):
+        # Explicitly delete the QSystemTrayIcon
+        if self.tray_icon:
+            self.tray_icon.hide()
+            self.tray_icon.deleteLater()
+            self.tray_icon = None
+            logger.info("Finished cleaning up tray_icon")
 
     def set_theme_colors(self, theme_colors):
         if theme_colors == None:
