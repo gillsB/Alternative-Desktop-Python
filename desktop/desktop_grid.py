@@ -268,9 +268,9 @@ class DesktopGrid(QGraphicsView):
         elif not self.load_image:
             # Access the secondary color from the parent class, with a default fallback
             secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
-
+            custom_color = get_setting("custom_bg_fill", False)
             # Set the background color based on the secondary color
-            if secondary_color == '#4c5559':
+            if secondary_color == '#4c5559' and not custom_color:
                 color = QColor(secondary_color)
             elif secondary_color == '#202020':
                 color = QColor(secondary_color)
@@ -279,6 +279,9 @@ class DesktopGrid(QGraphicsView):
                 bright_color = QColor(self.parent().primary_light_color)
                 lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
                 color = QColor(lighter_color)
+
+            if custom_color:
+                color = (QColor("lightblue"))
 
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))
