@@ -281,7 +281,7 @@ class DesktopGrid(QGraphicsView):
                 color = QColor(lighter_color)
 
             if custom_color:
-                color = (QColor("lightblue"))
+                color = (QColor(get_setting("custom_bg_color", "white")))
 
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))
