@@ -245,7 +245,8 @@ class DesktopGrid(QGraphicsView):
 
         return False, False
     
-    def render_bg(self):
+    def render_bg(self, bg_enabled = None, bg_color=None):
+        print(f"called with args {bg_enabled}, {bg_color}")
         old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
@@ -270,7 +271,7 @@ class DesktopGrid(QGraphicsView):
             secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
             custom_color = get_setting("custom_bg_fill", False)
             # Set the background color based on the secondary color
-            if secondary_color == '#4c5559' and not custom_color:
+            if secondary_color == '#4c5559':
                 color = QColor(secondary_color)
             elif secondary_color == '#202020':
                 color = QColor(secondary_color)
@@ -280,8 +281,13 @@ class DesktopGrid(QGraphicsView):
                 lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
                 color = QColor(lighter_color)
 
-            if custom_color:
-                color = (QColor(get_setting("custom_bg_color", "white")))
+            if bg_enabled != False:
+                print("bg_enabled != false")
+                if (custom_color or bg_enabled) and bg_color == None:
+                    color = (QColor(get_setting("custom_bg_color", "white")))
+                elif custom_color or bg_enabled:
+                    color = QColor(bg_color)
+            
 
             # Set the background color as a solid brush
             self.scene.setBackgroundBrush(QBrush(color))

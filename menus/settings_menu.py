@@ -368,10 +368,14 @@ class SettingsDialog(QDialog):
         if color.isValid():
             self.bg_color = color.name()  # Get the hex code of the selected color
             self.display_theme()
+            self.parent().grid_widget.render_bg(bg_enabled = True, bg_color = self.bg_color)
 
     def custom_bg_fill(self):
-        print(f"toggled custom_bg_fill to {self.custom_bg_fill_cb.isChecked()}")
         self.set_changed()
+        if self.custom_bg_fill_cb.isChecked():
+            self.parent().grid_widget.render_bg(bg_enabled = True, bg_color = self.bg_color)
+        else:
+            self.parent().grid_widget.render_bg(bg_enabled = False)
             
 
     # Only called when a setting which requires redrawing of desktop icons is changed.
@@ -611,6 +615,7 @@ class SettingsDialog(QDialog):
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
         self.parent().grid_widget.video_manager.move_video((-1 * self.settings.get("video_x_offset")), self.settings.get("video_y_offset"))
         self.parent().grid_widget.video_manager.zoom_video(self.settings.get("video_zoom"))
+        self.parent().grid_widget.render_bg()
 
     def video_folder_button_clicked(self):
         self.set_changed()
@@ -815,5 +820,3 @@ class KeybindButton(QPushButton):
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
         self.setText(get_setting("toggle_overlay_keybind", "alt+d"))
-
-
