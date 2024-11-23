@@ -25,7 +25,8 @@ DEFUALT_SETTINGS = {
         "video_x_offset": 0.00,
         "video_y_offset": 0.00,
         "video_zoom": 1.00,
-        "custom_bg_fill": False
+        "custom_bg_fill": False,
+        "custom_bg_color": "#ffffff"
 }
 SETTINGS = None
 

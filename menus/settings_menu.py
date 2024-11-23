@@ -66,7 +66,9 @@ class SettingsDialog(QDialog):
 
         # Adding/hiding rows and resize to fit screen.
         self.update_video_sliders_visbility()
+        self.update_custom_bg_color_visibility()
         self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
+        self.custom_bg_fill_cb.toggled.connect(self.update_custom_bg_color_visibility)
 
         self.installEventFilter(self)
 
@@ -276,6 +278,14 @@ class SettingsDialog(QDialog):
         self.custom_bg_fill_cb.clicked.connect(self.custom_bg_fill)
         background_layout.addRow("Custom background fill:", self.custom_bg_fill_cb)
 
+        self.custom_bg_color = QPushButton("", self)
+        self.custom_bg_color.clicked.connect(self.open_bg_color_dialog)
+        self.custom_bg_color.setFixedSize(QSize(75, 30))
+        self.custom_bg_color.setAutoDefault(False)
+        self.custom_bg_color.setDefault(False)
+        self.custom_bg_color_label = QLabel("Custom bg color:")
+        background_layout.addRow(self.custom_bg_color_label, self.custom_bg_color)
+
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
@@ -292,6 +302,14 @@ class SettingsDialog(QDialog):
                     return True
         return super().eventFilter(obj, event)
 
+    def update_custom_bg_color_visibility(self):
+        if self.custom_bg_fill_cb.isChecked():
+            self.custom_bg_color.show()
+            self.custom_bg_color_label.show()
+        else:
+            self.custom_bg_color.hide()
+            self.custom_bg_color_label.hide()
+        self.resize_window()
         
     def update_video_sliders_visbility(self):
         if self.background_selector.currentIndex() in [0, 1, 2]:  # Show for "First found", "Both", or "Video Only"
@@ -332,6 +350,14 @@ class SettingsDialog(QDialog):
 
 
     def open_color_dialog(self):
+        self.redraw_setting_changed() # redraw or it won't update
+        # Open the color dialog and get the selected color
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.label_color = color.name()  # Get the hex code of the selected color
+            self.display_theme()
+    def open_bg_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
         # Open the color dialog and get the selected color
         color = QColorDialog.getColor()
