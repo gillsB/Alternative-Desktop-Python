@@ -273,10 +273,13 @@ class SettingsDialog(QDialog):
         background_layout.addRow("Background Video path:", video_folder_layout)
         background_layout.addRow("Background Image path:", image_folder_layout)
 
+
         self.custom_bg_fill_cb = QCheckBox()
         self.custom_bg_fill_cb.setChecked(self.settings.get("custom_bg_fill", False))
         self.custom_bg_fill_cb.clicked.connect(self.custom_bg_fill)
         background_layout.addRow("Custom background fill:", self.custom_bg_fill_cb)
+
+        self.bg_color = self.settings.get("custom_bg_color", "white")
 
         self.custom_bg_color = QPushButton("", self)
         self.custom_bg_color.clicked.connect(self.open_bg_color_dialog)
@@ -363,7 +366,7 @@ class SettingsDialog(QDialog):
         color = QColorDialog.getColor()
 
         if color.isValid():
-            self.label_color = color.name()  # Get the hex code of the selected color
+            self.bg_color = color.name()  # Get the hex code of the selected color
             self.display_theme()
 
     def custom_bg_fill(self):
@@ -424,6 +427,15 @@ class SettingsDialog(QDialog):
                     border: 3px solid {self.primary_color};
                 }}
             """)
+            self.custom_bg_color.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.bg_color};
+                    border: 1px solid black;
+                }}
+                QPushButton:focus {{
+                    border: 3px solid {self.primary_color};
+                }}
+            """)
         else:
             self.setStyleSheet("")
 
@@ -431,6 +443,15 @@ class SettingsDialog(QDialog):
             self.label_color_box.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {self.label_color};
+                }}
+            """)
+            self.custom_bg_color.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.bg_color};
+                    border: 1px solid black;
+                }}
+                QPushButton:focus {{
+                    border: 3px solid {self.primary_color};
                 }}
             """)
         
@@ -528,6 +549,7 @@ class SettingsDialog(QDialog):
         settings["video_y_offset"] = -float (self.video_vertical_slider.get_value()/ 100.0)
         settings["video_zoom"] = self.slider_to_video_zoom()
         settings["custom_bg_fill"] = self.custom_bg_fill_cb.isChecked()
+        settings["custom_bg_color"] = self.bg_color
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
