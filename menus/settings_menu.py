@@ -361,24 +361,30 @@ class SettingsDialog(QDialog):
             self.label_color = color.name()  # Get the hex code of the selected color
             self.display_theme()
     def open_bg_color_dialog(self):
-        self.redraw_setting_changed() # redraw or it won't update
-        # Open the color dialog and get the selected color
+        self.set_changed() # Background color does not need full redraw as it calls render_bg itself.
+        
         color_dialog = QColorDialog(self)
         color_dialog.setCurrentColor(QColor(self.bg_color))
 
+        # Preview based on currently selected color in selector.
         def update_bg_color(color):
             if color.isValid():
-                self.bg_color = color.name()  # Get the hex code of the selected color
-                self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=self.bg_color)
+                color = color.name()
+                self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=color)
 
         color_dialog.currentColorChanged.connect(update_bg_color)
 
-        if color_dialog.exec():
+        # Accepted means full return (clicked Ok)
+        if color_dialog.exec()== QDialog.Accepted:
             selected_color = color_dialog.currentColor()
             if selected_color.isValid():
                 self.bg_color = selected_color.name()
                 self.display_theme()
                 self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=self.bg_color)
+        # User did not select a color (Revert back to color it had when opening)
+        else:
+            logger.info("User closed Custom bg color selector without selecting")
+            self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=self.bg_color)
 
     def custom_bg_fill(self):
         self.set_changed()
