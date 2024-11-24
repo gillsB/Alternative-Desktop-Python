@@ -282,7 +282,6 @@ class DesktopGrid(QGraphicsView):
                 color = QColor(lighter_color)
 
             if bg_enabled != False:
-                print("bg_enabled != false")
                 if (custom_color or bg_enabled) and bg_color == None:
                     color = (QColor(get_setting("custom_bg_color", "white")))
                 elif custom_color or bg_enabled:
