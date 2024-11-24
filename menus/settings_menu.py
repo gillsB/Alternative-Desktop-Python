@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication, QTabWidget, QFrame,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
 from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint
-from PySide6.QtGui import QKeySequence
+from PySide6.QtGui import QKeySequence, QColor
 from util.utils import ClearableLineEdit, SliderWithInput, create_separator
 from util.settings import get_setting, set_setting, load_settings, save_settings
 from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_multiple_working_keybind_warning
@@ -363,12 +363,22 @@ class SettingsDialog(QDialog):
     def open_bg_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
         # Open the color dialog and get the selected color
-        color = QColorDialog.getColor()
+        color_dialog = QColorDialog(self)
+        color_dialog.setCurrentColor(QColor(self.bg_color))
 
-        if color.isValid():
-            self.bg_color = color.name()  # Get the hex code of the selected color
-            self.display_theme()
-            self.parent().grid_widget.render_bg(bg_enabled = True, bg_color = self.bg_color)
+        def update_bg_color(color):
+            if color.isValid():
+                self.bg_color = color.name()  # Get the hex code of the selected color
+                self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=self.bg_color)
+
+        color_dialog.currentColorChanged.connect(update_bg_color)
+
+        if color_dialog.exec():
+            selected_color = color_dialog.currentColor()
+            if selected_color.isValid():
+                self.bg_color = selected_color.name()
+                self.display_theme()
+                self.parent().grid_widget.render_bg(bg_enabled=True, bg_color=self.bg_color)
 
     def custom_bg_fill(self):
         self.set_changed()
