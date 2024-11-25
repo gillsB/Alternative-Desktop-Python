@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip, QGraphicsEllipseItem
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip, QGraphicsEllipseItem, QGraphicsPixmapItem
+from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF, QPointF
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache, QTransform
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
@@ -262,35 +262,47 @@ class DesktopGrid(QGraphicsView):
             logger.warning("Disabled video playback and cleared source.")
 
         if self.load_image:
-            background_pixmap = QPixmap(BACKGROUND_IMAGE)
-            self.scene.setBackgroundBrush(QBrush(background_pixmap.scaled(self.size(),
-                                                    Qt.KeepAspectRatioByExpanding, 
-                                                    Qt.SmoothTransformation)))
-        elif not self.load_image:
-            # Access the secondary color from the parent class, with a default fallback
-            secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
-            custom_color = get_setting("custom_bg_fill", False)
-            # Set the background color based on the secondary color
-            if secondary_color == '#4c5559':
-                color = QColor(secondary_color)
-            elif secondary_color == '#202020':
-                color = QColor(secondary_color)
-            else:
-                # Light mode: lighten the primary light color
-                bright_color = QColor(self.parent().primary_light_color)
-                lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
-                color = QColor(lighter_color)
+            # Ensure only 1 background item exists (delete older ones and remove them from the scene).
+            if hasattr(self, "background_item") and self.background_item:
+                self.scene.removeItem(self.background_item)
+                self.background_item = None
 
-            if bg_enabled != False:
-                if (custom_color or bg_enabled) and bg_color == None:
-                    color = (QColor(get_setting("custom_bg_color", "white")))
-                elif custom_color or bg_enabled:
-                    color = QColor(bg_color)
-            
+            self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
+            self.background_item = QGraphicsPixmapItem(self.background_pixmap)
+            self.background_item.setTransformationMode(Qt.SmoothTransformation)
+            self.background_item.setZValue(-2)
+            self.scene.addItem(self.background_item)
 
-            # Set the background color as a solid brush
-            self.scene.setBackgroundBrush(QBrush(color))
-    
+            # Center the background pixmap in the viewport
+            view_center = self.viewport().rect().center()
+            scene_center = self.mapToScene(view_center)
+            pixmap_size = self.background_pixmap.size()
+            pixmap_center_offset = QPointF(pixmap_size.width() / 2, pixmap_size.height() / 2)
+            self.background_item.setPos(scene_center - pixmap_center_offset)
+
+        # Access the secondary color from the parent class, with a default fallback
+        secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
+        custom_color = get_setting("custom_bg_fill", False)
+        # Set the background color based on the secondary color
+        if secondary_color == '#4c5559':
+            color = QColor(secondary_color)
+        elif secondary_color == '#202020':
+            color = QColor(secondary_color)
+        else:
+            # Light mode: lighten the primary light color
+            bright_color = QColor(self.parent().primary_light_color)
+            lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
+            color = QColor(lighter_color)
+
+        if bg_enabled != False:
+            if (custom_color or bg_enabled) and bg_color == None:
+                color = (QColor(get_setting("custom_bg_color", "white")))
+            elif custom_color or bg_enabled:
+                color = QColor(bg_color)
+
+        # Set the background color as a solid brush
+        self.scene.setBackgroundBrush(QBrush(color))
+
 
     def load_bg_from_settings(self):
         global BACKGROUND_VIDEO, BACKGROUND_IMAGE
