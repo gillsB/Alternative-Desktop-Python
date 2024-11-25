@@ -252,7 +252,7 @@ class SettingsDialog(QDialog):
         self.background_selector.currentIndexChanged.connect(self.set_changed)
 
 
-        # video background alignments
+        # Video background alignments
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
         self.video_horizontal_slider.valueChanged.connect(self.video_location_changed)
         self.video_horizontal_label = QLabel("Video horizontal adjustment:")
@@ -269,6 +269,23 @@ class SettingsDialog(QDialog):
         self.video_zoom_label = QLabel("Video zoom adjustment:")
         background_layout.addRow(self.video_zoom_label, self.video_zoom_slider)
 
+
+        # Image background alignments
+        self.image_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("image_x_offset", 0)* 100)
+        self.image_horizontal_slider.valueChanged.connect(self.image_location_changed)
+        self.image_horizontal_label = QLabel("Image horizontal adjustment:")
+        background_layout.addRow(self.image_horizontal_label, self.image_horizontal_slider)
+
+        self.image_vertical_slider = SliderWithInput(-150, 150, 1, -self.settings.get("image_y_offset", 0)* 100)
+        self.image_vertical_slider.valueChanged.connect(self.image_location_changed)
+        self.image_vertical_label = QLabel("Image vertical adjustment:")
+        background_layout.addRow(self.image_vertical_label, self.image_vertical_slider)
+
+        initial_zoom = self.settings.get("image_zoom", 1.00)
+        self.image_zoom_slider = SliderWithInput(0, 200, 1, self.image_zoom_to_slider(initial_zoom))
+        self.image_zoom_slider.valueChanged.connect(self.image_zoom_changed)
+        self.image_zoom_label = QLabel("Image zoom adjustment:")
+        background_layout.addRow(self.image_zoom_label, self.image_zoom_slider)
 
         # Custom bg fill checkbox
         self.custom_bg_fill_cb = QCheckBox()
@@ -520,6 +537,19 @@ class SettingsDialog(QDialog):
             # Reverse NON-linear scaling (difference between 100 and 101 is < difference between 199 and 200) from slider range 101–200 to zoom range 1.0–max_zoom
             normalized_value = (slider_value - 100) / 100.0
             return 1.0 + (normalized_value ** scale_factor) * (max_zoom - 1.0)
+
+    def image_location_changed(self):
+        print("Image location changed")
+        self.set_changed()
+
+    def image_zoom_changed(self):
+        print("image zoom changed")
+        self.set_changed()
+
+        # Override and call with min_zoom, max_zoom for further scaling in/out.
+    def image_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
+        print("attempting to zoom to slider")
+        return 1.0
 
     def save_settings(self):
 
