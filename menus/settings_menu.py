@@ -210,18 +210,6 @@ class SettingsDialog(QDialog):
 
 
     def add_background_tab(self, background_layout):
-        self.background_selector = QComboBox()
-        background_options = ["First found", "Both", "Video only", "Image only", "None"]
-        self.background_selector.addItems(background_options)
-        background_layout.addRow("Background sourcing:", self.background_selector)
-        
-        set_bg_option = self.settings.get("background_source", "First found")
-        # format for background_source is no capitalize and "_" instead of " " therefore revert both
-        self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
-
-        self.background_selector.currentIndexChanged.connect(self.set_changed)
-
-
         # background path clearable line edits
         self.background_video = ClearableLineEdit()
         self.background_image = ClearableLineEdit()
@@ -229,8 +217,6 @@ class SettingsDialog(QDialog):
         self.background_image.setText(self.settings.get("background_image", ""))
         self.background_video.textChanged.connect(self.set_changed)
         self.background_image.textChanged.connect(self.set_changed)
-
-
         # folder buttons to open path in fileDialog
         video_folder_button = QPushButton(self)
         video_folder_button.setIcon(self.style().standardIcon(QStyle.SP_DirIcon))
@@ -244,8 +230,29 @@ class SettingsDialog(QDialog):
         image_folder_button.setAutoDefault(False)
         image_folder_button.setDefault(False)
         image_folder_button.clicked.connect(self.image_folder_button_clicked)
+        # layouts to add folder buttons
+        video_folder_layout = QHBoxLayout()
+        video_folder_layout.addWidget(self.background_video)
+        video_folder_layout.addWidget(video_folder_button)
+        image_folder_layout = QHBoxLayout()
+        image_folder_layout.addWidget(self.background_image)
+        image_folder_layout.addWidget(image_folder_button)
+        background_layout.addRow("Background Video path:", video_folder_layout)
+        background_layout.addRow("Background Image path:", image_folder_layout)
 
-        # video background alignment
+
+        # Background source row:
+        self.background_selector = QComboBox()
+        background_options = ["First found", "Both", "Video only", "Image only", "None"]
+        self.background_selector.addItems(background_options)
+        background_layout.addRow("Background sourcing:", self.background_selector)
+        set_bg_option = self.settings.get("background_source", "First found")
+        # format for background_source is no capitalize and "_" instead of " " therefore revert both
+        self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
+        self.background_selector.currentIndexChanged.connect(self.set_changed)
+
+
+        # video background alignments
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
         self.video_horizontal_slider.valueChanged.connect(self.video_location_changed)
         self.video_horizontal_label = QLabel("Video horizontal adjustment:")
@@ -262,25 +269,16 @@ class SettingsDialog(QDialog):
         self.video_zoom_label = QLabel("Video zoom adjustment:")
         background_layout.addRow(self.video_zoom_label, self.video_zoom_slider)
 
-        # layouts to add folder buttons
-        video_folder_layout = QHBoxLayout()
-        video_folder_layout.addWidget(self.background_video)
-        video_folder_layout.addWidget(video_folder_button)
-        image_folder_layout = QHBoxLayout()
-        image_folder_layout.addWidget(self.background_image)
-        image_folder_layout.addWidget(image_folder_button)
 
-        background_layout.addRow("Background Video path:", video_folder_layout)
-        background_layout.addRow("Background Image path:", image_folder_layout)
-
-
+        # Custom bg fill checkbox
         self.custom_bg_fill_cb = QCheckBox()
         self.custom_bg_fill_cb.setChecked(self.settings.get("custom_bg_fill", False))
         self.custom_bg_fill_cb.clicked.connect(self.custom_bg_fill)
         background_layout.addRow("Custom background fill:", self.custom_bg_fill_cb)
 
-        self.bg_color = self.settings.get("custom_bg_color", "white")
 
+        # Custom bg color
+        self.bg_color = self.settings.get("custom_bg_color", "white")
         self.custom_bg_color = QPushButton("", self)
         self.custom_bg_color.clicked.connect(self.open_bg_color_dialog)
         self.custom_bg_color.setFixedSize(QSize(75, 30))
