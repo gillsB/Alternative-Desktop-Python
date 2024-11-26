@@ -279,6 +279,11 @@ class DesktopGrid(QGraphicsView):
             pixmap_size = self.background_pixmap.size()
             pixmap_center_offset = QPointF(pixmap_size.width() / 2, pixmap_size.height() / 2)
             self.background_item.setPos(scene_center - pixmap_center_offset)
+        else:
+            # Remove image background_item if it exists.
+            if hasattr(self, "background_item") and self.background_item:
+                self.scene.removeItem(self.background_item)
+                self.background_item = None
 
         # Access the secondary color from the parent class, with a default fallback
         secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
