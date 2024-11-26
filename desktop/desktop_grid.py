@@ -268,9 +268,7 @@ class DesktopGrid(QGraphicsView):
             
         else:
             # Remove image background_item if it exists.
-            if hasattr(self, "background_item") and self.background_item:
-                self.scene.removeItem(self.background_item)
-                self.background_item = None
+            self.image_background_manager.remove_background()
 
         # Access the secondary color from the parent class, with a default fallback
         secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
@@ -796,6 +794,11 @@ class ImageBackgroundManager:
 
             # Update the image item's transformation
             self.background_item.setTransform(transform)
+
+    def remove_background(self):
+        if self.background_item:
+            self.scene.removeItem(self.background_item)
+            self.background_item = None
 
 
 
