@@ -92,6 +92,8 @@ class DesktopGrid(QGraphicsView):
         self.scene.addItem(self.video_manager.video_item)  # Add video item to the scene
         self.video_manager.video_item.setZValue(-1)  # Set the Z value for rendering order
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
+
+        self.image_background_manager = ImageBackgroundManager(self.scene, self.viewport())
         
         # Set up the media player in the video manager
         global MEDIA_PLAYER
@@ -262,23 +264,8 @@ class DesktopGrid(QGraphicsView):
             logger.warning("Disabled video playback and cleared source.")
 
         if self.load_image:
-            # Ensure only 1 background item exists (delete older ones and remove them from the scene).
-            if hasattr(self, "background_item") and self.background_item:
-                self.scene.removeItem(self.background_item)
-                self.background_item = None
-
-            self.background_pixmap = QPixmap(BACKGROUND_IMAGE)
-            self.background_item = QGraphicsPixmapItem(self.background_pixmap)
-            self.background_item.setTransformationMode(Qt.SmoothTransformation)
-            self.background_item.setZValue(-2)
-            self.scene.addItem(self.background_item)
-
-            # Center the background pixmap in the viewport
-            view_center = self.viewport().rect().center()
-            scene_center = self.mapToScene(view_center)
-            pixmap_size = self.background_pixmap.size()
-            pixmap_center_offset = QPointF(pixmap_size.width() / 2, pixmap_size.height() / 2)
-            self.background_item.setPos(scene_center - pixmap_center_offset)
+            self.image_background_manager.load_background(BACKGROUND_IMAGE)
+            
         else:
             # Remove image background_item if it exists.
             if hasattr(self, "background_item") and self.background_item:
@@ -740,7 +727,75 @@ class DesktopGrid(QGraphicsView):
                     file_path = urls[0].toLocalFile()  # Convert the first URL to a local file path
                     event.acceptProposedAction()
                 self.show_grid_menu(row, col, file_path)
-        
+
+class ImageBackgroundManager:
+    def __init__(self, scene, view, args=None):
+        self.scene = scene  # The QGraphicsScene where the background will be added
+        self.view = view
+        self.zoom_level = 1.0  # Initial zoom level
+        self.offset_x = 0  # Initial horizontal offset
+        self.offset_y = 0  # Initial vertical offset
+        self.center_x = 0  # Center point X
+        self.center_y = 0  # Center point Y
+        self.background_pixmap = None  # Holds the loaded QPixmap
+        self.background_item = None  # QGraphicsPixmapItem for the background
+        self.args = args  # Optional arguments, such as debug mode
+
+    def load_background(self, pixmap_path):
+        # Ensure only 1 background item exists (delete older ones and remove them from the scene).
+        if self.background_item:
+            self.scene.removeItem(self.background_item)
+            self.background_item = None
+
+        # Load the pixmap
+        self.background_pixmap = QPixmap(pixmap_path)
+        self.background_item = QGraphicsPixmapItem(self.background_pixmap)
+        self.background_item.setTransformationMode(Qt.SmoothTransformation)
+        self.background_item.setZValue(-2)  # Place below other items
+        self.scene.addItem(self.background_item)
+
+        # Initialize the center point (and moves it to center)
+        self.init_center_point()
+
+
+    # Don't have this set up to draw a dot like it does with the video Object.
+    def init_center_point(self):
+        if self.background_item:
+            pixmap_size = self.background_pixmap.size()
+            self.center_x = pixmap_size.width() / 2
+            self.center_y = pixmap_size.height() / 2
+
+        # Move and zoom based on stored settings, if any
+        self.move_background(-1 * get_setting("image_x_offset", 0.00), get_setting("image_y_offset", 0.00))
+        self.zoom_background(get_setting("image_zoom", 1.00))
+
+    def zoom_background(self, zoom_factor):
+        self.zoom_level = zoom_factor
+        self.update_background_transform()
+
+    # These are static x_offset, y_offset i.e. calling move_background(-0.10, 0), then move_background(-0.05, 0) puts the image offset at (-0.05, 0) not (-0.15, 0)
+    # Arguments are float values: -1 = bottom/left of image, 0 = center,  1 = top/right of image settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
+    def move_background(self, x_offset, y_offset):
+        if self.background_item:
+            pixmap_size = self.background_pixmap.size()
+            self.offset_x = -x_offset * (pixmap_size.width() / 2)
+            self.offset_y = y_offset * (pixmap_size.height() / 2)
+            self.center_x = (pixmap_size.width() / 2) - self.offset_x
+            self.center_y = (pixmap_size.height() / 2) - self.offset_y
+            self.update_background_transform()
+        else:
+            logger.warning("Trying to move a background_item that does not exist")
+
+    def update_background_transform(self):
+        if self.background_item:  # Check if video item exists
+            # Create the transform
+            transform = QTransform()
+            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y)  # Move to center + offset
+            transform.scale(self.zoom_level, self.zoom_level)  # Apply scaling
+            transform.translate(-self.center_x, -self.center_y)  # Move back to center
+
+            # Update the image item's transformation
+            self.background_item.setTransform(transform)
 
 
 

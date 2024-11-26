@@ -598,6 +598,9 @@ class SettingsDialog(QDialog):
         settings["video_zoom"] = self.slider_to_video_zoom()
         settings["custom_bg_fill"] = self.custom_bg_fill_cb.isChecked()
         settings["custom_bg_color"] = self.bg_color
+        settings["image_x_offset"] = float (self.image_horizontal_slider.get_value()/ 100.0)
+        settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
+        settings["image_zoom"] = self.image_zoom_slider.get_value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
