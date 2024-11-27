@@ -257,7 +257,6 @@ class DesktopGrid(QGraphicsView):
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
                 self.video_manager.set_video_source(BACKGROUND_VIDEO)
                 logger.info(f"Set background video source = {BACKGROUND_VIDEO}")
-            self.scene.setBackgroundBrush(QBrush())
         else:
             MEDIA_PLAYER.stop()  # Stop the playback
             MEDIA_PLAYER.setSource(QUrl())  # Clear the media source
@@ -766,11 +765,6 @@ class ImageBackgroundManager:
 
     # Don't have this set up to draw a dot like it does with the video Object.
     def init_center_point(self):
-        if self.background_item:
-            pixmap_size = self.pixmap.size()
-            self.center_x = pixmap_size.width() / 2
-            self.center_y = pixmap_size.height() / 2
-
         # Move and zoom based on stored settings, if any
         self.move_background(-1 * get_setting("image_x_offset", 0.00), get_setting("image_y_offset", 0.00))
         self.zoom_background(get_setting("image_zoom", 1.00))
@@ -793,12 +787,12 @@ class ImageBackgroundManager:
             logger.warning("Trying to move a background_item that does not exist")
 
     def update_background_transform(self):
-        if self.background_item:  # Check if video item exists
+        if self.background_item:  # Check if image background item exists
             # Create the transform
             transform = QTransform()
-            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y)  # Move to center + offset
-            transform.scale(self.zoom_level, self.zoom_level)  # Apply scaling
-            transform.translate(-self.center_x, -self.center_y)  # Move back to center
+            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y) # Set transformation central point to focus point
+            transform.scale(self.zoom_level, self.zoom_level) # Scale around that focus point
+            transform.translate(-self.center_x, -self.center_y) # Revert back the transformation central point
 
             # Update the image item's transformation
             self.background_item.setTransform(transform)
@@ -898,9 +892,9 @@ class VideoBackgroundManager:
         if self.video_item:  # Check if video item exists
             # Create the transform
             transform = QTransform()
-            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y)  # Move to center + offset
-            transform.scale(self.zoom_level, self.zoom_level)  # Apply scaling
-            transform.translate(-self.center_x, -self.center_y)  # Move back to center
+            transform.translate(self.center_x + self.offset_x, self.center_y + self.offset_y)  # Set transformation central point to focus point
+            transform.scale(self.zoom_level, self.zoom_level)  # Scale around that focus point
+            transform.translate(-self.center_x, -self.center_y)  # Revert back the transformation central point
 
             # Update the video item's transformation
             self.video_item.setTransform(transform)
