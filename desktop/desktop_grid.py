@@ -93,7 +93,7 @@ class DesktopGrid(QGraphicsView):
         self.video_manager.video_item.setZValue(-1)  # Set the Z value for rendering order
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
 
-        self.image_background_manager = ImageBackgroundManager(self.scene, self.viewport())
+        self.image_background_manager = ImageBackgroundManager(self)
         
         # Set up the media player in the video manager
         global MEDIA_PLAYER
@@ -727,39 +727,47 @@ class DesktopGrid(QGraphicsView):
                 self.show_grid_menu(row, col, file_path)
 
 class ImageBackgroundManager:
-    def __init__(self, scene, view, args=None):
-        self.scene = scene  # The QGraphicsScene where the background will be added
-        self.view = view
-        self.zoom_level = 1.0  # Initial zoom level
-        self.offset_x = 0  # Initial horizontal offset
-        self.offset_y = 0  # Initial vertical offset
-        self.center_x = 0  # Center point X
-        self.center_y = 0  # Center point Y
-        self.background_pixmap = None  # Holds the loaded QPixmap
-        self.background_item = None  # QGraphicsPixmapItem for the background
-        self.args = args  # Optional arguments, such as debug mode
+    def __init__(self, parent_view: QGraphicsView):
+        self.parent_view = parent_view
+        self.background_item = None
+        self.pixmap = None
+        self.scene = self.parent_view.scene
+        self.zoom_level = 1.00
+        self.center_x = 0.00
+        self.center_y = 0.00
 
-    def load_background(self, pixmap_path):
-        # Ensure only 1 background item exists (delete older ones and remove them from the scene).
+    def load_background(self, image_path: str):
+        # If there's an existing background, remove it
         if self.background_item:
             self.scene.removeItem(self.background_item)
             self.background_item = None
 
-        # Load the pixmap
-        self.background_pixmap = QPixmap(pixmap_path)
-        self.background_item = QGraphicsPixmapItem(self.background_pixmap)
-        self.background_item.setTransformationMode(Qt.SmoothTransformation)
-        self.background_item.setZValue(-2)  # Place below other items
+        # Load the new image
+        self.pixmap = QPixmap(image_path)
+        if self.pixmap.isNull():
+            print(f"Failed to load image: {image_path}")
+            return
+
+        # Create a QGraphicsPixmapItem for the image
+        self.background_item = QGraphicsPixmapItem(self.pixmap)
+        self.background_item.setZValue(-2)
+
+        scene_rect = self.scene.sceneRect()
+
+        # Calculate the position to center the background in the scene
+        pixmap_rect = self.pixmap.rect()
+        center_x = (scene_rect.width() - pixmap_rect.width()) / 2
+        center_y = (scene_rect.height() - pixmap_rect.height()) / 2
+        self.background_item.setPos(center_x, center_y)
         self.scene.addItem(self.background_item)
 
-        # Initialize the center point (and moves it to center)
         self.init_center_point()
 
 
     # Don't have this set up to draw a dot like it does with the video Object.
     def init_center_point(self):
         if self.background_item:
-            pixmap_size = self.background_pixmap.size()
+            pixmap_size = self.pixmap.size()
             self.center_x = pixmap_size.width() / 2
             self.center_y = pixmap_size.height() / 2
 
@@ -775,7 +783,7 @@ class ImageBackgroundManager:
     # Arguments are float values: -1 = bottom/left of image, 0 = center,  1 = top/right of image settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
     def move_background(self, x_offset, y_offset):
         if self.background_item:
-            pixmap_size = self.background_pixmap.size()
+            pixmap_size = self.pixmap.size()
             self.offset_x = -x_offset * (pixmap_size.width() / 2)
             self.offset_y = y_offset * (pixmap_size.height() / 2)
             self.center_x = (pixmap_size.width() / 2) - self.offset_x
@@ -799,7 +807,6 @@ class ImageBackgroundManager:
         if self.background_item:
             self.scene.removeItem(self.background_item)
             self.background_item = None
-
 
 
 
