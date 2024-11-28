@@ -539,11 +539,11 @@ class SettingsDialog(QDialog):
             return 1.0 + (normalized_value ** scale_factor) * (max_zoom - 1.0)
 
     def image_location_changed(self):
-        print("Image location changed")
+        self.parent().grid_widget.image_background_manager.move_background(-float (self.image_horizontal_slider.get_value()/ 100.0), -float (self.image_vertical_slider.get_value()/ 100.0)) 
         self.set_changed()
 
     def image_zoom_changed(self):
-        print("image zoom changed")
+        self.parent().grid_widget.image_background_manager.zoom_background(self.image_zoom_slider.get_value())
         self.set_changed()
 
         # Override and call with min_zoom, max_zoom for further scaling in/out.
