@@ -538,12 +538,22 @@ class SettingsDialog(QDialog):
             normalized_value = (slider_value - 100) / 100.0
             return 1.0 + (normalized_value ** scale_factor) * (max_zoom - 1.0)
 
+    def slider_to_image_zoom(self, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
+        slider_value = self.image_zoom_slider.get_value()
+        if slider_value <= 100:
+            # Reverse linear scaling from slider range 0–100 to zoom range min_zoom–1.0
+            return min_zoom + (slider_value / 100.0) * (1.0 - min_zoom)
+        else:
+            # Reverse NON-linear scaling (difference between 100 and 101 is < difference between 199 and 200) from slider range 101–200 to zoom range 1.0–max_zoom
+            normalized_value = (slider_value - 100) / 100.0
+            return 1.0 + (normalized_value ** scale_factor) * (max_zoom - 1.0)
+
     def image_location_changed(self):
         self.parent().grid_widget.image_background_manager.move_background(-float (self.image_horizontal_slider.get_value()/ 100.0), -float (self.image_vertical_slider.get_value()/ 100.0)) 
         self.set_changed()
 
     def image_zoom_changed(self):
-        self.parent().grid_widget.image_background_manager.zoom_background(self.image_zoom_slider.get_value())
+        self.parent().grid_widget.image_background_manager.zoom_background(self.slider_to_image_zoom())
         self.set_changed()
 
         # Override and call with min_zoom, max_zoom for further scaling in/out.
