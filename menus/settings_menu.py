@@ -527,6 +527,19 @@ class SettingsDialog(QDialog):
         else:
             # Scale NON-linearly between 1.0 and max_zoom for slider range 101–200
             return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) ** (1 / scale_factor) * 100)
+
+    # Override and call with min_zoom, max_zoom for further scaling in/out.
+    def image_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
+        # min_zoom must be < 1.00, and max_zoom must be > 1.00
+        if min_zoom >= 1.0 or max_zoom <= 1.00:
+            logger.error(f"user is a dumbass and overrided min_zoom or max_zoom incorrectly: min_zoom = {min_zoom}, max_zoom = {max_zoom}")
+            return
+        if zoom_factor <= 1.0:
+            # Scale linearly between min_zoom and 1.0 for slider range 0–100
+            return int((zoom_factor - min_zoom) / (1.0 - min_zoom) * 100)
+        else:
+            # Scale NON-linearly between 1.0 and max_zoom for slider range 101–200
+            return int(100 + ((zoom_factor - 1.0) / (max_zoom - 1.0)) ** (1 / scale_factor) * 100)
         
     def slider_to_video_zoom(self, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
         slider_value = self.video_zoom_slider.get_value()
@@ -556,10 +569,6 @@ class SettingsDialog(QDialog):
         self.parent().grid_widget.image_background_manager.zoom_background(self.slider_to_image_zoom())
         self.set_changed()
 
-        # Override and call with min_zoom, max_zoom for further scaling in/out.
-    def image_zoom_to_slider(self, zoom_factor, min_zoom=0.15, max_zoom=15.0, scale_factor= 2.1):
-        print("attempting to zoom to slider")
-        return 1.0
 
     def save_settings(self):
 
@@ -610,7 +619,7 @@ class SettingsDialog(QDialog):
         settings["custom_bg_color"] = self.bg_color
         settings["image_x_offset"] = float (self.image_horizontal_slider.get_value()/ 100.0)
         settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
-        settings["image_zoom"] = self.image_zoom_slider.get_value()
+        settings["image_zoom"] = self.slider_to_image_zoom()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
