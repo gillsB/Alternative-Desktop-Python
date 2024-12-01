@@ -624,8 +624,6 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().set_hotkey()
             self.parent().grid_widget.render_bg()
-            self.parent().grid_widget.video_manager.move_video(-float (self.video_horizontal_slider.get_value()/ 100.0), -float (self.video_vertical_slider.get_value()/ 100.0))
-            self.parent().grid_widget.video_manager.zoom_video(self.slider_to_video_zoom())
             
             
 
