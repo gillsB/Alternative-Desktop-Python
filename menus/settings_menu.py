@@ -631,7 +631,6 @@ class SettingsDialog(QDialog):
             if self.redraw_request:
                 self.parent().grid_widget.change_max_grid_dimensions(self.max_rows_sb.value(), self.max_cols_sb.value())
                 self.parent().grid_widget.update_icon_size(self.icon_size_slider.value())
-                self.parent().grid_widget.video_manager.init_center_point()
                 pass
         
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
@@ -677,8 +676,6 @@ class SettingsDialog(QDialog):
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
-        self.parent().grid_widget.video_manager.move_video((-1 * self.settings.get("video_x_offset")), self.settings.get("video_y_offset"))
-        self.parent().grid_widget.video_manager.zoom_video(self.settings.get("video_zoom"))
         self.parent().grid_widget.render_bg()
 
     def video_folder_button_clicked(self):
