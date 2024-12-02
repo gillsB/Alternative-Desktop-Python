@@ -136,9 +136,6 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(self.rect())
         self.render_bg()
 
-        self.video_manager.move_video(self.video_manager.offset_x, self.video_manager.offset_y)
-        self.video_manager.zoom_video(self.video_manager.zoom_level)
-
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
         self.resize_timer.start() 
 
@@ -823,7 +820,6 @@ class VideoBackgroundManager:
         self.aspect_ratio = None
         self.aspect_count = 0
         
-        
     def get_video_aspect_ratio(self):
         video_sink = MEDIA_PLAYER.videoSink()
         if video_sink:
@@ -838,7 +834,6 @@ class VideoBackgroundManager:
                 if self.video_width > 0 and self.video_height > 0:
                     return self.video_width / self.video_height
         return None  # Return None if dimensions aren't yet available
-
 
     def init_center_point(self):
         # At max wait 5 seconds (100 x 50ms)
@@ -858,6 +853,9 @@ class VideoBackgroundManager:
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
             logger.info(f"Center point x = {self.center_x}, y = {self.center_y}")
 
+            # Move Video item to center BEFORE adjusting settings values. (init video_item location)
+            self.center_video()
+
             # Initialize or update the red dot position
             if self.args.mode == "debug" or self.args.mode == "devbug":
                 self.init_center_dot()
@@ -872,22 +870,40 @@ class VideoBackgroundManager:
         self.center_dot.setBrush(QColor("red"))
         self.center_dot.setPen(Qt.NoPen)
         self.video_item.scene().addItem(self.center_dot)
-
         self.center_dot.setPos(self.center_x, self.center_y)
 
     def zoom_video(self, zoom_factor):
         self.zoom_level = zoom_factor
         self.update_video_transform()
 
+    # Move video to center within the scene(Initial setup of video item location)
+    def center_video(self):
+        if self.video_item:
+            # Get dimensions of scene/video
+            scene_width = self.video_item.scene().sceneRect().width()
+            scene_height = self.video_item.scene().sceneRect().height()
+            bounding_rect = self.video_item.boundingRect()
+            video_width = bounding_rect.width()
+            video_height = bounding_rect.height()
+            
+            # Set the video position such that the center of the video is the center of the viewport(screen)
+            center_x = (scene_width - video_width) / 2
+            center_y = (scene_height - video_height) / 2
+            self.video_item.setPos(center_x, center_y)
+
+            logger.info(f"video_width = {video_width}, video_height = {video_height}")
+            logger.info(f"scene_width = {scene_width}, scene_height = {scene_height}")
+            logger.info(f"Video item placed at: ({center_x}, {center_y})")
+
     # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
     # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
     def move_video(self, x_offset, y_offset):
         if self.video_item:
             bounding_rect = self.video_item.boundingRect()
-            self.offset_x = -x_offset * (bounding_rect.width()/2)
-            self.offset_y = y_offset * (bounding_rect.height()/2)
-            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) -self.offset_x
-            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) -self.offset_y
+            self.offset_x = -x_offset * (bounding_rect.width() / 2)
+            self.offset_y = y_offset * (bounding_rect.height() / 2)
+            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) - self.offset_x
+            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) - self.offset_y
             self.update_video_transform()
         else:
             logger.warning("Trying to move a video_item that does not exist")
@@ -909,7 +925,6 @@ class VideoBackgroundManager:
         if status == QMediaPlayer.EndOfMedia:
             MEDIA_PLAYER.setPosition(0)
             MEDIA_PLAYER.play()
-
 
     def set_video_source(self, video_path):
         MEDIA_PLAYER.setSource(QUrl.fromLocalFile(video_path))
