@@ -760,11 +760,10 @@ class ImageBackgroundManager:
         self.background_item.setPos(center_x, center_y)
         self.scene.addItem(self.background_item)
 
-        self.init_center_point()
+        self.update_from_settings()
 
-
-    # Don't have this set up to draw a dot like it does with the video Object.
-    def init_center_point(self):
+    # Refreshes background location/zoom to the adjustment/zoom stored in settings.
+    def update_from_settings(self):
         # Move and zoom based on stored settings, if any
         self.move_background(-1 * get_setting("image_x_offset", 0.00), get_setting("image_y_offset", 0.00))
         self.zoom_background(get_setting("image_zoom", 1.00))
