@@ -134,8 +134,10 @@ class DesktopGrid(QGraphicsView):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.scene.setSceneRect(self.rect())
-        self.video_manager.video_item.setSize(self.size())
         self.render_bg()
+
+        self.video_manager.move_video(self.video_manager.offset_x, self.video_manager.offset_y)
+        self.video_manager.zoom_video(self.video_manager.zoom_level)
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
         self.resize_timer.start() 
@@ -831,6 +833,8 @@ class VideoBackgroundManager:
                 logger.info(f"Setting video_height to  {video_frame.size().height()}")
                 self.video_width = video_frame.size().width()
                 self.video_height = video_frame.size().height()
+                self.video_item.setSize(QSizeF(self.video_width, self.video_height))
+                print(f"here self.video_width = {self.video_width}, self.video_height = {self.video_height}")
                 if self.video_width > 0 and self.video_height > 0:
                     return self.video_width / self.video_height
         return None  # Return None if dimensions aren't yet available
@@ -849,6 +853,7 @@ class VideoBackgroundManager:
             self.aspect_ratio = -1
         if self.video_item:
             bounding_rect = self.video_item.boundingRect()
+            print(f"bound_rect = {bounding_rect}")
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
             logger.info(f"Center point x = {self.center_x}, y = {self.center_y}")
