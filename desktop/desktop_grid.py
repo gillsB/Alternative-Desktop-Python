@@ -821,6 +821,8 @@ class VideoBackgroundManager:
         self.args = args
         self.aspect_ratio = None
         self.aspect_count = 0
+        self.scene_width = 0
+        self.scene_height = 0
         
     def get_video_aspect_ratio(self):
         video_sink = MEDIA_PLAYER.videoSink()
@@ -853,7 +855,7 @@ class VideoBackgroundManager:
             print(f"bound_rect = {bounding_rect}")
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
-            logger.info(f"Center point x = {self.center_x}, y = {self.center_y}")
+            logger.info(f"Center of video x = {self.center_x}, y = {self.center_y}")
 
             # Move Video item to center BEFORE adjusting settings values. (init video_item location)
             self.center_video()
@@ -872,7 +874,7 @@ class VideoBackgroundManager:
         self.center_dot.setBrush(QColor("red"))
         self.center_dot.setPen(Qt.NoPen)
         self.video_item.scene().addItem(self.center_dot)
-        self.center_dot.setPos(self.center_x, self.center_y)
+        self.center_dot.setPos(self.scene_width/2, self.scene_height/2)
 
     def zoom_video(self, zoom_factor):
         self.zoom_level = zoom_factor
@@ -882,19 +884,19 @@ class VideoBackgroundManager:
     def center_video(self):
         if self.video_item:
             # Get dimensions of scene/video
-            scene_width = self.video_item.scene().sceneRect().width()
-            scene_height = self.video_item.scene().sceneRect().height()
+            self.scene_width = self.video_item.scene().sceneRect().width()
+            self.scene_height = self.video_item.scene().sceneRect().height()
             bounding_rect = self.video_item.boundingRect()
             video_width = bounding_rect.width()
             video_height = bounding_rect.height()
             
             # Set the video position such that the center of the video is the center of the viewport(screen)
-            center_x = (scene_width - video_width) / 2
-            center_y = (scene_height - video_height) / 2
+            center_x = (self.scene_width - video_width) / 2
+            center_y = (self.scene_height - video_height) / 2
             self.video_item.setPos(center_x, center_y)
 
             logger.info(f"video_width = {video_width}, video_height = {video_height}")
-            logger.info(f"scene_width = {scene_width}, scene_height = {scene_height}")
+            logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
             logger.info(f"Video item placed at: ({center_x}, {center_y})")
 
     # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
