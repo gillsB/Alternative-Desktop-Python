@@ -257,9 +257,11 @@ class DesktopGrid(QGraphicsView):
                 logger.info(f"Set background video source = {BACKGROUND_VIDEO}")
             self.video_manager.init_center_point()
         else:
+            if MEDIA_PLAYER.playbackState() == QMediaPlayer.PlayingState:
+                logger.info("Disabled video playback and cleared source.")
             MEDIA_PLAYER.stop()  # Stop the playback
             MEDIA_PLAYER.setSource(QUrl())  # Clear the media source
-            logger.warning("Disabled video playback and cleared source.")
+
 
         if self.load_image:
             self.image_background_manager.load_background(BACKGROUND_IMAGE)
