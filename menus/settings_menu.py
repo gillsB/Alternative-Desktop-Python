@@ -65,9 +65,9 @@ class SettingsDialog(QDialog):
         self.setLayout(main_layout)
 
         # Adding/hiding rows and resize to fit screen.
-        self.update_video_sliders_visibility()
+        self.update_background_sliders_visibility()
         self.update_custom_bg_color_visibility()
-        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visibility)
+        self.background_selector.currentIndexChanged.connect(self.update_background_sliders_visibility)
         self.custom_bg_fill_cb.toggled.connect(self.update_custom_bg_color_visibility)
 
         self.installEventFilter(self)
@@ -329,7 +329,7 @@ class SettingsDialog(QDialog):
             self.custom_bg_color_label.hide()
         self.resize_window()
         
-    def update_video_sliders_visibility(self):
+    def update_background_sliders_visibility(self):
         video_widgets = [
             self.video_horizontal_label,
             self.video_horizontal_slider,
@@ -338,11 +338,23 @@ class SettingsDialog(QDialog):
             self.video_zoom_label,
             self.video_zoom_slider,
         ]
+        image_widgets = [
+            self.image_horizontal_label,
+            self.image_horizontal_slider,
+            self.image_vertical_label,
+            self.image_vertical_slider,
+            self.image_zoom_label,
+            self.image_zoom_slider,
+        ]
         
-        should_show = self.background_selector.currentIndex() in [0, 1, 2]
+        video_show = self.background_selector.currentIndex() in [0, 1, 2]
+        image_show = self.background_selector.currentIndex() in [0, 1, 3]
         
         for widget in video_widgets:
-            widget.setVisible(should_show)
+            widget.setVisible(video_show)
+
+        for widget in image_widgets:
+            widget.setVisible(image_show)
 
         self.resize_window()
     
