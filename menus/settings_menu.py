@@ -65,9 +65,9 @@ class SettingsDialog(QDialog):
         self.setLayout(main_layout)
 
         # Adding/hiding rows and resize to fit screen.
-        self.update_video_sliders_visbility()
+        self.update_video_sliders_visibility()
         self.update_custom_bg_color_visibility()
-        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visbility)
+        self.background_selector.currentIndexChanged.connect(self.update_video_sliders_visibility)
         self.custom_bg_fill_cb.toggled.connect(self.update_custom_bg_color_visibility)
 
         self.installEventFilter(self)
@@ -329,21 +329,21 @@ class SettingsDialog(QDialog):
             self.custom_bg_color_label.hide()
         self.resize_window()
         
-    def update_video_sliders_visbility(self):
-        if self.background_selector.currentIndex() in [0, 1, 2]:  # Show for "First found", "Both", or "Video Only"
-            self.video_horizontal_label.show()
-            self.video_horizontal_slider.show()
-            self.video_vertical_label.show()
-            self.video_vertical_slider.show()
-            self.video_zoom_label.show()
-            self.video_zoom_slider.show()
-        else:  # Hide video sliders for "Image Only" or "None"
-            self.video_horizontal_label.hide()
-            self.video_horizontal_slider.hide()
-            self.video_vertical_label.hide()
-            self.video_vertical_slider.hide()
-            self.video_zoom_label.hide()
-            self.video_zoom_slider.hide()
+    def update_video_sliders_visibility(self):
+        video_widgets = [
+            self.video_horizontal_label,
+            self.video_horizontal_slider,
+            self.video_vertical_label,
+            self.video_vertical_slider,
+            self.video_zoom_label,
+            self.video_zoom_slider,
+        ]
+        
+        should_show = self.background_selector.currentIndex() in [0, 1, 2]
+        
+        for widget in video_widgets:
+            widget.setVisible(should_show)
+
         self.resize_window()
     
     def resize_window(self, width=0, height=0):
