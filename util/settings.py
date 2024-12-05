@@ -29,7 +29,8 @@ DEFUALT_SETTINGS = {
         "custom_bg_color": "white",
         "image_x_offset": 0.00,
         "iamge_y_offset": 0.00,
-        "image_zoom": 1.00
+        "image_zoom": 1.00,
+        "bg_z_order": 0
 }
 SETTINGS = None
 
