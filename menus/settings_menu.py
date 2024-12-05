@@ -251,6 +251,14 @@ class SettingsDialog(QDialog):
         self.background_selector.setCurrentText(set_bg_option.replace("_", " ").capitalize())
         self.background_selector.currentIndexChanged.connect(self.set_changed)
 
+        # Background Z Order adjustment (for background option = "Both")
+        self.bg_z_order_selector = QComboBox()
+        bg_z_order_options = ["Video on top", "Image on top"]
+        self.bg_z_order_selector.addItems(bg_z_order_options)
+        self.bg_z_order_label = QLabel("Display order")
+        self.bg_z_order_selector.setCurrentIndex(self.settings.get("bg_z_order", 0))
+        background_layout.addRow(self.bg_z_order_label, self.bg_z_order_selector)
+        self.background_selector.currentIndexChanged.connect(self.set_changed)
 
         # Video background alignments
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
@@ -632,6 +640,7 @@ class SettingsDialog(QDialog):
         settings["image_x_offset"] = float (self.image_horizontal_slider.get_value()/ 100.0)
         settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
         settings["image_zoom"] = self.slider_to_image_zoom()
+        settings["bg_z_order"] = self.bg_z_order_selector.currentIndex()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
