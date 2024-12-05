@@ -258,7 +258,7 @@ class SettingsDialog(QDialog):
         self.bg_z_order_label = QLabel("Display order")
         self.bg_z_order_selector.setCurrentIndex(self.settings.get("bg_z_order", 0))
         background_layout.addRow(self.bg_z_order_label, self.bg_z_order_selector)
-        self.background_selector.currentIndexChanged.connect(self.set_changed)
+        self.bg_z_order_selector.currentIndexChanged.connect(self.set_changed)
 
         # Video background alignments
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
@@ -363,6 +363,10 @@ class SettingsDialog(QDialog):
 
         for widget in image_widgets:
             widget.setVisible(image_show)
+
+        # Controlling display of "Display order setting" (Only shows when background sourcing = "Both" (index = 1))
+        self.bg_z_order_label.setVisible(self.background_selector.currentIndex() == 1)
+        self.bg_z_order_selector.setVisible(self.background_selector.currentIndex() == 1)
 
         self.resize_window()
     
