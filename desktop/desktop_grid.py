@@ -90,7 +90,7 @@ class DesktopGrid(QGraphicsView):
         self.video_manager = VideoBackgroundManager(args)  # Create an instance of VideoBackgroundManager
         self.video_manager.video_item = QGraphicsVideoItem()  # Initialize the QGraphicsVideoItem
         self.scene.addItem(self.video_manager.video_item)  # Add video item to the scene
-        self.video_manager.video_item.setZValue(-1)  # Set the Z value for rendering order
+        self.video_manager.video_item.setZValue(-2)  # Set the Z value for rendering order
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
 
         self.image_background_manager = ImageBackgroundManager(self)
@@ -750,7 +750,10 @@ class ImageBackgroundManager:
 
         # Create a QGraphicsPixmapItem for the image
         self.background_item = QGraphicsPixmapItem(self.pixmap)
-        self.background_item.setZValue(-2)
+        if get_setting("bg_z_order", 0) == 0:
+            self.background_item.setZValue(-3)
+        else:
+            self.background_item.setZValue(-1)
 
         scene_rect = self.scene.sceneRect()
 
@@ -802,6 +805,9 @@ class ImageBackgroundManager:
             self.scene.removeItem(self.background_item)
             self.background_item = None
 
+    def set_z_value(self, value):
+        print(f"setting zvalue to {value}")
+        self.background_item.setZValue(value)
 
 
 class VideoBackgroundManager:

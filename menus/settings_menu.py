@@ -258,7 +258,7 @@ class SettingsDialog(QDialog):
         self.bg_z_order_label = QLabel("Display order")
         self.bg_z_order_selector.setCurrentIndex(self.settings.get("bg_z_order", 0))
         background_layout.addRow(self.bg_z_order_label, self.bg_z_order_selector)
-        self.bg_z_order_selector.currentIndexChanged.connect(self.set_changed)
+        self.bg_z_order_selector.currentIndexChanged.connect(self.bg_z_order_changed)
 
         # Video background alignments
         self.video_horizontal_slider = SliderWithInput(-150, 150, 1, self.settings.get("video_x_offset", 0)* 100)
@@ -389,6 +389,16 @@ class SettingsDialog(QDialog):
                 logger.error(f"Attempted to place the window at negative height: {new_position.y()}, args: {current_position.y()}, {self.height()}, {screen_geometry.height()-40}")
             else:
                 self.move(new_position)
+
+    def bg_z_order_changed(self):
+        self.set_changed()
+        # Only bothering with setting the Z Value of the image as it is easier to adjust, video_item is always Z value = -2.
+        # If "Video on top" put image_background at -3 Z value (below Video item)
+        if self.bg_z_order_selector.currentIndex() == 0:
+            self.parent().grid_widget.image_background_manager.set_z_value(-3)
+        # "Image on top" put image_background at -1 Z value (above Video item)
+        else:
+            self.parent().grid_widget.image_background_manager.set_z_value(-1)
 
 
     def open_color_dialog(self):
