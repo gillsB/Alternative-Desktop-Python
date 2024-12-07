@@ -897,13 +897,14 @@ class VideoBackgroundManager:
             video_height = bounding_rect.height()
             
             # Set the video position such that the center of the video is the center of the viewport(screen)
-            center_x = (self.scene_width - video_width) / 2
-            center_y = (self.scene_height - video_height) / 2
-            self.video_item.setPos(center_x, center_y)
+            # Centered values are the value of the top left based coordinate
+            centered_x = (self.scene_width - video_width) / 2
+            centered_y = (self.scene_height - video_height) / 2
+            self.video_item.setPos(centered_x, centered_y)
 
             logger.info(f"video_width = {video_width}, video_height = {video_height}")
             logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
-            logger.info(f"Video item placed at: ({center_x}, {center_y})")
+            logger.info(f"Video item placed at: ({centered_x}, {centered_y})")
 
     # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
     # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
