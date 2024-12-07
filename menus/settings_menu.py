@@ -71,6 +71,7 @@ class SettingsDialog(QDialog):
         self.custom_bg_fill_cb.toggled.connect(self.update_custom_bg_color_visibility)
 
         self.installEventFilter(self)
+        self.main_window_closing = False
 
     def add_general_tab(self, layout_general):
 
@@ -683,13 +684,17 @@ class SettingsDialog(QDialog):
             event.accept()
         else:
             logger.info("Called close with changes in settings")
-            if display_settings_not_saved() == QMessageBox.Yes:
-                logger.info("User chose to close the settings menu and revert the changes")
-                self.on_close()
-                event.accept()
+            if self.main_window_closing != True:
+                reply = display_settings_not_saved()
+                if reply == QMessageBox.Yes:
+                    logger.info("User chose to close the settings menu and revert the changes")
+                    self.on_close()
+                    event.accept()
+                else:
+                    logger.info("User chose to cancel the close event.")
+                    event.ignore()
             else:
-                logger.info("User chose to cancel the close event.")
-                event.ignore()
+                logger.info("closed from main window, discard changes and do not show warning.")
     
 
     def cleanup_bg_paths(self):

@@ -27,6 +27,8 @@ class OverlayWidget(QWidget):
             changes_from_older_versions()
             QTimer.singleShot(1000, self.show_patch_notes)
 
+        self.settings_dialog = None
+
         APP.aboutToQuit.connect(self.cleanup)
         #self.setAttribute(Qt.WA_TranslucentBackground)
         window_opacity = get_setting("window_opacity", -1)
@@ -138,6 +140,9 @@ class OverlayWidget(QWidget):
         QApplication.instance().quit()
 
     def cleanup(self):
+        if self.settings_dialog is not None and self.settings_dialog.isVisible():
+            self.settings_dialog.main_window_closing = True
+            logger.info("Signal sent to settings_dialog to close regardless of changes")
         # Explicitly delete the QSystemTrayIcon
         if self.tray_icon:
             self.tray_icon.hide()
@@ -224,8 +229,8 @@ class OverlayWidget(QWidget):
 
 
     def show_settings(self):
-        dialog = SettingsDialog(parent=self)
-        dialog.show()
+        self.settings_dialog = SettingsDialog(parent=self)
+        self.settings_dialog.show()
     
     def change_opacity(self ,i):
         logger.info(f"Change opacity = {float(i/100)}")
