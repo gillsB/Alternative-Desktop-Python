@@ -840,9 +840,14 @@ class VideoBackgroundManager:
                 self.video_width = video_frame.size().width()
                 self.video_height = video_frame.size().height()
                 self.video_item.setSize(QSizeF(self.video_width, self.video_height))
-                print(f"here self.video_width = {self.video_width}, self.video_height = {self.video_height}")
+                self.scene_width = self.video_item.scene().sceneRect().width()
+                self.scene_height = self.video_item.scene().sceneRect().height()
+                
+                logger.info(f"video_width = {self.video_width}, video_height = {self.video_height}")
+                logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
                 if self.video_width > 0 and self.video_height > 0:
                     return self.video_width / self.video_height
+                
         return None  # Return None if dimensions aren't yet available
 
     def init_center_point(self):
@@ -902,8 +907,6 @@ class VideoBackgroundManager:
             centered_y = (self.scene_height - video_height) / 2
             self.video_item.setPos(centered_x, centered_y)
 
-            logger.info(f"video_width = {video_width}, video_height = {video_height}")
-            logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
             logger.info(f"Video item placed at: ({centered_x}, {centered_y})")
 
     # These are static x_offset, y_offset i.e. calling move_video(-0.10, 0), then move_video(-0.05, 0) puts the video offset at (-0.05, 0) not (-0.15, 0)
