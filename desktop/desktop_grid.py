@@ -255,7 +255,7 @@ class DesktopGrid(QGraphicsView):
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
                 self.video_manager.set_video_source(BACKGROUND_VIDEO)
                 logger.info(f"Set background video source = {BACKGROUND_VIDEO}")
-            self.video_manager.init_center_point()
+            self.video_manager.load_new_video()
         else:
             if MEDIA_PLAYER.playbackState() == QMediaPlayer.PlayingState:
                 logger.info("Disabled video playback and cleared source.")
@@ -849,6 +849,10 @@ class VideoBackgroundManager:
                     return self.video_width / self.video_height
                 
         return None  # Return None if dimensions aren't yet available
+
+    def load_new_video(self):
+        self.aspect_ratio = None
+        self.init_center_point()
 
     def init_center_point(self):
         # At max wait 5 seconds (100 x 50ms)
