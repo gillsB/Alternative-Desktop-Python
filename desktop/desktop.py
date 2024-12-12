@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu, QMessageBox
 from PySide6.QtCore import Qt, QEvent, QRect, QTimer
 from PySide6.QtGui import QIcon, QIcon, QAction
 import sys
 from util.settings import get_setting, set_setting
 from menus.settings_menu import SettingsDialog
+from menus.display_warning import display_settings_not_saved
 import qt_material
 from qt_material import apply_stylesheet
 from util.hotkey_handler import HotkeyHandler
@@ -105,6 +106,13 @@ class OverlayWidget(QWidget):
     def closeEvent(self, event):
         # if "On closing the program" set to "terminate the program"
         if get_setting("on_close", 0) == 0:
+            if self.settings_dialog:
+                reply = display_settings_not_saved()
+                if reply == QMessageBox.Yes:
+                    logger.info("User chose to close the settings menu and revert the changes")
+                else:
+                    event.ignore()
+                    return
             logger.info("Program closing by closeEvent with on_close set to 'Terminiate the program' on close.")
             self.cleanup()
             super(OverlayWidget, self).closeEvent(event)
