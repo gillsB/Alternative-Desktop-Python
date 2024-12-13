@@ -681,6 +681,7 @@ class SettingsDialog(QDialog):
         
         if self.is_changed == False:
             logger.info("Called close with no changes made in settings")
+            self.parent().close_settings()
             event.accept()
         else:
             logger.info("Called close with changes in settings")
@@ -717,6 +718,7 @@ class SettingsDialog(QDialog):
         self.parent().change_theme(self.set_theme)
         self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
         self.parent().grid_widget.render_bg()
+        self.parent().close_settings()
 
     def video_folder_button_clicked(self):
         self.set_changed()
