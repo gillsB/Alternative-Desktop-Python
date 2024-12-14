@@ -669,6 +669,7 @@ class SettingsDialog(QDialog):
                 self.parent().grid_widget.update_icon_size(self.icon_size_slider.value())
                 pass
         
+        self.parent().close_settings()
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
         self.accept()
 

@@ -102,8 +102,8 @@ class OverlayWidget(QWidget):
         patch_notes_menu.exec()
 
     def close_settings(self):
-        logger.info("Closed settings, settings_dialog = None")
         self.settings_dialog = None
+        logger.info(f"Closed settings, settings_dialog = {self.settings_dialog}")
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
