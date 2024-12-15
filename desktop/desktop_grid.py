@@ -844,6 +844,12 @@ class VideoBackgroundManager:
                 self.video_item.setSize(QSizeF(self.video_width, self.video_height))
                 self.scene_width = self.video_item.scene().sceneRect().width()
                 self.scene_height = self.video_item.scene().sceneRect().height()
+
+                bounding_rect = self.video_item.boundingRect()
+                print(f"bound_rect = {bounding_rect}")
+                self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
+                self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
+                logger.info(f"Center of video x = {self.center_x}, y = {self.center_y}")
                 
                 logger.info(f"video_width = {self.video_width}, video_height = {self.video_height}")
                 logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
@@ -868,12 +874,6 @@ class VideoBackgroundManager:
             self.video_width = -1
             self.aspect_ratio = -1
         if self.video_item:
-            bounding_rect = self.video_item.boundingRect()
-            print(f"bound_rect = {bounding_rect}")
-            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
-            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
-            logger.info(f"Center of video x = {self.center_x}, y = {self.center_y}")
-
             # Move Video item to center BEFORE adjusting settings values. (init video_item location)
             self.center_video()
 
