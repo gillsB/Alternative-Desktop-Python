@@ -817,8 +817,8 @@ class VideoBackgroundManager:
         self.zoom_level = 1.0  # Initial zoom level
         self.offset_x = 0      # Initial horizontal offset
         self.offset_y = 0      # Initial vertical offset
-        self.center_x = 0      # Center point X
-        self.center_y = 0      # Center point Y
+        self.center_x = 0      # Anchor point X that works as the center/focal point of the scene upon which zooms in/out are focused upon
+        self.center_y = 0      # Anchor point Y that works as the center/focal point of the scene upon which zooms in/out are focused upon
         self.video_width = 0   # Video width
         self.video_height = 0  # Video height
         self.video_item = None
@@ -924,6 +924,7 @@ class VideoBackgroundManager:
             self.offset_y = y_offset * (bounding_rect.height() / 2)
             self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) - self.offset_x
             self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) - self.offset_y
+            print(f"center x, y = {self.center_x}, {self.center_y}")
             self.update_video_transform()
         else:
             logger.warning("Trying to move a video_item that does not exist")
