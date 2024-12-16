@@ -845,10 +845,8 @@ class VideoBackgroundManager:
                 self.scene_width = self.video_item.scene().sceneRect().width()
                 self.scene_height = self.video_item.scene().sceneRect().height()
 
-                bounding_rect = self.video_item.boundingRect()
-                print(f"bound_rect = {bounding_rect}")
-                self.center_x = bounding_rect.x() + (bounding_rect.width() / 2)
-                self.center_y = bounding_rect.y() + (bounding_rect.height() / 2)
+                self.center_x = self.video_width / 2
+                self.center_y = self.video_height / 2
                 logger.info(f"Center of video x = {self.center_x}, y = {self.center_y}")
                 
                 logger.info(f"video_width = {self.video_width}, video_height = {self.video_height}")
@@ -903,14 +901,11 @@ class VideoBackgroundManager:
             # Get dimensions of scene/video
             self.scene_width = self.video_item.scene().sceneRect().width()
             self.scene_height = self.video_item.scene().sceneRect().height()
-            bounding_rect = self.video_item.boundingRect()
-            video_width = bounding_rect.width()
-            video_height = bounding_rect.height()
             
             # Set the video position such that the center of the video is the center of the viewport(screen)
             # Centered values are the value of the top left based coordinate
-            centered_x = (self.scene_width - video_width) / 2
-            centered_y = (self.scene_height - video_height) / 2
+            centered_x = (self.scene_width - self.video_width) / 2
+            centered_y = (self.scene_height - self.video_height) / 2
             self.video_item.setPos(centered_x, centered_y)
 
             logger.info(f"Video item placed at: ({centered_x}, {centered_y})")
@@ -919,11 +914,10 @@ class VideoBackgroundManager:
     # Arguments are float values: -1 = bottom/left of video, 0 = center,  1 = top/right of video settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
     def move_video(self, x_offset, y_offset):
         if self.video_item:
-            bounding_rect = self.video_item.boundingRect()
-            self.offset_x = -x_offset * (bounding_rect.width() / 2)
-            self.offset_y = y_offset * (bounding_rect.height() / 2)
-            self.center_x = bounding_rect.x() + (bounding_rect.width() / 2) - self.offset_x
-            self.center_y = bounding_rect.y() + (bounding_rect.height() / 2) - self.offset_y
+            self.offset_x = -x_offset * (self.video_width / 2)
+            self.offset_y = y_offset * (self.video_height / 2)
+            self.center_x = (self.video_width / 2) - self.offset_x
+            self.center_y = (self.video_height / 2) - self.offset_y
             print(f"center x, y = {self.center_x}, {self.center_y}")
             self.update_video_transform()
         else:
