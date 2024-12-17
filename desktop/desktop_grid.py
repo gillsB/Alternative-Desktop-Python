@@ -246,7 +246,6 @@ class DesktopGrid(QGraphicsView):
         return False, False
     
     def render_bg(self, bg_enabled = None, bg_color=None):
-        print(f"called with args {bg_enabled}, {bg_color}")
         old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
@@ -849,8 +848,6 @@ class VideoBackgroundManager:
                 self.center_y = self.video_height / 2
                 logger.info(f"Center of video x = {self.center_x}, y = {self.center_y}")
                 
-                logger.info(f"video_width = {self.video_width}, video_height = {self.video_height}")
-                logger.info(f"scene_width = {self.scene_width}, scene_height = {self.scene_height}")
                 if self.video_width > 0 and self.video_height > 0:
                     return self.video_width / self.video_height
                 
