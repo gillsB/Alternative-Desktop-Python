@@ -305,7 +305,6 @@ class DesktopGrid(QGraphicsView):
             logger.info(f"Reloaded BG global variables from settings VIDEO = {BACKGROUND_VIDEO}, IMAGE = {BACKGROUND_IMAGE}")
 
     def show_grid_menu(self, row, col, dropped_path=None):
-        MEDIA_PLAYER.pause()
         menu = Menu(None, row, col, dropped_path, parent=self)
         main_window_size = self.parent().size()
         main_window_height = main_window_size.height()
@@ -345,7 +344,6 @@ class DesktopGrid(QGraphicsView):
 
         menu.resize(dialog_width, dialog_height)
         menu.exec()
-        MEDIA_PLAYER.play()
         if (row, col) in self.desktop_icons:
             self.desktop_icons[(row, col)].reload_from_config()
 
@@ -1665,7 +1663,6 @@ class DesktopIcon(QGraphicsItem):
             if new_row == None or new_col== None:
                 logger.error("Icon dropped outside of visible icon range or bad return from icon_dropped.")
             elif old_row != new_row or old_col != new_col:
-                MEDIA_PLAYER.pause()
                 logger.info("Swapping icons.")
                 view.swap_icons(old_row, old_col, new_row, new_col)
             elif self.distance > 5:
@@ -1673,7 +1670,6 @@ class DesktopIcon(QGraphicsItem):
             
             
             self.update()
-        MEDIA_PLAYER.play()
 
     def drop_event(self, event):
         if event.mimeData().hasUrls():
