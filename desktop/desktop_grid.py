@@ -644,7 +644,6 @@ class DesktopGrid(QGraphicsView):
             logger.info(f"Showing context menu for icon: {icon.name}")
             icon.context_menu(event)
         else:
-            MEDIA_PLAYER.pause()
             context_menu = QMenu()
             self.edit_mode_icon(row, col)
 
@@ -654,7 +653,6 @@ class DesktopGrid(QGraphicsView):
 
             context_menu.aboutToHide.connect(lambda: self.normal_mode_icon(row, col))
             context_menu.exec(event.globalPos())
-            MEDIA_PLAYER.play()
 
             
     
@@ -1467,7 +1465,6 @@ class DesktopIcon(QGraphicsItem):
         return True
     
     def context_menu(self, event):
-        MEDIA_PLAYER.pause()
         context_menu = QMenu()
 
         self.edit_mode_icon()
@@ -1532,7 +1529,7 @@ class DesktopIcon(QGraphicsItem):
 
         context_menu.aboutToHide.connect(self.context_menu_closed)
         context_menu.exec(event.globalPos())
-        MEDIA_PLAYER.play()
+
 
     def context_menu_closed(self):
         logger.debug("Context menu closed")
