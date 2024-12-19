@@ -742,8 +742,9 @@ class ImageBackgroundManager:
         # Load the new image
         self.pixmap = QPixmap(image_path)
         if self.pixmap.isNull():
-            print(f"Failed to load image: {image_path}")
+            logger.error(f"Image background manager: Failed to load image: {image_path}")
             return
+        logger.info(f"Successfully loaded background image: {image_path}")
 
         # Create a QGraphicsPixmapItem for the image
         self.background_item = QGraphicsPixmapItem(self.pixmap)
