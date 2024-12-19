@@ -1051,7 +1051,7 @@ class DesktopIcon(QGraphicsItem):
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
         self.init_movie()
-        self.load_pixmap()
+        self.load_pixmap(True)
 
 
     def update_font(self):
@@ -1075,12 +1075,15 @@ class DesktopIcon(QGraphicsItem):
         self.edit_mode = False
         self.update() 
 
-    def load_pixmap(self):
+    # reset_cache variable defaults to false, when True will place the new icon into cache and discard old icon.
+    def load_pixmap(self, reset_cache=False):
         if self.movie:
             return
         if self.icon_path and os.path.exists(self.icon_path):
             cached_pixmap = QPixmapCache.find(self.icon_path)
-            if cached_pixmap:
+            # If cached pixmap is found and function called without an override to reset the cached version, load from cache.
+            # Else, get the new pixmap from path, and store it.
+            if cached_pixmap and not reset_cache:
                 logger.debug(f"Cached pixmap found for {self.icon_path}")
                 self.pixmap = cached_pixmap
             else:
