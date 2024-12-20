@@ -732,6 +732,8 @@ class ImageBackgroundManager:
         self.zoom_level = 1.00
         self.center_x = 0.00
         self.center_y = 0.00
+        self.pixmap_width = 0
+        self.pixmap_height = 0
 
     def load_background(self, image_path: str):
         # If there's an existing background, remove it
@@ -756,9 +758,10 @@ class ImageBackgroundManager:
         scene_rect = self.scene.sceneRect()
 
         # Calculate the position to center the background in the scene
-        pixmap_rect = self.pixmap.rect()
-        center_x = (scene_rect.width() - pixmap_rect.width()) / 2
-        center_y = (scene_rect.height() - pixmap_rect.height()) / 2
+        self.pixmap_width = self.pixmap.width()
+        self.pixmap_height = self.pixmap.height()
+        center_x = (scene_rect.width() - self.pixmap_width) / 2
+        center_y = (scene_rect.height() - self.pixmap_height) / 2
         self.background_item.setPos(center_x, center_y)
         self.scene.addItem(self.background_item)
 
@@ -778,11 +781,10 @@ class ImageBackgroundManager:
     # Arguments are float values: -1 = bottom/left of image, 0 = center,  1 = top/right of image settings_menu versions are *100 int values (i.e. 100 = 1.00 float value)
     def move_background(self, x_offset, y_offset):
         if self.background_item:
-            pixmap_size = self.pixmap.size()
-            self.offset_x = -x_offset * (pixmap_size.width() / 2)
-            self.offset_y = y_offset * (pixmap_size.height() / 2)
-            self.center_x = (pixmap_size.width() / 2) - self.offset_x
-            self.center_y = (pixmap_size.height() / 2) - self.offset_y
+            self.offset_x = -x_offset * (self.pixmap_width / 2)
+            self.offset_y = y_offset * (self.pixmap_height / 2)
+            self.center_x = (self.pixmap_width / 2) - self.offset_x
+            self.center_y = (self.pixmap_height / 2) - self.offset_y
             self.update_background_transform()
         else:
             logger.warning("Trying to move a background_item that does not exist")
