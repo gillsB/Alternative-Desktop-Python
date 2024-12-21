@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip, QGraphicsEllipseItem, QGraphicsPixmapItem
-from PySide6.QtCore import Qt, QSize, QRectF, QTimer, QMetaObject, QUrl, QPoint, QSizeF, QPointF
-from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache, QTransform
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QDialog, QMenu, QMessageBox, QToolTip
+from PySide6.QtCore import Qt, QRectF, QTimer, QMetaObject, QUrl, QPoint
+from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QBrush, QPainterPath, QPen, QAction, QMovie, QCursor, QPixmapCache
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
@@ -10,15 +10,14 @@ from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import (display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, 
                                    display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_cannot_swap_icons_warning)
 from desktop.desktop_grid_menu import Menu
-import sys
+from desktop.image_background_manager import ImageBackgroundManager
+from desktop.video_background_manager import VideoBackgroundManager
 import os
 import logging
 import shlex
 import subprocess
 import send2trash
 import time
-from desktop.image_background_manager import ImageBackgroundManager
-from desktop.video_background_manager import VideoBackgroundManager
 
 logger = logging.getLogger(__name__)
 
