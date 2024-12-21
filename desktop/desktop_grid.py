@@ -40,12 +40,12 @@ BACKGROUND_IMAGE = ""
 
 # Desktop Icon variables
 ICON_SIZE = 128  # Overrided by settings
-FONT_SIZE = 10
-FONT = "Arial"
+FONT_SIZE = get_setting("font_size", 10)
+FONT = get_setting("font", "Arial")
 
 # edit_mode_icon variables
-BORDER_WIDTH = 5
-BORDER_COLOR = QColor(Qt.red)
+BORDER_WIDTH = get_setting("border_width", 5)
+BORDER_COLOR = get_setting("border_color", "#ff0000")
 
 class DesktopGrid(QGraphicsView):
     def __init__(self, args=None):
@@ -53,6 +53,11 @@ class DesktopGrid(QGraphicsView):
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
         self.setAcceptDrops(True)
+
+        print(FONT_SIZE)
+        print(FONT)
+        print(BORDER_COLOR)
+        print(BORDER_WIDTH)
 
         self.args = args
 
