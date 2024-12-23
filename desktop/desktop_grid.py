@@ -365,7 +365,6 @@ class DesktopGrid(QGraphicsView):
             self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
         else:
             self.remove_temp_icon()
-            # Add red border item
             self.temp_icon = TempIcon(col, row, new_icon_path)
             self.temp_icon.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
@@ -720,9 +719,6 @@ class DesktopGrid(QGraphicsView):
 class RedBorderItem(QGraphicsItem):
     def __init__(self, col, row):
         super().__init__()
-        x_pos = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
-        y_pos = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
-        self.setPos(x_pos, y_pos)
     
     def boundingRect(self):
         return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
@@ -748,9 +744,6 @@ class TempIcon(QGraphicsItem):
         else:
             self.pixmap = QPixmap(ICON_SIZE, ICON_SIZE)
             self.pixmap.fill(Qt.transparent)
-        x_pos = SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING)
-        y_pos = TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING)
-        self.setPos(x_pos, y_pos)
     
     def boundingRect(self):
         return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
