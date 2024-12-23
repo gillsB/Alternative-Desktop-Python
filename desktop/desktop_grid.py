@@ -729,7 +729,8 @@ class RedBorderItem(QGraphicsItem):
     
     def paint(self, painter, option, widget=None):
         border_width = get_setting("border_width", 5)
-        pen = QPen(get_setting("border_color", "#ff0000"), border_width)
+        color = QColor(get_setting("border_color", "#ff0000"))
+        pen = QPen(color, border_width)
         painter.setPen(pen)
         rect = self.boundingRect()
         adjusted_rect = rect.adjusted(border_width/2, border_width/2, -border_width/2, -border_width/2)
