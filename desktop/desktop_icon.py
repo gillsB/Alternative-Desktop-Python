@@ -201,7 +201,8 @@ class DesktopIcon(QGraphicsItem):
 
         if self.edit_mode:
             border_width = get_setting("border_width", 5)
-            pen = QPen(get_setting("border_color", "#ff0000"), border_width)
+            color = QColor(get_setting("border_color", "#ff0000"))
+            pen = QPen(color, border_width)
             painter.setPen(pen)
             rect = self.boundingRect()
             # Draw the border inside the square, adjusted for the border width
