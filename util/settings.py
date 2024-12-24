@@ -1,8 +1,6 @@
 import json
 import os
 import logging
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +33,7 @@ DEFUALT_SETTINGS = {
         "bg_z_order": 0,
         "font": "Arial",
         "font_size": 10,
-        "border_color": QColor(Qt.red).name(),
+        "border_color": "#ff0000",
         "border_width": 5
 }
 SETTINGS = None
