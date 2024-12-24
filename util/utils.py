@@ -1,6 +1,29 @@
-from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle, QSlider, QSpinBox, QHBoxLayout, QVBoxLayout, QWidget, QFrame, QLabel, QSpacerItem, QSizePolicy
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QToolButton, QLineEdit, QStyle, QSlider, QSpinBox, QHBoxLayout, QVBoxLayout, QWidget, QFrame, QLabel, QSpacerItem, QSizePolicy, QGraphicsItem
+from PySide6.QtCore import Qt, Signal, QRectF
+from PySide6.QtGui import QPixmap
+import os
 
+
+class TempIcon(QGraphicsItem):
+    def __init__(self, col, row, new_icon_path, icon_size):
+        super().__init__()
+        self.icon_size = icon_size
+
+        if os.path.exists(new_icon_path):
+            self.pixmap = QPixmap(new_icon_path)
+        # Grid_menu already passes back "assets/images/unknown.png" reference, if for some reason this is invalid, display a blank pixmap
+        else:
+            self.pixmap = QPixmap(self.icon_size, self.icon_size)
+            self.pixmap.fill(Qt.transparent)
+    
+    def boundingRect(self):
+        return QRectF(0, 0, self.icon_size, self.icon_size)
+    
+    def paint(self, painter, option, widget=None):
+        scaled_pixmap = self.pixmap.scaled(self.icon_size, self.icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        x_offset = (self.icon_size - scaled_pixmap.width()) / 2
+        y_offset = (self.icon_size - scaled_pixmap.height()) / 2
+        painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
 
 class ClearableLineEdit(QLineEdit):
     def __init__(self, parent=None):
@@ -119,3 +142,6 @@ def create_separator(label_text):
     vbox.addItem(bottom_spacer)
 
     return vbox
+
+
+

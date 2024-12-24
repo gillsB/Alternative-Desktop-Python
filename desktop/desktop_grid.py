@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QApplication, QMenu
 from PySide6.QtCore import Qt, QRectF, QTimer, QMetaObject, QUrl, QPoint
-from PySide6.QtGui import QPainter, QColor, QPixmap, QBrush, QPen, QAction, QCursor
+from PySide6.QtGui import QPainter, QColor, QBrush, QPen, QAction, QCursor
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder
+from util.utils import TempIcon
 from desktop.desktop_grid_menu import Menu
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
 from desktop.desktop_grid_menu import Menu
@@ -365,7 +366,7 @@ class DesktopGrid(QGraphicsView):
             self.desktop_icons[(row, col)].update_icon_path(new_icon_path)
         else:
             self.remove_temp_icon()
-            self.temp_icon = TempIcon(col, row, new_icon_path)
+            self.temp_icon = TempIcon(col, row, new_icon_path, ICON_SIZE)
             self.temp_icon.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
             self.scene.addItem(self.temp_icon)
@@ -734,22 +735,3 @@ class RedBorderItem(QGraphicsItem):
 
 
 
-class TempIcon(QGraphicsItem):
-    def __init__(self, col, row, new_icon_path):
-        super().__init__()
-
-        if os.path.exists(new_icon_path):
-            self.pixmap = QPixmap(new_icon_path)
-        # Grid_menu already passes back "assets/images/unknown.png" reference, if for some reason this is invalid, display a blank pixmap
-        else:
-            self.pixmap = QPixmap(ICON_SIZE, ICON_SIZE)
-            self.pixmap.fill(Qt.transparent)
-    
-    def boundingRect(self):
-        return QRectF(0, 0, ICON_SIZE, ICON_SIZE)
-    
-    def paint(self, painter, option, widget=None):
-        scaled_pixmap = self.pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        x_offset = (ICON_SIZE - scaled_pixmap.width()) / 2
-        y_offset = (ICON_SIZE - scaled_pixmap.height()) / 2
-        painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
