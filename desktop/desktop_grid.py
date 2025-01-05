@@ -4,7 +4,7 @@ from PySide6.QtGui import QPainter, QColor, QBrush, QPen, QAction, QCursor
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_items_by_position, update_folder
+from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
 from util.utils import TempIcon
 from desktop.desktop_grid_menu import Menu
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
@@ -416,44 +416,44 @@ class DesktopGrid(QGraphicsView):
 
     
     def swap_icons(self, old_row, old_col, new_row, new_col):
-        item1 = None
-        item2 = None
+        icon1 = None
+        icon2 = None
 
         # Check the icon it was dragged to, if it exists continue this function, if default/not in self.desktop_icons call swap_with_blank_icon
         if (new_row, new_col) in self.desktop_icons:
-            item2 = self.desktop_icons[(new_row, new_col)]
+            icon2 = self.desktop_icons[(new_row, new_col)]
         else:
             self.swap_with_blank_icon(old_row, old_col, new_row, new_col)
             return
-        item1 = self.desktop_icons[(old_row, old_col)]
-        if item1 is None or item2 is None:
-            # Handle cases where one of the items does not exist
-            logger.error("One of the items attempting to swap does not exist.")
+        icon1 = self.desktop_icons[(old_row, old_col)]
+        if icon1 is None or icon2 is None:
+            # Handle cases where one of the icons does not exist
+            logger.error("One of the icons attempting to swap does not exist.")
             return
         result = self.swap_folders(old_row, old_col, new_row, new_col)
         if result != True:
             logger.error("Failed swapping files. do not swap local icons")
             display_cannot_swap_icons_warning(result)
-            item1.reload_from_config()
-            item2.reload_from_config()
+            icon1.reload_from_config()
+            icon2.reload_from_config()
             return
         
         logger.info("folders successfully swapped")
 
         # Calculate new positions
-        item1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
+        icon1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
                         TOP_PADDING + new_row * (ICON_SIZE + VERTICAL_PADDING))
-        item2_new_pos = (SIDE_PADDING + old_col * (ICON_SIZE + HORIZONTAL_PADDING),
+        icon2_new_pos = (SIDE_PADDING + old_col * (ICON_SIZE + HORIZONTAL_PADDING),
                         TOP_PADDING + old_row * (ICON_SIZE + VERTICAL_PADDING))
         
         # Swap positions
-        item1.setPos(*item1_new_pos)
-        item2.setPos(*item2_new_pos)
+        icon1.setPos(*icon1_new_pos)
+        icon2.setPos(*icon2_new_pos)
 
-        item1.row = new_row
-        item1.col = new_col
-        item2.row = old_row
-        item2.col = old_col
+        icon1.row = new_row
+        icon1.col = new_col
+        icon2.row = old_row
+        icon2.col = old_col
 
         # Update the desktop_icons array to reflect the swap
         self.desktop_icons[(old_row, old_col)], self.desktop_icons[(new_row, new_col)] = (
@@ -461,15 +461,15 @@ class DesktopGrid(QGraphicsView):
             self.desktop_icons[(old_row, old_col)]
         )
 
-        swap_items_by_position(old_row, old_col, new_row, new_col)
+        swap_icons_by_position(old_row, old_col, new_row, new_col)
         update_folder(new_row, new_col)
         update_folder(old_row, old_col)
 
         # Reload their fields to update their icon_path. This is a way to refresh fields, but will not update rows/col.
         # Row/col should be changed like the above, then call a refresh.
-        item1.reload_from_config()
-        item2.reload_from_config()
-        logger.info(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
+        icon1.reload_from_config()
+        icon2.reload_from_config()
+        logger.info(f"Swapped icons at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
     def swap_folders(self, old_row, old_col, new_row, new_col):
         new_dir = self.get_data_icon_dir(new_row, new_col)
@@ -542,7 +542,7 @@ class DesktopGrid(QGraphicsView):
         del self.desktop_icons[(old_row, old_col)]
         self.desktop_icons[(new_row, new_col)] = icon
 
-        swap_items_by_position(old_row, old_col, new_row, new_col)
+        swap_icons_by_position(old_row, old_col, new_row, new_col)
         self.swap_folders(old_row, old_col, new_row, new_col)
         update_folder(new_row, new_col)
         #update_folder(old_row, old_col)

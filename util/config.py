@@ -201,7 +201,7 @@ def set_entry_to_default(row, col):
     save_config_to_file(config)
 
 #swap row/col between two desktop_icons
-def swap_items_by_position(row1, col1, row2, col2):
+def swap_icons_by_position(row1, col1, row2, col2):
     config = load_desktop_config()
     
     # Find the items with the specified row and column values
