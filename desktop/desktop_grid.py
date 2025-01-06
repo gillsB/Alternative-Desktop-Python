@@ -4,7 +4,7 @@ from PySide6.QtGui import QPainter, QColor, QBrush, QPen, QAction, QCursor
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
-from util.config import get_item_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
+from util.config import get_icon_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
 from util.utils import TempIcon
 from desktop.desktop_grid_menu import Menu
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
@@ -648,7 +648,7 @@ class DesktopGrid(QGraphicsView):
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
         if icon is None:
-            data = get_item_data(row, col)
+            data = get_icon_data(row, col)
             icon_item = DesktopIcon(
                 row, 
                 col, 

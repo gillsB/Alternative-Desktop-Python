@@ -95,7 +95,7 @@ def create_data_path():
 
 
 
-def get_item_data(row, column):
+def get_icon_data(row, column):
     for item in JSON:
         if item['row'] == row and item['column'] == column:
             return {
