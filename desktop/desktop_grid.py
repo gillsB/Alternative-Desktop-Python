@@ -530,14 +530,14 @@ class DesktopGrid(QGraphicsView):
         return True
 
     def swap_with_blank_icon(self, old_row, old_col, new_row, new_col):
-        item1 = self.desktop_icons[(old_row, old_col)]
+        icon1 = self.desktop_icons[(old_row, old_col)]
 
-        item1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
+        icon1_new_pos = (SIDE_PADDING + new_col * (ICON_SIZE + HORIZONTAL_PADDING),
                 TOP_PADDING + new_row * (ICON_SIZE + VERTICAL_PADDING))
         
-        item1.setPos(*item1_new_pos)
-        item1.row = new_row
-        item1.col = new_col
+        icon1.setPos(*icon1_new_pos)
+        icon1.row = new_row
+        icon1.col = new_col
         icon = self.desktop_icons[(old_row, old_col)]
         del self.desktop_icons[(old_row, old_col)]
         self.desktop_icons[(new_row, new_col)] = icon
@@ -547,9 +547,9 @@ class DesktopGrid(QGraphicsView):
         update_folder(new_row, new_col)
         #update_folder(old_row, old_col)
 
-        item1.reload_from_config()
+        icon1.reload_from_config()
 
-        logger.info(f"Swapped items at ({old_row}, {old_col}) with ({new_row}, {new_col})")
+        logger.info(f"Swapped icons at ({old_row}, {old_col}) with ({new_row}, {new_col})")
 
 
 
