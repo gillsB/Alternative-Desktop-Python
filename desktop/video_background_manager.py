@@ -121,7 +121,6 @@ class VideoBackgroundManager:
             self.offset_y = y_offset * (self.video_height / 2)
             self.center_x = (self.video_width / 2) - self.offset_x
             self.center_y = (self.video_height / 2) - self.offset_y
-            print(f"center x, y = {self.center_x}, {self.center_y}")
             self.update_video_transform()
         else:
             logger.warning("Trying to move a video_item that does not exist")

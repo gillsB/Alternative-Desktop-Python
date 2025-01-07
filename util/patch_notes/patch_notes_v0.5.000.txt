@@ -1,0 +1,18 @@
+### Video and Image background improvements
+- Reworked the way image backgrounds are displayed, they are fixed in size rather than resizing dynamically with the window.
+- Fixed a major issue where resizing the window horizontally caused the video background to shrink. It now behaves like the new image background.
+- Added horizontal, vertical, and zoom adjustment options for image backgrounds.
+- Added a custom background fill and color setting, enabling users to select a custom color for the background fill.
+- Added a "Display order" setting when "Background Sourcing" is set to "Both", allowing the user to choose whether the video background or the image background appears on top.
+
+### other improvements
+- Moderately optimized video and image backgrounds. Removed pointless reloading and optimized creation and movement.
+- Menus no longer pause video background.
+- Video and image background adjustment sliders now only appear when a background of that type is possible.
+- Attempting to force close the window while the Settings menu is still open, now prompts the user if they wish to discard the changes before closing.
+
+### bug fixes
+- Swapping themes in settings menu no longer pauses the video background.
+- Ensured proper deletion of tray icon upon close.
+- Fixed an issue where the window would briefly appear minimized upon keybind restore, even if it wasn’t actually minimized.
+- Fixed a bug where swapping two icons would not update both images if the icon image files had the same name.
