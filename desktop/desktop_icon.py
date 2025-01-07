@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QGraphicsItem, QDialog, QMenu, QMessageBox, QToolT
 from PySide6.QtCore import Qt, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QPainterPath, QPen, QAction, QMovie, QPixmapCache
 from util.settings import get_setting
-from util.config import get_item_data, is_default, get_data_directory, change_launch, set_entry_to_default
+from util.config import get_icon_data, is_default, get_data_directory, change_launch, set_entry_to_default
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import (display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, 
                                    display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_cannot_swap_icons_warning)
@@ -62,7 +62,7 @@ class DesktopIcon(QGraphicsItem):
 
     def reload_from_config(self):
         logger.info("Reloaded self fields from config.")
-        data = get_item_data(self.row, self.col)
+        data = get_icon_data(self.row, self.col)
         self.name = data['name']
         self.icon_path = data['icon_path']
         self.executable_path = data['executable_path']
