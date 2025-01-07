@@ -32,4 +32,9 @@
     "date": "2024-11-19",
     "notes_file": "patch_notes_v0.4.001.txt"
   }
+  ,
+  "V0.5.000":{
+    "date": "2025-01-06",
+    "notes_file": "patch_notes_v0.5.000.txt"
+  }
 }
