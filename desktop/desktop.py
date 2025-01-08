@@ -203,7 +203,8 @@ class OverlayWidget(QWidget):
             #for instance lineEdits with black text on a dark gray (secondary color) is hard to tell if there is anything in the line edit at all without clicking on it.
             self.secondary_color = '#4c5559'  
             self.secondary_dark_color = '#2c3135'
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': self.secondary_color, 'secondaryDarkColor': self.secondary_dark_color})
+            self.primary_text_color = '#ffffff'
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': self.secondary_color, 'secondaryDarkColor': self.secondary_dark_color, 'primaryTextColor': self.primary_text_color})
         else:
             apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)
 
