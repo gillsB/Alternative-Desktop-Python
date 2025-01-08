@@ -199,12 +199,10 @@ class OverlayWidget(QWidget):
         except FileNotFoundError as e:
             logger.error(e)
         if theme_name.startswith("dark"):
-            #these two color overrides make certain fields way more readable on dark mode (when not selected) than the base themes while still maintaining a good look.
-            #for instance lineEdits with black text on a dark gray (secondary color) is hard to tell if there is anything in the line edit at all without clicking on it.
-            self.secondary_color = '#4c5559'  
-            self.secondary_dark_color = '#2c3135'
+            # Text override as some themes like dark_cyan default the text color to black on a very dark gray background for stuff like LineEdit/DropDown.
+            # Setting text color to white maintains readability for these poorly designed default themes.
             self.primary_text_color = '#ffffff'
-            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'secondaryColor': self.secondary_color, 'secondaryDarkColor': self.secondary_dark_color, 'primaryTextColor': self.primary_text_color})
+            apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=False, extra={'primaryTextColor': self.primary_text_color})
         else:
             apply_stylesheet(QApplication.instance(), theme=theme_name, invert_secondary=True)
 
