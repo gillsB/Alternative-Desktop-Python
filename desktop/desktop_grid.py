@@ -264,6 +264,7 @@ class DesktopGrid(QGraphicsView):
             self.image_background_manager.remove_background()
 
         secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
+        print(secondary_color)
         custom_color = get_setting("custom_bg_fill", False)
         theme_name = getattr(self.parent(), 'theme_name', None)
 

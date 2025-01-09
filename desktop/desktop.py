@@ -63,12 +63,6 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        self.theme_name = get_setting("theme")
-        self.apply_theme(self.theme_name)
-
-        self.hotkey_handler = HotkeyHandler(self)
-        self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
-
         self.primary_color = None
         self.primary_light_color = None
         self.secondary_color = None
@@ -81,6 +75,12 @@ class OverlayWidget(QWidget):
         self.first_restore = True
         self.restored_window = False
         self.first_resize = True
+
+        self.theme_name = get_setting("theme")
+        self.apply_theme(self.theme_name)
+
+        self.hotkey_handler = HotkeyHandler(self)
+        self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
 
         # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
         from desktop.desktop_grid import DesktopGrid
