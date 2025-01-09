@@ -64,20 +64,7 @@ class OverlayWidget(QWidget):
         self.setLayout(layout)
 
         self.theme_name = get_setting("theme")
-
-        # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
-        from desktop.desktop_grid import DesktopGrid
-        self.grid_widget = DesktopGrid(parent=self, args=args)
-
-        layout.addWidget(self.grid_widget)
-
-        settings_button = QPushButton("Settings")
-        settings_button.clicked.connect(self.show_settings)
-        
-        
-
-        layout.addWidget(settings_button)
-
+        self.apply_theme(self.theme_name)
 
         self.hotkey_handler = HotkeyHandler(self)
         self.hotkey_handler.toggle_signal.connect(self.toggle_window_state)
@@ -90,13 +77,19 @@ class OverlayWidget(QWidget):
         self.primary_text_color = None
         self.secondary_text_color = None
 
-        self.apply_theme(self.theme_name)
-
         # first_restore is set to run a 1 time first restore code
         self.first_restore = True
         self.restored_window = False
-
         self.first_resize = True
+
+        # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
+        from desktop.desktop_grid import DesktopGrid
+        self.grid_widget = DesktopGrid(parent=self, args=args)
+        layout.addWidget(self.grid_widget)
+
+        settings_button = QPushButton("Settings")
+        settings_button.clicked.connect(self.show_settings)
+        layout.addWidget(settings_button)
 
     def show_patch_notes(self):
         patch_notes_menu = PatchNotesPopup(self)

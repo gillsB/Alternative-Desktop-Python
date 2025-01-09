@@ -276,7 +276,7 @@ class DesktopGrid(QGraphicsView):
         elif theme_name.startswith('none'):
             color = QColor('#303030')
         else:
-            color = QColor(self.parent().light_desktop_color)
+            color = QColor(getattr(self.parent(), 'light_desktop_color', '#303030'))
 
         if bg_enabled != False:
             if (custom_color or bg_enabled) and bg_color == None:
