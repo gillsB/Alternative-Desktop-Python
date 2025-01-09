@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu, QMessageBox
 from PySide6.QtCore import Qt, QEvent, QRect, QTimer
-from PySide6.QtGui import QIcon, QIcon, QAction
+from PySide6.QtGui import QIcon, QIcon, QAction, QColor
 import sys
 from util.settings import get_setting, set_setting
 from menus.settings_menu import SettingsDialog
@@ -63,9 +63,11 @@ class OverlayWidget(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
+        self.theme_name = get_setting("theme")
+
         # See commit from 8/26/2024 ~10:14pm Pacific time about this import. Basically must be imported after init or it breaks the logging.
         from desktop.desktop_grid import DesktopGrid
-        self.grid_widget = DesktopGrid(args)
+        self.grid_widget = DesktopGrid(parent=self, args=args)
 
         layout.addWidget(self.grid_widget)
 
@@ -88,8 +90,7 @@ class OverlayWidget(QWidget):
         self.primary_text_color = None
         self.secondary_text_color = None
 
-        start_theme= get_setting("theme")
-        self.apply_theme(start_theme)
+        self.apply_theme(self.theme_name)
 
         # first_restore is set to run a 1 time first restore code
         self.first_restore = True
@@ -181,8 +182,12 @@ class OverlayWidget(QWidget):
             self.secondary_dark_color = theme_colors.get('secondaryDarkColor')
             self.primary_text_color = theme_colors.get('primaryTextColor')
             self.secondary_text_color = theme_colors.get('secondaryTextColor')
+
+            bright_color = QColor(self.primary_light_color)
+            self.light_desktop_color = QColor(bright_color.lighter(120))
         
     def apply_theme(self, theme_name):
+        self.theme_name = theme_name
         if theme_name.startswith("none"):
             global APP
             APP.setStyleSheet("")

@@ -39,8 +39,8 @@ BACKGROUND_IMAGE = ""
 ICON_SIZE = 128  # Overrided by settings
 
 class DesktopGrid(QGraphicsView):
-    def __init__(self, args=None):
-        super().__init__()
+    def __init__(self, parent=None, args=None):
+        super().__init__(parent)
         self.setWindowTitle('Desktop Grid Prototype')
         self.setMinimumSize(400, 400)
         self.setAcceptDrops(True)
@@ -263,19 +263,20 @@ class DesktopGrid(QGraphicsView):
             # Remove image background_item if it exists.
             self.image_background_manager.remove_background()
 
-        # Access the secondary color from the parent class, with a default fallback
         secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
         custom_color = get_setting("custom_bg_fill", False)
-        # Set the background color based on the secondary color
-        if secondary_color == '#4c5559':
+        theme_name = getattr(self.parent(), 'theme_name', None)
+
+        color = None
+
+        # Base background color becomes "secondary_color" for dark mode, medium gray for No theme,
+        #  and a lighter version of the theme's primaryLightColor for light themes.
+        if theme_name.startswith('dark'):
             color = QColor(secondary_color)
-        elif secondary_color == '#202020':
-            color = QColor(secondary_color)
+        elif theme_name.startswith('none'):
+            color = QColor('#303030')
         else:
-            # Light mode: lighten the primary light color
-            bright_color = QColor(self.parent().primary_light_color)
-            lighter_color = bright_color.lighter(120)  # Lighten the color by 20%
-            color = QColor(lighter_color)
+            color = QColor(self.parent().light_desktop_color)
 
         if bg_enabled != False:
             if (custom_color or bg_enabled) and bg_color == None:
@@ -284,7 +285,8 @@ class DesktopGrid(QGraphicsView):
                 color = QColor(bg_color)
 
         # Set the background color as a solid brush
-        self.scene.setBackgroundBrush(QBrush(color))
+        if color != None:
+            self.scene.setBackgroundBrush(QBrush(color))
 
 
     def load_bg_from_settings(self):
