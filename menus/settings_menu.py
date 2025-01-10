@@ -89,7 +89,7 @@ class SettingsDialog(QDialog):
 
         # When window in focus keybind: 
         self.keybind_minimize = QComboBox()
-        keybind_options = ['Minimize window', 'Hide window (restore through keybind or system tray)']
+        keybind_options = ['Minimize window', 'Hide window (restore through the keybind or system tray)']
         self.keybind_minimize.addItems(keybind_options)
         self.keybind_minimize.setCurrentIndex(self.settings.get("keybind_minimize", 0))
         self.keybind_minimize.currentIndexChanged.connect(self.set_changed)
@@ -183,6 +183,8 @@ class SettingsDialog(QDialog):
         general_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         general_inner_layout.addRow("Update on Launch", self.update_on_launch_cb)
         general_inner_layout.addRow("On closing the program:", self.on_close_cb)
+        general_inner_layout.itemAt(0).widget().setToolTip("Attempt to update upon launching the program.")
+        general_inner_layout.itemAt(2).widget().setToolTip("When the program is closed it will")
         outer_layout.addLayout(general_inner_layout)
 
         # Keybindings Section
@@ -190,7 +192,9 @@ class SettingsDialog(QDialog):
         keybindings_inner_layout = QFormLayout()
         keybindings_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         keybindings_inner_layout.addRow("Toggle Overlay Keybind", self.toggle_overlay_keybind_button)
-        keybindings_inner_layout.addRow("When in focus Keybind", self.keybind_minimize)
+        keybindings_inner_layout.addRow("Keybind minimize", self.keybind_minimize)
+        keybindings_inner_layout.itemAt(0).widget().setToolTip("Keybind toggles the window between minimized and focused states.")
+        keybindings_inner_layout.itemAt(2).widget().setToolTip("Behavior when the window is in focus, and keybind pressed")
         outer_layout.addLayout(keybindings_inner_layout)
 
         # Appearance Section
