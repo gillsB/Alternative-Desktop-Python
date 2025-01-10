@@ -26,20 +26,25 @@ class SettingsDialog(QDialog):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         tab_widget = QTabWidget()
-        tab_general = QWidget()
-        layout_general = QVBoxLayout(tab_general)
-        tab_general.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        general_tab = QWidget()
+        general_layout = QVBoxLayout(general_tab)
+        general_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        tab_background = QWidget()
-        background_layout = QFormLayout(tab_background)
-        tab_background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        background_tab = QWidget()
+        background_layout = QFormLayout(background_tab)
+        background_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        icon_tab = QWidget()
+        icon_layout = QFormLayout(icon_tab)
+        icon_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
         self.settings = load_settings()
 
-        self.add_general_tab(layout_general)
+        self.add_general_tab(general_layout)
         self.add_background_tab(background_layout)
+        self.add_icon_tab(icon_layout)
 
         self.display_theme() # Updates stylesheet for theme loaded.
         # End Scroll area before save button (so save button remains separate)
@@ -53,9 +58,10 @@ class SettingsDialog(QDialog):
         self.save_button.setDefault(False)
 
         # Attach General and Background tab to layout.
-        tab_general.setLayout(layout_general)
-        tab_widget.addTab(tab_general, "General")
-        tab_widget.addTab(tab_background, "Background")
+        general_tab.setLayout(general_layout)
+        tab_widget.addTab(general_tab, "General")
+        tab_widget.addTab(background_tab, "Background")
+        tab_widget.addTab(icon_tab, "Icon")
         main_layout.addWidget(tab_widget)
 
         # Finish Layout
@@ -73,7 +79,7 @@ class SettingsDialog(QDialog):
         self.installEventFilter(self)
         self.main_window_closing = False
 
-    def add_general_tab(self, layout_general):
+    def add_general_tab(self, general_layout):
 
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
@@ -211,7 +217,7 @@ class SettingsDialog(QDialog):
         appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
         outer_layout.addLayout(appearance_inner_layout)
 
-        layout_general.addLayout(outer_layout)
+        general_layout.addLayout(outer_layout)
 
 
     def add_background_tab(self, background_layout):
@@ -316,6 +322,9 @@ class SettingsDialog(QDialog):
         self.custom_bg_color.setDefault(False)
         self.custom_bg_color_label = QLabel("Custom bg color:")
         background_layout.addRow(self.custom_bg_color_label, self.custom_bg_color)
+
+    def add_icon_tab(self, icon_layout):
+        ...
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress:
