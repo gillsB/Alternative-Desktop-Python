@@ -157,13 +157,6 @@ class SettingsDialog(QDialog):
 
         self.label_color = self.settings.get("label_color", "white") #default white
         
-        # Flat color button, when clicked opens color dialog
-        self.label_color_box = QPushButton("", self)
-        self.label_color_box.clicked.connect(self.open_color_dialog)
-        self.label_color_box.setFixedSize(QSize(75, 30))
-        self.label_color_box.setAutoDefault(False)
-        self.label_color_box.setDefault(False)
-
 
         # On closing the program: Minimize to Tray or Terminiate the program
         self.on_close_cb = QComboBox()
@@ -207,7 +200,6 @@ class SettingsDialog(QDialog):
         appearance_inner_layout.addRow("", self.color_selector)
         appearance_inner_layout.addRow("Overlay Opacity", self.window_opacity_slider)
         appearance_inner_layout.addRow("Save icons locally", self.local_icons_cb)
-        appearance_inner_layout.addRow("Icon Name color", self.label_color_box)
         appearance_inner_layout.addRow("Max rows", self.max_rows_sb)
         appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
         outer_layout.addLayout(appearance_inner_layout)
@@ -331,6 +323,14 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
 
+        # Flat color button, when clicked opens color dialog
+        self.label_color_box = QPushButton("", self)
+        self.label_color_box.clicked.connect(self.open_color_dialog)
+        self.label_color_box.setFixedSize(QSize(75, 30))
+        self.label_color_box.setAutoDefault(False)
+        self.label_color_box.setDefault(False)
+
+
         left_padding = 20
 
         outer_layout.addLayout(create_separator("Icon Appearance"))
@@ -338,8 +338,14 @@ class SettingsDialog(QDialog):
         icon_appearance_inner_layout = QFormLayout()
         icon_appearance_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         icon_appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
-
         outer_layout.addLayout(icon_appearance_inner_layout)
+
+        outer_layout.addLayout(create_separator("Icon Label"))
+
+        icon_label_inner_layout = QFormLayout()
+        icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
+        outer_layout.addLayout(icon_label_inner_layout)
 
         # Adds a spacer at the end which pushes up all other separators/content in the tab
         outer_layout.addStretch(1)
