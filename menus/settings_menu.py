@@ -212,6 +212,8 @@ class SettingsDialog(QDialog):
         appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
         outer_layout.addLayout(appearance_inner_layout)
 
+        # Adds a spacer at the end which pushes up all other separators/content in the tab
+        outer_layout.addStretch(1)
         general_layout.addLayout(outer_layout)
 
 
@@ -338,6 +340,9 @@ class SettingsDialog(QDialog):
         icon_appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
 
         outer_layout.addLayout(icon_appearance_inner_layout)
+
+        # Adds a spacer at the end which pushes up all other separators/content in the tab
+        outer_layout.addStretch(1)
         icon_layout.addLayout(outer_layout, 0)
 
     def eventFilter(self, obj, event):
