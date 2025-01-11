@@ -29,14 +29,16 @@ class SettingsDialog(QDialog):
         general_tab = QWidget()
         general_layout = QVBoxLayout(general_tab)
         general_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        general_tab.setLayout(general_layout)
 
         background_tab = QWidget()
         background_layout = QFormLayout(background_tab)
         background_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         icon_tab = QWidget()
-        icon_layout = QFormLayout(icon_tab)
+        icon_layout = QVBoxLayout(icon_tab)
         icon_tab.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        icon_tab.setLayout(icon_layout)
 
         # Small optimization to load settings once for the entire file then use .get() from that
         # Instead of using get_setting() which calls a load_settings() every instance.
@@ -58,7 +60,6 @@ class SettingsDialog(QDialog):
         self.save_button.setDefault(False)
 
         # Attach General and Background tab to layout.
-        general_tab.setLayout(general_layout)
         tab_widget.addTab(general_tab, "General")
         tab_widget.addTab(background_tab, "Background")
         tab_widget.addTab(icon_tab, "Icon")
@@ -140,12 +141,7 @@ class SettingsDialog(QDialog):
         self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
         self.local_icons_cb.clicked.connect(self.set_changed)
 
-        self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
-        self.icon_size_slider.setMinimum(30)
-        self.icon_size_slider.setMaximum(256)
-        self.icon_size_slider.setSingleStep(1)
-        self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
-        self.icon_size_slider.valueChanged.connect(self.label_size_changed)
+
 
         # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
         self.redraw_request = False
@@ -211,7 +207,6 @@ class SettingsDialog(QDialog):
         appearance_inner_layout.addRow("", self.color_selector)
         appearance_inner_layout.addRow("Overlay Opacity", self.window_opacity_slider)
         appearance_inner_layout.addRow("Save icons locally", self.local_icons_cb)
-        appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
         appearance_inner_layout.addRow("Icon Name color", self.label_color_box)
         appearance_inner_layout.addRow("Max rows", self.max_rows_sb)
         appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
@@ -324,7 +319,26 @@ class SettingsDialog(QDialog):
         background_layout.addRow(self.custom_bg_color_label, self.custom_bg_color)
 
     def add_icon_tab(self, icon_layout):
-        ...
+
+        outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(0, 0, 0, 0) # Default to no padding
+        self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
+        self.icon_size_slider.setMinimum(30)
+        self.icon_size_slider.setMaximum(256)
+        self.icon_size_slider.setSingleStep(1)
+        self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
+        self.icon_size_slider.valueChanged.connect(self.label_size_changed)
+
+        left_padding = 20
+
+        outer_layout.addLayout(create_separator("Icon Appearance"))
+
+        icon_appearance_inner_layout = QFormLayout()
+        icon_appearance_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        icon_appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
+
+        outer_layout.addLayout(icon_appearance_inner_layout)
+        icon_layout.addLayout(outer_layout, 0)
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress:
