@@ -82,11 +82,26 @@ class SettingsDialog(QDialog):
 
     def add_general_tab(self, general_layout):
 
+        ### Program Behavior Section
         # Checkbox for update on launch
         self.update_on_launch_cb = QCheckBox()
         self.update_on_launch_cb.setChecked(self.settings.get("update_on_launch", True))
         self.update_on_launch_cb.clicked.connect(self.set_changed)
-    
+
+        # On closing the program: Minimize to Tray or Terminiate the program
+        self.on_close_cb = QComboBox()
+        on_close_options = ['Terminiate the program', 'Minimize to tray']
+        self.on_close_cb.addItems(on_close_options)
+        self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
+        self.on_close_cb.currentIndexChanged.connect(self.set_changed)
+        self.on_close_cb.setItemData(0, "Closing the program will fully close the window.", Qt.ToolTipRole)
+        self.on_close_cb.setItemData(1, "Closing the program will minimize it to the system tray.\nProgram can be restored by pressing the Toggle Overlay Keybind or through the system tray.", Qt.ToolTipRole)
+
+        self.local_icons_cb = QCheckBox()
+        self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
+        self.local_icons_cb.clicked.connect(self.set_changed)
+
+        ### Keybindings Section
         # Toggle Overlay Keybind
         self.toggle_overlay_keybind_button = KeybindButton()
         self.toggle_overlay_keybind_button.setText(self.settings.get("toggle_overlay_keybind", "alt+d"))
@@ -100,14 +115,8 @@ class SettingsDialog(QDialog):
         self.keybind_minimize.addItems(keybind_options)
         self.keybind_minimize.setCurrentIndex(self.settings.get("keybind_minimize", 0))
         self.keybind_minimize.currentIndexChanged.connect(self.set_changed)
-        
-        self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
-        self.window_opacity_slider.setMinimum(30)
-        self.window_opacity_slider.setMaximum(100)
-        self.window_opacity_slider.setSingleStep(1)
-        self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
-        self.window_opacity_slider.valueChanged.connect(self.opacity_slider_changed)
 
+        ### Appearance Section
         self.theme_selector = QComboBox()
         self.color_selector = QComboBox()
 
@@ -137,11 +146,12 @@ class SettingsDialog(QDialog):
         self.theme_selector.currentIndexChanged.connect(self.update_theme)
         self.color_selector.currentIndexChanged.connect(self.update_theme)
 
-        self.local_icons_cb = QCheckBox()
-        self.local_icons_cb.setChecked(self.settings.get("local_icons", True))
-        self.local_icons_cb.clicked.connect(self.set_changed)
-
-
+        self.window_opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.window_opacity_slider.setMinimum(30)
+        self.window_opacity_slider.setMaximum(100)
+        self.window_opacity_slider.setSingleStep(1)
+        self.window_opacity_slider.setSliderPosition(self.settings.get("window_opacity", 100))
+        self.window_opacity_slider.valueChanged.connect(self.opacity_slider_changed)
 
         # Re drawing due to change in Max Rows/Cols is heavy so only redraw it if these are changed
         self.redraw_request = False
@@ -156,14 +166,6 @@ class SettingsDialog(QDialog):
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
 
         self.label_color = self.settings.get("label_color", "white") #default white
-        
-
-        # On closing the program: Minimize to Tray or Terminiate the program
-        self.on_close_cb = QComboBox()
-        on_close_options = ['Terminiate the program', 'Minimize to tray']
-        self.on_close_cb.addItems(on_close_options)
-        self.on_close_cb.setCurrentIndex(self.settings.get("on_close", 0))
-        self.on_close_cb.currentIndexChanged.connect(self.set_changed)
 
         # Outer layout is for default padding. I.e. Separators which have no padding
         outer_layout = QVBoxLayout()
