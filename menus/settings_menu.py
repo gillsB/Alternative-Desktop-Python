@@ -178,8 +178,10 @@ class SettingsDialog(QDialog):
         general_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         general_inner_layout.addRow("Update on Launch", self.update_on_launch_cb)
         general_inner_layout.addRow("On closing the program:", self.on_close_cb)
+        general_inner_layout.addRow("Save icons locally", self.local_icons_cb)
         general_inner_layout.itemAt(0).widget().setToolTip("Attempt to update upon launching the program.")
         general_inner_layout.itemAt(2).widget().setToolTip("When the program is closed it will")
+        general_inner_layout.itemAt(4).widget().setToolTip("When checked, will save a copy of the icon locally. \nWhen unchecked uses the direct path to the image when it was set.")
         outer_layout.addLayout(general_inner_layout)
 
         # Keybindings Section
@@ -199,7 +201,6 @@ class SettingsDialog(QDialog):
         appearance_inner_layout.addRow("Theme", self.theme_selector)
         appearance_inner_layout.addRow("", self.color_selector)
         appearance_inner_layout.addRow("Overlay Opacity", self.window_opacity_slider)
-        appearance_inner_layout.addRow("Save icons locally", self.local_icons_cb)
         appearance_inner_layout.addRow("Max rows", self.max_rows_sb)
         appearance_inner_layout.addRow("Max Columns", self.max_cols_sb)
         outer_layout.addLayout(appearance_inner_layout)
