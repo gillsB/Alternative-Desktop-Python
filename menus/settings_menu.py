@@ -317,6 +317,7 @@ class SettingsDialog(QDialog):
 
     def add_icon_tab(self, icon_layout):
 
+        ### Icon Appearance
         outer_layout = QVBoxLayout()
         outer_layout.setContentsMargins(0, 0, 0, 0) # Default to no padding
         self.icon_size_slider = QSlider(Qt.Orientation.Horizontal)
@@ -326,12 +327,19 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
 
+        ### Icon Label
         # Flat color button, when clicked opens color dialog
         self.label_color_box = QPushButton("", self)
         self.label_color_box.clicked.connect(self.open_color_dialog)
         self.label_color_box.setFixedSize(QSize(75, 30))
         self.label_color_box.setAutoDefault(False)
         self.label_color_box.setDefault(False)
+
+        # Label font size
+        self.label_font_sb = QSpinBox()
+        self.label_font_sb.setValue(self.settings.get("font_size", 10))
+        self.label_font_sb.setRange(2, 100)
+        self.label_font_sb.valueChanged.connect(self.redraw_setting_changed)
 
 
         left_padding = 20
@@ -348,6 +356,7 @@ class SettingsDialog(QDialog):
         icon_label_inner_layout = QFormLayout()
         icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
+        icon_label_inner_layout.addRow("Font size", self.label_font_sb)
         outer_layout.addLayout(icon_label_inner_layout)
 
         # Adds a spacer at the end which pushes up all other separators/content in the tab
