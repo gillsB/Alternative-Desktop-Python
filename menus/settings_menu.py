@@ -336,10 +336,10 @@ class SettingsDialog(QDialog):
         self.label_color_box.setDefault(False)
 
         # Label font size
-        self.label_font_sb = QSpinBox()
-        self.label_font_sb.setValue(self.settings.get("font_size", 10))
-        self.label_font_sb.setRange(2, 100)
-        self.label_font_sb.valueChanged.connect(self.redraw_setting_changed)
+        self.label_font_size_sb = QSpinBox()
+        self.label_font_size_sb.setValue(self.settings.get("font_size", 10))
+        self.label_font_size_sb.setRange(2, 100)
+        self.label_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
 
         left_padding = 20
@@ -356,7 +356,7 @@ class SettingsDialog(QDialog):
         icon_label_inner_layout = QFormLayout()
         icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
-        icon_label_inner_layout.addRow("Font size", self.label_font_sb)
+        icon_label_inner_layout.addRow("Font size", self.label_font_size_sb)
         outer_layout.addLayout(icon_label_inner_layout)
 
         # Adds a spacer at the end which pushes up all other separators/content in the tab
@@ -706,6 +706,7 @@ class SettingsDialog(QDialog):
         settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
         settings["image_zoom"] = self.slider_to_image_zoom()
         settings["bg_z_order"] = self.bg_z_order_selector.currentIndex()
+        settings["font_size"] = self.label_font_size_sb.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
