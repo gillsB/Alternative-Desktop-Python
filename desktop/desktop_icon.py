@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class DesktopIcon(QGraphicsItem):
-    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, icon_size=64, parent=None):
+    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, font_size=10, icon_size=64, parent=None):
         super().__init__(parent)
 
         # Need to be changed manually usually by DesktopGrid (self.desktop_icons[(row, col)].row = X)
@@ -32,6 +32,7 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = command_args
         self.website_link = website_link
         self.launch_option = launch_option
+        self.font_size = font_size
 
         self.movie = None # For loading a gif
         self.init_movie() # Load movie if .gif icon_path

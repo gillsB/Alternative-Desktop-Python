@@ -660,6 +660,7 @@ class DesktopGrid(QGraphicsView):
                 data['command_args'], 
                 data['website_link'], 
                 data['launch_option'],
+                data['font_size'],
                 ICON_SIZE)
             icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))

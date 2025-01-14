@@ -18,7 +18,8 @@ DEFAULT_DESKTOP =  {
     "executable_path": "",
     "command_args": "",
     "website_link": "",
-    "launch_option": 0
+    "launch_option": 0,
+    "font_size": 10
 }
 
 #launch_option options:
@@ -104,7 +105,8 @@ def get_icon_data(row, column):
                 'executable_path': item.get('executable_path', ""),
                 'command_args': item.get('command_args', ""),
                 'website_link': item.get('website_link', ""),
-                'launch_option': item.get('launch_option', 0)
+                'launch_option': item.get('launch_option', 0),
+                'font_size': item.get('font_size', 10)
             }
     return {
         'icon_path': "",
@@ -112,7 +114,8 @@ def get_icon_data(row, column):
         'executable_path': "",
         'command_args': "",
         'website_link': "",
-        'launch_option': 0
+        'launch_option': 0,
+        'font_size': 10
     }
 
 def get_json():
