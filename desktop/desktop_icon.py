@@ -17,22 +17,24 @@ logger = logging.getLogger(__name__)
 
 
 class DesktopIcon(QGraphicsItem):
-    def __init__(self, row, col, name, icon_path, executable_path, command_args, website_link, launch_option, font_size=10, icon_size=64, parent=None):
+    def __init__(self, row, col, icon_size=64, parent=None):
         super().__init__(parent)
+
+
 
         # Need to be changed manually usually by DesktopGrid (self.desktop_icons[(row, col)].row = X)
         self.row = row
         self.col = col
         self.pixmap = None
 
-        # Reloaded fields can simply be refreshed to match current config by reload_from_config()
-        self.name = name
-        self.icon_path = icon_path
-        self.executable_path = executable_path
-        self.command_args = command_args
-        self.website_link = website_link
-        self.launch_option = launch_option
-        self.font_size = font_size
+        data = get_icon_data(row, col)
+        self.name = data['name']
+        self.icon_path = data['icon_path']
+        self.executable_path = data['executable_path']
+        self.command_args = data['command_args']
+        self.website_link = data['website_link']
+        self.launch_option = data['launch_option']
+        self.font_size = data['font_size']
 
         self.movie = None # For loading a gif
         self.init_movie() # Load movie if .gif icon_path

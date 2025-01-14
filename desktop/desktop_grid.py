@@ -650,17 +650,9 @@ class DesktopGrid(QGraphicsView):
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
         if icon is None:
-            data = get_icon_data(row, col)
             icon_item = DesktopIcon(
                 row, 
                 col, 
-                data['name'], 
-                data['icon_path'], 
-                data['executable_path'], 
-                data['command_args'], 
-                data['website_link'], 
-                data['launch_option'],
-                data['font_size'],
                 ICON_SIZE)
             icon_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
