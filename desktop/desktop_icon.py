@@ -48,7 +48,7 @@ class DesktopIcon(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.hovered = False
         self.padding = 30
-        self.font = QFont(get_setting("font", "Arial"), get_setting("font_size", 10))
+        self.font = QFont(get_setting("font", "Arial"), self.font_size)
 
         self.edit_mode = False
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
