@@ -20,7 +20,7 @@ DEFAULT_DESKTOP =  {
     "command_args": "",
     "website_link": "",
     "launch_option": 0,
-    "font_size": 10
+    "font_size": -1
 }
 
 #launch_option options:

@@ -423,7 +423,7 @@ class Menu(QDialog):
         "command_args": self.command_args_le.text(),
         "website_link": self.web_link_le.text(),
         "launch_option": self.launch_option_cb.currentIndex(),
-        "font_size": 10         ########## ADD MENU OPTION FOR THIS
+        "font_size": -1         ########## ADD MENU OPTION FOR THIS
         }
         config.append(new_entry)
         return config
@@ -438,7 +438,7 @@ class Menu(QDialog):
                 item['command_args'] = self.command_args_le.text()
                 item["website_link"] = self.web_link_le.text()
                 item["launch_option"] = self.launch_option_cb.currentIndex()
-                item['font_size'] = 10         ########## ADD MENU OPTION FOR THIS
+                item['font_size'] = -1         ########## ADD MENU OPTION FOR THIS
                 break
         return config
         
