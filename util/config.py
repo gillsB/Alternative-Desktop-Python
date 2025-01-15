@@ -119,6 +119,14 @@ def get_icon_data(row, column):
         'font_size': 10
     }
 
+def get_icon_font_size(row, col):
+    for item in JSON:
+        if item['row'] == row and item['column'] == col:
+            if item.get('font_size', get_setting("font_size", 10)) <= -1:
+                return get_setting("font_size", 10)
+            else:
+                return item.get('font_size', get_setting("font_size", 10))
+
 def get_json():
     return JSON
 

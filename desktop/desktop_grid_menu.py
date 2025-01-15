@@ -1,5 +1,5 @@
 import logging
-from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog, QFormLayout,
+from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog, QFormLayout, QSpinBox,
                                QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtCore import QSize, Qt
@@ -13,7 +13,7 @@ from icon_gen.icon_selection import select_icon_from_paths
 from icon_gen.favicon_to_image import favicon_to_image
 from icon_gen.browser_to_image import browser_to_image
 from icon_gen.default_icon_to_image import default_icon_to_image
-from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory)
+from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory, get_icon_font_size)
 from util.settings import get_setting
 from menus.display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
@@ -98,8 +98,23 @@ class Menu(QDialog):
 
         self.advanced_tab.setLayout(self.advanced_tab_layout)
 
+        ### end of Advanced tab
+        # Appearance tab below
+        self.appearance_tab = QWidget()
+        self.appearance_tab_layout = QFormLayout()
+
+        self.label_font_size_sb = QSpinBox()
+        self.label_font_size_sb.setRange(0, 100)
+
+        self.appearance_tab_layout.addRow("Font size: ", self.label_font_size_sb)
+
+        self.appearance_tab.setLayout(self.appearance_tab_layout)
+
+        ### end of Appearance tab
+        # Combine all tabs
         self.tabs.addTab(self.basic_tab, "Basic")
         self.tabs.addTab(self.advanced_tab, "Advanced")
+        self.tabs.addTab(self.appearance_tab, "Appearance")
 
         main_layout.addWidget(self.tabs)
 
@@ -114,6 +129,7 @@ class Menu(QDialog):
             self.web_link_le.setText(entry['website_link'])
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
+            self.label_font_size_sb.setValue(get_icon_font_size(ROW, COL))
             LAUNCH_OPTIONS = entry['launch_option']
 
 
