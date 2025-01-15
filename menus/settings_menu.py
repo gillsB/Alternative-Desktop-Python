@@ -356,7 +356,8 @@ class SettingsDialog(QDialog):
         icon_label_inner_layout = QFormLayout()
         icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
-        icon_label_inner_layout.addRow("Font size", self.label_font_size_sb)
+        icon_label_inner_layout.addRow("Default Font size", self.label_font_size_sb)
+        icon_label_inner_layout.itemAt(2).widget().setToolTip("Sets the default font size for icon names. This can be adjusted individually in the icon edit menu.")
         outer_layout.addLayout(icon_label_inner_layout)
 
         # Adds a spacer at the end which pushes up all other separators/content in the tab
