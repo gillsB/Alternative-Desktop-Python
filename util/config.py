@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from util.settings import get_setting
 
 
 logger = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ def get_icon_data(row, column):
                 'command_args': item.get('command_args', ""),
                 'website_link': item.get('website_link', ""),
                 'launch_option': item.get('launch_option', 0),
-                'font_size': item.get('font_size', 10)
+                'font_size': item.get('font_size', get_setting("font_size", 10))
             }
     return {
         'icon_path': "",
