@@ -34,6 +34,7 @@ class Menu(QDialog):
 
         ROW = row
         COL = col
+        self.font_size_changed = False
 
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
 
@@ -43,8 +44,6 @@ class Menu(QDialog):
         
         self.basic_tab = QWidget()
         self.basic_tab_layout = QFormLayout()
-
-        
 
         self.name_le = ClearableLineEdit()
         self.icon_path_le = ClearableLineEdit()
@@ -103,10 +102,11 @@ class Menu(QDialog):
         self.appearance_tab = QWidget()
         self.appearance_tab_layout = QFormLayout()
 
-        self.label_font_size_sb = QSpinBox()
-        self.label_font_size_sb.setRange(0, 100)
+        self.font_size_sb = QSpinBox()
+        self.font_size_sb.setRange(0, 100)
+        self.font_size_sb.valueChanged.connect(self.font_size_changed_toggle)
 
-        self.appearance_tab_layout.addRow("Font size: ", self.label_font_size_sb)
+        self.appearance_tab_layout.addRow("Font size: ", self.font_size_sb)
 
         self.appearance_tab.setLayout(self.appearance_tab_layout)
 
@@ -129,7 +129,7 @@ class Menu(QDialog):
             self.web_link_le.setText(entry['website_link'])
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
-            self.label_font_size_sb.setValue(get_icon_font_size(ROW, COL))
+            self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
             LAUNCH_OPTIONS = entry['launch_option']
 
 
@@ -162,8 +162,6 @@ class Menu(QDialog):
             self.icon_path_le.setText(dropped_path)
         else:
             self.exec_path_le.setText(dropped_path)
-
-
 
     def closeEvent(self, event):
         logger.info("closed edit menu")
@@ -203,7 +201,6 @@ class Menu(QDialog):
             self.exec_path_le.setText(self.exec_path_le.text()[8:])  # remove "file:///"
         elif self.exec_path_le.text().startswith("file://"):
             self.exec_path_le.setText(self.exec_path_le.text()[7:])  # Remove 'file://' prefix
-
 
 
     def save_config(self):
@@ -384,7 +381,6 @@ class Menu(QDialog):
         return non_empty_count >= 2
 
 
-
     #last minute checks before saving
     def handle_save(self):
 
@@ -427,7 +423,6 @@ class Menu(QDialog):
         save_config_to_file(new_config)
         self.close()
 
-        
             
     def add_entry(self, config):
         new_entry = {
@@ -457,8 +452,6 @@ class Menu(QDialog):
                 item['font_size'] = -1         ########## ADD MENU OPTION FOR THIS
                 break
         return config
-        
-
 
 
     def dragEnterEvent(self, event: QDragEnterEvent):
@@ -545,5 +538,8 @@ class Menu(QDialog):
 
     def text_edited(self, new_text):
         logger.debug("text edited, new text: ", new_text)
+
+    def font_size_changed_toggle(self):
+        self.font_size_changed = True
 
 
