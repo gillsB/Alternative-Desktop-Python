@@ -20,7 +20,8 @@ DEFAULT_DESKTOP =  {
     "command_args": "",
     "website_link": "",
     "launch_option": 0,
-    "font_size": -1
+    "font_size": -1,
+    "use_default_font_size": True
 }
 
 #launch_option options:
@@ -107,7 +108,8 @@ def get_icon_data(row, column):
                 'command_args': item.get('command_args', ""),
                 'website_link': item.get('website_link', ""),
                 'launch_option': item.get('launch_option', 0),
-                'font_size': item.get('font_size', get_setting("font_size", 10))
+                'font_size': item.get('font_size', get_setting("font_size", 10)),
+                'use_default_font_size': item.get('use_default_font', True)
             }
     return {
         'icon_path': "",
@@ -116,7 +118,8 @@ def get_icon_data(row, column):
         'command_args': "",
         'website_link': "",
         'launch_option': 0,
-        'font_size': 10
+        'font_size': 10,
+        'use_default_font_size': True
     }
 
 def get_icon_font_size(row, col):
