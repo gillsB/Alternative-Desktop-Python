@@ -130,6 +130,7 @@ class Menu(QDialog):
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
             self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
+            self.use_default_font_size = entry['use_default_font_size']
             LAUNCH_OPTIONS = entry['launch_option']
 
 
@@ -425,6 +426,13 @@ class Menu(QDialog):
 
             
     def add_entry(self, config):
+
+        # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
+        if self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
+            font_size = True
+        else:
+            font_size = False
+
         new_entry = {
         "row": ROW,
         "column": COL,
@@ -434,14 +442,20 @@ class Menu(QDialog):
         "command_args": self.command_args_le.text(),
         "website_link": self.web_link_le.text(),
         "launch_option": self.launch_option_cb.currentIndex(),
-        "font_size": -1,         ########## ADD MENU OPTION FOR THIS
-        "use_default_font_size": True #### Make this actually work
+        "font_size": self.font_size_sb.value(),        ########## ADD MENU OPTION FOR THIS
+        "use_default_font_size": font_size #### Make this actually work
         }
         config.append(new_entry)
         return config
 
 
     def edit_entry(self, config):
+        print(self.use_default_font_size)
+        # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
+        if self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
+            font_size = True
+        else:
+            font_size = False
         for item in config:
             if item['row'] == ROW and item['column'] == COL:
                 item['name'] = self.name_le.text()
@@ -450,8 +464,8 @@ class Menu(QDialog):
                 item['command_args'] = self.command_args_le.text()
                 item["website_link"] = self.web_link_le.text()
                 item["launch_option"] = self.launch_option_cb.currentIndex()
-                item['font_size'] = -1,         ########## ADD MENU OPTION FOR THIS
-                item['use_default_font_size'] = True #### Make this actually work
+                item['font_size'] = self.font_size_sb.value()      ########## ADD MENU OPTION FOR THIS
+                item['use_default_font_size'] = font_size #### Make this actually work
                 break
         return config
 
