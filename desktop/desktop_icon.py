@@ -34,8 +34,8 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
-        self.font_size = get_icon_font_size(self.row, self.col)
         self.use_default_font_size = data['use_default_font_size']
+        self.font_size = get_icon_font_size(self.row, self.col)
         print(f"{self.row} {self.col} font  size = {self.font_size}")
 
         self.movie = None # For loading a gif
