@@ -6,9 +6,9 @@ from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_icon_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
 from util.utils import TempIcon
-from desktop.desktop_grid_menu import Menu
+from desktop.icon_edit_menu import Menu
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
-from desktop.desktop_grid_menu import Menu
+from desktop.icon_edit_menu import Menu
 from desktop.image_background_manager import ImageBackgroundManager
 from desktop.video_background_manager import VideoBackgroundManager
 from desktop.desktop_icon import DesktopIcon
