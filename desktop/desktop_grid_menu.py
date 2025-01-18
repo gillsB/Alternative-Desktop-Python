@@ -104,10 +104,19 @@ class Menu(QDialog):
 
         self.font_size_sb = QSpinBox()
         self.font_size_sb.setRange(0, 100)
+        self.font_size_sb.setFixedWidth(100)
         self.font_size_sb.valueChanged.connect(self.font_size_changed_toggle)
 
-        self.appearance_tab_layout.addRow("Font size: ", self.font_size_sb)
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.setFixedWidth(75)
+        self.reset_button.clicked.connect(self.reset_font_size_to_default)
 
+        font_size_layout = QHBoxLayout()
+        font_size_layout.addWidget(self.font_size_sb)
+        font_size_layout.addWidget(self.reset_button)
+        font_size_layout.setAlignment(Qt.AlignLeft)
+
+        self.appearance_tab_layout.addRow("Font size: ", font_size_layout)
         self.appearance_tab.setLayout(self.appearance_tab_layout)
 
         ### end of Appearance tab
@@ -558,4 +567,6 @@ class Menu(QDialog):
     def font_size_changed_toggle(self):
         self.font_size_changed = True
 
+    def reset_font_size_to_default(self):
+        ...
 
