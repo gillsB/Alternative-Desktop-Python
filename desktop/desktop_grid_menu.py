@@ -35,6 +35,8 @@ class Menu(QDialog):
         ROW = row
         COL = col
         self.font_size_changed = False
+        # Tracker to set font_size back to default if "Reset" button pressed.
+        self.reset_font_size = False
 
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
 
@@ -435,7 +437,9 @@ class Menu(QDialog):
 
             
     def add_entry(self, config):
-
+        # If font size setting's "Reset" button was pressed and no changes after pressing reset.
+        if self.reset_font_size:
+            font_size = True
         # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
         if self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
             font_size = True
@@ -460,8 +464,11 @@ class Menu(QDialog):
 
     def edit_entry(self, config):
         print(self.use_default_font_size)
+        # If font size setting's "Reset" button was pressed and no changes after pressing reset.
+        if self.reset_font_size:
+            font_size = True
         # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
-        if self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
+        elif self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
             font_size = True
         else:
             font_size = False
@@ -566,7 +573,10 @@ class Menu(QDialog):
 
     def font_size_changed_toggle(self):
         self.font_size_changed = True
+        # This is to catch if user hits reset button, then changes font size.
+        self.reset_font_size = False
 
     def reset_font_size_to_default(self):
-        ...
+        self.font_size_sb.setValue(get_setting("font_size", 10))
+        self.reset_font_size = True
 
