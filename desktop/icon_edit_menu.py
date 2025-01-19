@@ -433,6 +433,7 @@ class Menu(QDialog):
 
         self.parent().add_icon(ROW, COL)
         save_config_to_file(new_config)
+        self.parent().reload_icon(ROW, COL)
         self.close()
 
             

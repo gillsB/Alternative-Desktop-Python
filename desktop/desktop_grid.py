@@ -645,7 +645,13 @@ class DesktopGrid(QGraphicsView):
             context_menu.aboutToHide.connect(lambda: self.normal_mode_icon(row, col))
             context_menu.exec(event.globalPos())
 
-            
+    def reload_icon(self, row, col):
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            icon.reload_from_config()
+            logger.info(f"Reloaded icon at ({row}, {col})")
+        else:
+            logger.warning(f"No icon found at ({row}, {col}) to reload.")
     
     def add_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
