@@ -150,7 +150,7 @@ class DesktopGrid(QGraphicsView):
             else:
                 icon.setVisible(False)
 
-    # Override to do nothing to avoid scrolling
+    # Ignores wheel scrolling EXCEPT for when launched with "debug" or "devbug"
     def wheelEvent(self, event):
         delta = event.angleDelta().y()  # Use .y() for vertical scrolling
 
@@ -176,8 +176,8 @@ class DesktopGrid(QGraphicsView):
                 # ERROR on purpose to test logging exceptions/traceback.
                 logger.error("Error triggering on purpose (debug mode enabled for this test)")
                 x = 1/0
-            event.ignore()  # Ignore the event to prevent scrolling
 
+        event.ignore()  # Ignore the event to prevent scrolling
 
 
 

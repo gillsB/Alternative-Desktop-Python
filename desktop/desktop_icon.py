@@ -74,12 +74,14 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
+        self.use_default_font_size = data['use_default_font_size']
+        self.font_size = get_icon_font_size(self.row, self.col)
         self.init_movie()
         self.load_pixmap(True)
 
 
     def update_font(self):
-        self.font = QFont(get_setting("font", "Arial"), get_setting("font_size", 10))
+        self.font = QFont(get_setting("font", "Arial"), get_icon_font_size(self.row, self.col))
         self.update()
 
 
@@ -498,7 +500,13 @@ class DesktopIcon(QGraphicsItem):
 
         # Edit Icon section
         
-        logger.info(f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, Launch option: {self.launch_option}")
+        logger.info(
+            f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, "
+            f"Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, "
+            f"Launch option: {self.launch_option}, Use Default Font Size: {self.use_default_font_size}, "
+            f"Font Size: {self.font_size}"
+        )
+
         
         edit_action = QAction('Edit Icon', context_menu)
         edit_action.triggered.connect(self.edit_triggered)
