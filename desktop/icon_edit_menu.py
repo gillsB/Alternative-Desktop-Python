@@ -178,6 +178,7 @@ class Menu(QDialog):
     def closeEvent(self, event):
         logger.info("closed edit menu")
         self.parent().normal_mode_icon(ROW, COL)
+        self.parent().reload_icon(ROW, COL)
         super().closeEvent(event)
 
     def keyPressEvent(self, event):
@@ -574,6 +575,7 @@ class Menu(QDialog):
 
     def font_size_changed_toggle(self):
         self.font_size_changed = True
+        self.parent().preview_font_change(ROW, COL, self.font_size_sb.value())
         # This is to catch if user hits reset button, then changes font size.
         self.reset_font_size = False
 

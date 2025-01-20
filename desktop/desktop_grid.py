@@ -645,6 +645,16 @@ class DesktopGrid(QGraphicsView):
             context_menu.aboutToHide.connect(lambda: self.normal_mode_icon(row, col))
             context_menu.exec(event.globalPos())
 
+    # Preview an icon with the font_size changed. Make sure to reload_icon upon close/after or it will get stuck.
+    def preview_font_change(self, row, col, font_size):
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            icon.update_font(font_size)
+            logger.info(f"Reloaded icon at {row} {col}")
+        else:
+            logger.warning(f"No icon found at {row} {col} to reload.")
+
+    # Ensures all variables are up to date and repaints the icon (including name label).
     def reload_icon(self, row, col):
         icon = self.desktop_icons.get((row, col))
         if icon:

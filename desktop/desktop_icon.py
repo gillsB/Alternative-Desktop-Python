@@ -80,8 +80,13 @@ class DesktopIcon(QGraphicsItem):
         self.load_pixmap(True)
         self.update_font()
 
-    def update_font(self):
-        self.font = QFont(get_setting("font", "Arial"), self.font_size)
+    def update_font(self, font_size= None):
+        print(f"update font called with font_size = {font_size}")
+        if font_size == None:
+            self.font = QFont(get_setting("font", "Arial"), self.font_size)
+        else:
+            print(f"using custom font size")
+            self.font = QFont(get_setting("font", "Arial"), font_size)
         self.update()
 
 
