@@ -141,7 +141,7 @@ class Menu(QDialog):
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
             self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
-            self.use_default_font_size = entry['use_default_font_size']
+            self.use_default_font_size = entry.get('use_default_font_size', True)
             LAUNCH_OPTIONS = entry['launch_option']
 
 
