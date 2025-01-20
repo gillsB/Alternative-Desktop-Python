@@ -338,7 +338,7 @@ class SettingsDialog(QDialog):
         # Label font size
         self.label_font_size_sb = QSpinBox()
         self.label_font_size_sb.setValue(self.settings.get("font_size", 10))
-        self.label_font_size_sb.setRange(2, 100)
+        self.label_font_size_sb.setRange(0, 100)
         self.label_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
 

@@ -186,6 +186,8 @@ class DesktopIcon(QGraphicsItem):
                 else:
                     logger.error(f"Failed to load unknown pixmap for {self.row}, {self.col}")
 
+        # If the user has set the font size to 0, do not render the text.
+        if self.font_size > 0:
             painter.setFont(self.font)
 
             lines = self.get_multiline_text(self.font, self.name)
