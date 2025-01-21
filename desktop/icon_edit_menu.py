@@ -150,7 +150,7 @@ class Menu(QDialog):
         if urls != None:
             self.get_drop(urls)
 
-        self.parent().edit_mode_icon(ROW, COL)
+        self.parent().draw_red_border(ROW, COL)
 
         auto_gen_icon_button = QPushButton("Auto generate icon")
         auto_gen_icon_button.clicked.connect(self.auto_gen_button)
@@ -177,7 +177,7 @@ class Menu(QDialog):
 
     def closeEvent(self, event):
         logger.info("closed edit menu")
-        self.parent().normal_mode_icon(ROW, COL)
+        self.parent().hide_red_border(ROW, COL)
         self.parent().reload_icon(ROW, COL)
         super().closeEvent(event)
 
@@ -196,7 +196,8 @@ class Menu(QDialog):
         else:
             self.parent().set_icon_path(ROW, COL, "assets/images/unknown.png")
             pass
-        self.parent().edit_mode_icon(ROW, COL)
+        # Called to paint border over the new icon path.
+        self.parent().draw_red_border(ROW, COL)
     
 
     ## clean up common problems with file path, i.e. copying a file and pasting into exec_path produces file:///C:/...
@@ -261,7 +262,8 @@ class Menu(QDialog):
             self.icon_path_le.setText("")
             logger.info("User chose to overwrite icon (OK). Generating icon.")
         self.auto_gen_icon()
-        self.parent().edit_mode_icon(ROW, COL)
+        # Called to paint the red border over the auto_gen_icon.
+        self.parent().draw_red_border(ROW, COL)
 
     def auto_gen_icon(self):
         self.parent().set_cursor(Qt.BusyCursor) 

@@ -373,7 +373,7 @@ class DesktopGrid(QGraphicsView):
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
             self.scene.addItem(self.temp_icon)
 
-    def edit_mode_icon(self, row, col):
+    def draw_red_border(self, row, col):
         # Ensure only 1 red border icon exists at a time.
         self.remove_red_border_icon()
         # Add red border item
@@ -382,7 +382,7 @@ class DesktopGrid(QGraphicsView):
                         TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
         self.scene.addItem(self.red_border_item)
 
-    def normal_mode_icon(self, row, col):
+    def hide_red_border(self, row, col):
 
         self.remove_red_border_icon()
         self.remove_temp_icon()
@@ -626,7 +626,7 @@ class DesktopGrid(QGraphicsView):
             return
 
         icon = self.desktop_icons.get((row, col))
-        self.edit_mode_icon(row, col)
+        self.draw_red_border(row, col)
         if icon:
             logger.info(f"Showing context menu for icon: {icon.name}")
             context_menu = icon.context_menu(event)
@@ -638,10 +638,10 @@ class DesktopGrid(QGraphicsView):
             edit_action.triggered.connect(lambda: self.show_grid_menu(row, col))
             context_menu.addAction(edit_action)
 
-            context_menu.aboutToHide.connect(lambda: self.normal_mode_icon(row, col))
+            context_menu.aboutToHide.connect(lambda: self.hide_red_border(row, col))
             context_menu.exec(event.globalPos())
 
-        self.normal_mode_icon(row, col)
+        self.hide_red_border(row, col)
 
     # Preview an icon with the font_size changed. Make sure to reload_icon upon close/after or it will get stuck.
     def preview_font_change(self, row, col, font_size):
