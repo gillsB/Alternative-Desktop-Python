@@ -52,7 +52,6 @@ class DesktopIcon(QGraphicsItem):
         self.padding = 30
         self.font = QFont(get_setting("font", "Arial"), self.font_size)
 
-        self.edit_mode = False
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
         self.load_pixmap()
         self.log_paints = False
@@ -98,13 +97,6 @@ class DesktopIcon(QGraphicsItem):
         self.text_height = self.calculate_text_height(self.name)
         return QRectF(0, 0, self.icon_size, self.icon_size + self.text_height + self.padding)
     
-    def edit_mode_icon(self):
-        self.edit_mode = True
-        self.update() 
-    
-    def normal_mode_icon(self):
-        self.edit_mode = False
-        self.update() 
 
     # reset_cache variable defaults to false, when True will place the new icon into cache and discard old icon.
     def load_pixmap(self, reset_cache=False):
@@ -213,15 +205,6 @@ class DesktopIcon(QGraphicsItem):
                 painter.setPen(text_color)
                 painter.drawText(0, text_y, line)
 
-        if self.edit_mode:
-            border_width = get_setting("border_width", 5)
-            color = QColor(get_setting("border_color", "#ff0000"))
-            pen = QPen(color, border_width)
-            painter.setPen(pen)
-            rect = self.boundingRect()
-            # Draw the border inside the square, adjusted for the border width
-            adjusted_rect = rect.adjusted(border_width/2, border_width/2, -border_width/2, -border_width/2)
-            painter.drawRect(adjusted_rect)
                 
 
     def init_movie(self):
@@ -503,8 +486,6 @@ class DesktopIcon(QGraphicsItem):
     def context_menu(self, event):
         context_menu = QMenu()
 
-        self.edit_mode_icon()
-
         # Edit Icon section
         
         logger.info(
@@ -575,7 +556,6 @@ class DesktopIcon(QGraphicsItem):
 
     def context_menu_closed(self):
         logger.debug("Context menu closed")
-        self.normal_mode_icon()
 
     def edit_triggered(self):
         view = self.scene().views()[0]
