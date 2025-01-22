@@ -375,27 +375,22 @@ class DesktopGrid(QGraphicsView):
 
     def draw_red_border(self, row, col):
         # Ensure only 1 red border icon exists at a time.
-        self.remove_red_border_icon()
+        self.remove_red_border()
         # Add red border item
         self.red_border_item = RedBorderItem(col, row)
         self.red_border_item.setPos(SIDE_PADDING + col * (ICON_SIZE + HORIZONTAL_PADDING), 
                         TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
         self.scene.addItem(self.red_border_item)
 
-    def hide_red_border(self, row, col):
-
-        self.remove_red_border_icon()
-        self.remove_temp_icon()
-
-    def remove_red_border_icon(self):
+    def remove_red_border(self):
         if hasattr(self, 'red_border_item') and self.red_border_item is not None:
             self.scene.removeItem(self.red_border_item)
             self.red_border_item = None
     
     def remove_temp_icon(self):
-        if hasattr(self, 'temp_icon') and self.temp_icon is not None:
+        if hasattr(self, 'temp_icon'):
             self.scene.removeItem(self.temp_icon)
-            self.temp_icon = None
+        self.temp_icon = None
 
     def icon_dropped(self, pos):
         # Calculate the column based on the X position of the mouse
@@ -638,10 +633,10 @@ class DesktopGrid(QGraphicsView):
             edit_action.triggered.connect(lambda: self.show_grid_menu(row, col))
             context_menu.addAction(edit_action)
 
-            context_menu.aboutToHide.connect(lambda: self.hide_red_border(row, col))
+            context_menu.aboutToHide.connect(lambda: self.remove_red_border())
             context_menu.exec(event.globalPos())
 
-        self.hide_red_border(row, col)
+        self.remove_red_border()
 
     # Preview an icon with the font_size changed. Make sure to reload_icon upon close/after or it will get stuck.
     def preview_font_change(self, row, col, font_size):
