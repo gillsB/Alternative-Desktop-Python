@@ -178,6 +178,7 @@ class Menu(QDialog):
     def closeEvent(self, event):
         logger.info("closed edit menu")
         self.parent().remove_red_border()
+        self.parent().remove_temp_icon()
         self.parent().reload_icon(ROW, COL)
         super().closeEvent(event)
 

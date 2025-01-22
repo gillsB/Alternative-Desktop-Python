@@ -633,10 +633,10 @@ class DesktopGrid(QGraphicsView):
             edit_action.triggered.connect(lambda: self.show_grid_menu(row, col))
             context_menu.addAction(edit_action)
 
-            context_menu.aboutToHide.connect(lambda: self.remove_red_border())
             context_menu.exec(event.globalPos())
 
         self.remove_red_border()
+        self.remove_temp_icon()
 
     # Preview an icon with the font_size changed. Make sure to reload_icon upon close/after or it will get stuck.
     def preview_font_change(self, row, col, font_size):
