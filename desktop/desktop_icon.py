@@ -635,7 +635,9 @@ class DesktopIcon(QGraphicsItem):
     def update_icon_path(self, icon_path):
         if self.icon_path != icon_path:
             self.icon_path = icon_path
-            self.init_movie() # Load gif into movie if icon_path is .gif
+            self.init_movie()
+        if not self.movie:
+            self.load_pixmap(reset_cache=True)
         self.update()
 
     # Override mousePressEvent
