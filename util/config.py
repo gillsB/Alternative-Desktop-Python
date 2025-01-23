@@ -270,5 +270,14 @@ def update_folder( new_row, new_col):
     save_config_to_file(config)
             
 
+def reset_all_to_default_font_size():
+    config = load_desktop_config()
+
+    for entry in config:
+        entry['use_default_font_size'] = True
+    
+    save_config_to_file(config)
+            
+
 def get_data_directory():
     return DATA_DIRECTORY

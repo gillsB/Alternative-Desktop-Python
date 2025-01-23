@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint
 from PySide6.QtGui import QKeySequence, QColor
 from util.utils import ClearableLineEdit, SliderWithInput, create_separator
 from util.settings import get_setting, set_setting, load_settings, save_settings
+from util.config import reset_all_to_default_font_size
 from menus.display_warning import (display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved,
                                 display_multiple_working_keybind_warning, display_reset_default_font_size_warning)
 import os
@@ -800,9 +801,14 @@ class SettingsDialog(QDialog):
     
     def reset_default_font_clicked(self):
         if display_reset_default_font_size_warning() == QMessageBox.Ok:
-            print("will reset all fonts to default font")
+            logger.info("User chose to reset all to default font size.")
+            reset_all_to_default_font_size()
         else:
-            print("user cancelled")
+            logger.info("User chose NOT to reset all font sizes.")
+
+
+
+
 
 class KeybindButton(QPushButton):
     def __init__(self, parent=None):
