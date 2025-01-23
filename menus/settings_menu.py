@@ -4,7 +4,8 @@ from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint
 from PySide6.QtGui import QKeySequence, QColor
 from util.utils import ClearableLineEdit, SliderWithInput, create_separator
 from util.settings import get_setting, set_setting, load_settings, save_settings
-from menus.display_warning import display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_multiple_working_keybind_warning
+from menus.display_warning import (display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved,
+                                display_multiple_working_keybind_warning, display_reset_default_font_size_warning)
 import os
 import logging
 
@@ -345,7 +346,7 @@ class SettingsDialog(QDialog):
         reset_button.setAutoDefault(False)
         reset_button.setDefault(False)
         reset_button.setFixedWidth(75)
-        reset_button.clicked.connect(self.reset_default_font)
+        reset_button.clicked.connect(self.reset_default_font_clicked)
         font_size_layout = QHBoxLayout()
         font_size_layout.addWidget(self.label_font_size_sb)
         font_size_layout.addWidget(reset_button)
@@ -796,6 +797,12 @@ class SettingsDialog(QDialog):
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             self.background_image.setText(selected_file)
+    
+    def reset_default_font_clicked(self):
+        if display_reset_default_font_size_warning() == QMessageBox.Ok:
+            print("will reset all fonts to default font")
+        else:
+            print("user cancelled")
 
 class KeybindButton(QPushButton):
     def __init__(self, parent=None):
@@ -986,6 +993,3 @@ class KeybindButton(QPushButton):
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
         self.setText(get_setting("toggle_overlay_keybind", "alt+d"))
-
-    def reset_default_font():
-        print("reset button clicked")

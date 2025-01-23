@@ -172,3 +172,11 @@ def display_cannot_swap_icons_warning(error):
         "Cannot swap icons", 
         f"An error occurred upon trying to swap folders for icons, to ensure icon paths do not get corrupted, the swap has been cancelled. \nError: {error}"
     )
+
+def display_reset_default_font_size_warning():
+    logger.warning("Displaying Warning to reset all fonts to Default font size in settings.")
+    return show_highlightable_message_box(
+        "Reset ALL font sizes", 
+        "This will reset <b>ALL</b> font sizes for <b>ALL</b> icons. ", 
+        QMessageBox.Ok | QMessageBox.Cancel
+    )
