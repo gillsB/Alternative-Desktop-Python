@@ -341,7 +341,17 @@ class SettingsDialog(QDialog):
         self.label_font_size_sb.setRange(0, 100)
         self.label_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
+        reset_button = QPushButton("Reset")
+        reset_button.setAutoDefault(False)
+        reset_button.setDefault(False)
+        reset_button.setFixedWidth(75)
+        reset_button.clicked.connect(self.reset_default_font)
+        font_size_layout = QHBoxLayout()
+        font_size_layout.addWidget(self.label_font_size_sb)
+        font_size_layout.addWidget(reset_button)
 
+
+        # Adding layouts to menu
         left_padding = 20
 
         outer_layout.addLayout(create_separator("Icon Appearance"))
@@ -356,7 +366,7 @@ class SettingsDialog(QDialog):
         icon_label_inner_layout = QFormLayout()
         icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
         icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
-        icon_label_inner_layout.addRow("Default Font size", self.label_font_size_sb)
+        icon_label_inner_layout.addRow("Default Font size", font_size_layout)
         icon_label_inner_layout.itemAt(2).widget().setToolTip("Sets the default font size for icon names. This can be adjusted individually in the icon edit menu.")
         outer_layout.addLayout(icon_label_inner_layout)
 
@@ -976,3 +986,6 @@ class KeybindButton(QPushButton):
     def set_keybind(self):
         logger.error("Resetting keybind to last keybind saved")
         self.setText(get_setting("toggle_overlay_keybind", "alt+d"))
+
+    def reset_default_font():
+        print("reset button clicked")
