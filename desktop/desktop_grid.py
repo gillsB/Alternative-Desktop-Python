@@ -302,8 +302,13 @@ class DesktopGrid(QGraphicsView):
         menu = Menu(None, row, col, dropped_path, parent=self)
         main_window_size = self.parent().size()
         main_window_height = main_window_size.height()
-        dialog_width = main_window_size.width() / 3
-        dialog_height = main_window_size.height() / 2
+        dialog_width = min(main_window_size.width() / 3, 725)
+        dialog_height = min(main_window_size.height() / 2, 550)
+
+        logger.info(f"base monitor width: {main_window_size.width()} resize width: {main_window_size.width() / 3}")
+        logger.info(f"base monitor height: {main_window_size.height()} resize height: {main_window_size.height() / 2}")
+        logger.info(f"dialog_width set to {dialog_width}")
+        logger.info(f"dialog_height set to {dialog_height}")
 
         # Get the desktop icon's screen position (relative to QGraphicsView)
         icon_pos = self.get_icon_position(row, col)
