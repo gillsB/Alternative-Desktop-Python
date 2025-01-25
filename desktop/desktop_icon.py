@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QGraphicsItem, QDialog, QMenu, QMessageBox, QToolT
 from PySide6.QtCore import Qt, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QPainterPath, QPen, QAction, QMovie, QPixmapCache
 from util.settings import get_setting
-from util.config import get_icon_data, is_default, get_data_directory, change_launch, set_entry_to_default, get_icon_font_size
+from util.config import get_icon_data, is_default, get_data_directory, change_launch, set_entry_to_default, get_icon_font_size, get_icon_font_color
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import (display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, 
                                    display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_cannot_swap_icons_warning)
@@ -36,7 +36,7 @@ class DesktopIcon(QGraphicsItem):
         self.launch_option = data['launch_option']
         self.use_default_font_size = data['use_default_font_size']
         self.font_size = get_icon_font_size(self.row, self.col)
-        print(f"{self.row} {self.col} font  size = {self.font_size}")
+        self.font_color = get_icon_font_color(self.row, self.col)
 
         self.movie = None # For loading a gif
         self.init_movie() # Load movie if .gif icon_path
@@ -492,7 +492,7 @@ class DesktopIcon(QGraphicsItem):
             f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, "
             f"Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, "
             f"Launch option: {self.launch_option}, Use Default Font Size: {self.use_default_font_size}, "
-            f"Font Size: {self.font_size}"
+            f"Font Size: {self.font_size}, font_color {self.font_color}"
         )
 
         

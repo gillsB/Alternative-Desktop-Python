@@ -21,7 +21,9 @@ DEFAULT_DESKTOP =  {
     "website_link": "",
     "launch_option": 0,
     "font_size": -1,
-    "use_default_font_size": True
+    "use_default_font_size": True,
+    "font_color": "#ffffff",
+    "use_default_font_color": True
 }
 
 #launch_option options:
@@ -109,7 +111,8 @@ def get_icon_data(row, column):
                 'website_link': item.get('website_link', ""),
                 'launch_option': item.get('launch_option', 0),
                 'font_size': item.get('font_size', get_setting("font_size", 10)),
-                'use_default_font_size': item.get('use_default_font', True)
+                'use_default_font_size': item.get('use_default_font', True),
+                'font_color': item.get('font_color', get_setting("label_color", 10))
             }
     return {
         'icon_path': "",
@@ -119,7 +122,8 @@ def get_icon_data(row, column):
         'website_link': "",
         'launch_option': 0,
         'font_size': 10,
-        'use_default_font_size': True
+        'use_default_font_size': True,
+        'font_color': "#ffffff"
     }
 
 def get_icon_font_size(row, col):
@@ -129,6 +133,14 @@ def get_icon_font_size(row, col):
                 return get_setting("font_size", 10)
             else:
                 return item.get('font_size', get_setting("font_size", 10))
+
+def get_icon_font_color(row, col):
+    for item in JSON:
+        if item['row'] == row and item['column'] == col:
+            if item.get('use_default_font_color'):
+                return get_setting("font_color", "#ffffff")
+            else:
+                return item.get('font_color', get_setting("font_color", "#ffffff"))
 
 def get_json():
     return JSON
