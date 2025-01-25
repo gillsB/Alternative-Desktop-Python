@@ -112,7 +112,8 @@ def get_icon_data(row, column):
                 'launch_option': item.get('launch_option', 0),
                 'font_size': item.get('font_size', get_setting("font_size", 10)),
                 'use_default_font_size': item.get('use_default_font', True),
-                'font_color': item.get('font_color', get_setting("label_color", 10))
+                'font_color': item.get('font_color', get_setting("label_color", 10)),
+                'use_default_font_color': item.get('use_default_font_color', True)
             }
     return {
         'icon_path': "",
@@ -123,7 +124,8 @@ def get_icon_data(row, column):
         'launch_option': 0,
         'font_size': 10,
         'use_default_font_size': True,
-        'font_color': "#ffffff"
+        'font_color': "#ffffff",
+        'use_default_font_color': True
     }
 
 def get_icon_font_size(row, col):

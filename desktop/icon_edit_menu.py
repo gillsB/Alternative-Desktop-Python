@@ -451,6 +451,9 @@ class Menu(QDialog):
         else:
             font_size = False
 
+        ############ ADD LOGIC TO THIS.
+        font_color = True
+
         new_entry = {
         "row": ROW,
         "column": COL,
@@ -462,7 +465,8 @@ class Menu(QDialog):
         "launch_option": self.launch_option_cb.currentIndex(),
         "font_size": self.font_size_sb.value(),
         "use_default_font_size": font_size,
-        "font_color": "#ff00ff"
+        "font_color": "#ff00ff",
+        "use_default_font_color": font_color ############ Fix this (see above)
         }
         config.append(new_entry)
         return config
@@ -478,6 +482,10 @@ class Menu(QDialog):
             font_size = True
         else:
             font_size = False
+
+        ############ ADD LOGIC TO THIS
+        font_color = True 
+
         for item in config:
             if item['row'] == ROW and item['column'] == COL:
                 item['name'] = self.name_le.text()
@@ -489,6 +497,7 @@ class Menu(QDialog):
                 item['font_size'] = self.font_size_sb.value()
                 item['use_default_font_size'] = font_size
                 item['font_color'] = "#ff00ff"
+                item['use_default_font_color'] = font_color ############ fix (see above)
                 break
         return config
 
