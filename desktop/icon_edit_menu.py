@@ -1,7 +1,7 @@
 import logging
-from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog, QFormLayout, QSpinBox,
-                               QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
-from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog, QFormLayout, QSpinBox, QLabel, QColorDialog,
+                            QMessageBox, QTabWidget, QComboBox, QStyle, QFileDialog)
+from PySide6.QtGui import QDragEnterEvent, QDropEvent, QColor
 from PySide6.QtCore import QSize, Qt
 from util.utils import ClearableLineEdit
 from icon_gen.icon_utils import get_exact_img_file, make_local_icon
@@ -109,17 +109,35 @@ class Menu(QDialog):
         self.font_size_sb.setFixedWidth(100)
         self.font_size_sb.valueChanged.connect(self.font_size_changed_toggle)
 
-        self.reset_button = QPushButton("Reset")
-        self.reset_button.setFixedWidth(75)
-        self.reset_button.clicked.connect(self.reset_font_size_to_default)
+        self.reset_size_button = QPushButton("Reset")
+        self.reset_size_button.setFixedWidth(75)
+        self.reset_size_button.clicked.connect(self.reset_font_size_to_default)
 
         font_size_layout = QHBoxLayout()
         font_size_layout.addWidget(self.font_size_sb)
-        font_size_layout.addWidget(self.reset_button)
+        font_size_layout.addWidget(self.reset_size_button)
         font_size_layout.setAlignment(Qt.AlignLeft)
 
+
+        self.font_color = get_setting("label_color", "#ffffff")
+        self.custom_font_color = QPushButton("", self)
+        self.custom_font_color.clicked.connect(self.open_color_dialog)
+        self.custom_font_color.setFixedSize(QSize(75, 30))
+        self.custom_font_color.setAutoDefault(False)
+        self.custom_font_color.setDefault(False)
+        self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};")  # Apply color to button
+
+        self.custom_bg_color_label = QLabel("Font color:")
+
+        font_color_layout = QHBoxLayout()
+        font_color_layout.addWidget(self.custom_font_color)
+        font_color_layout.addWidget(self.reset_size_button)
+        font_color_layout.setAlignment(Qt.AlignLeft)
+
         self.appearance_tab_layout.addRow("Font size: ", font_size_layout)
+        self.appearance_tab_layout.addRow(self.custom_bg_color_label, self.custom_font_color)
         self.appearance_tab.setLayout(self.appearance_tab_layout)
+
 
         ### end of Appearance tab
         # Combine all tabs
@@ -597,3 +615,23 @@ class Menu(QDialog):
         self.font_size_sb.setValue(get_setting("font_size", 10))
         self.reset_font_size = True
 
+
+    def open_color_dialog(self):
+        color_dialog = QColorDialog(self)
+        color_dialog.setCurrentColor(QColor(self.font_color))  # Set current color from font_color
+
+        # Preview based on currently selected color in selector.
+        def update_color(color):
+            if color.isValid():
+                new_color = color.name()
+                self.font_color = new_color 
+                self.custom_font_color.setStyleSheet(f"background-color: {new_color};")  # Update button background color
+
+        color_dialog.currentColorChanged.connect(update_color)
+
+        # Accepted means full return (clicked Ok)
+        if color_dialog.exec() == QDialog.Accepted:
+            selected_color = color_dialog.currentColor()
+            if selected_color.isValid():
+                self.font_color = selected_color.name()
+                self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};")  # Update button background color
