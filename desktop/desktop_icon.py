@@ -189,7 +189,8 @@ class DesktopIcon(QGraphicsItem):
 
             # Define the outline color and main text color
             outline_color = QColor(0, 0, 0)  # Black outline Eventually will have a setting
-            text_color = QColor(get_setting("label_color", "white"))  # Text label Color setting 
+
+            text_color = QColor(self.font_color)
 
             for i, line in enumerate(lines):
                 text_y = self.icon_size + self.padding / 2 + i * 15
