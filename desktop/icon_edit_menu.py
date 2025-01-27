@@ -37,6 +37,7 @@ class Menu(QDialog):
         self.font_size_changed = False
         # Tracker to set font_size back to default if "Reset" button pressed.
         self.reset_font_size = False
+        self.reset_font_color = False
 
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_DesktopIcon))
 
@@ -129,13 +130,17 @@ class Menu(QDialog):
 
         self.custom_bg_color_label = QLabel("Font color:")
 
+        self.reset_color_button = QPushButton("Reset")
+        self.reset_color_button.setFixedWidth(75)
+        self.reset_color_button.clicked.connect(self.reset_font_color_to_default)
+
         font_color_layout = QHBoxLayout()
         font_color_layout.addWidget(self.custom_font_color)
-        font_color_layout.addWidget(self.reset_size_button)
+        font_color_layout.addWidget(self.reset_color_button)
         font_color_layout.setAlignment(Qt.AlignLeft)
 
         self.appearance_tab_layout.addRow("Font size: ", font_size_layout)
-        self.appearance_tab_layout.addRow(self.custom_bg_color_label, self.custom_font_color)
+        self.appearance_tab_layout.addRow(self.custom_bg_color_label, font_color_layout)
         self.appearance_tab.setLayout(self.appearance_tab_layout)
 
 
@@ -614,6 +619,11 @@ class Menu(QDialog):
     def reset_font_size_to_default(self):
         self.font_size_sb.setValue(get_setting("font_size", 10))
         self.reset_font_size = True
+    def reset_font_color_to_default(self):
+        print("reset font color")
+        self.font_color = (get_setting("label_color", "#ffffff"))
+        self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};") 
+        self.reset_font_color = True
 
 
     def open_color_dialog(self):
