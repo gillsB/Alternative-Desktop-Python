@@ -35,6 +35,7 @@ class Menu(QDialog):
         ROW = row
         COL = col
         self.font_size_changed = False
+        self.font_color_changed = False
         # Tracker to set font_size back to default if "Reset" button pressed.
         self.reset_font_size = False
         self.reset_font_color = False
@@ -628,7 +629,8 @@ class Menu(QDialog):
 
     def open_color_dialog(self):
         color_dialog = QColorDialog(self)
-        color_dialog.setCurrentColor(QColor(self.font_color))  # Set current color from font_color
+        init_color = self.font_color
+        color_dialog.setCurrentColor(init_color)  
 
         # Preview based on currently selected color in selector.
         def update_color(color):
@@ -643,5 +645,9 @@ class Menu(QDialog):
         if color_dialog.exec() == QDialog.Accepted:
             selected_color = color_dialog.currentColor()
             if selected_color.isValid():
+                # If init color is same as saved color, font_color has not changed.
+                if init_color != selected_color.name():
+                    logger.info(f"User saved color selector with a different color than when opened. {selected_color.name()}")
+                    self.font_color_changed = True
                 self.font_color = selected_color.name()
                 self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};")  # Update button background color
