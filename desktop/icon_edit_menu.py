@@ -109,7 +109,6 @@ class Menu(QDialog):
         self.font_size_sb = QSpinBox()
         self.font_size_sb.setRange(0, 100)
         self.font_size_sb.setFixedWidth(100)
-        self.font_size_sb.valueChanged.connect(self.font_size_changed_toggle)
 
         self.reset_size_button = QPushButton("Reset")
         self.reset_size_button.setFixedWidth(75)
@@ -169,6 +168,8 @@ class Menu(QDialog):
             LAUNCH_OPTIONS = entry['launch_option']
 
 
+        # Deliberately delayed adding until after loading the value to avoid calling it when loading the value.
+        self.font_size_sb.valueChanged.connect(self.font_size_changed_toggle)
 
         self.setWindowTitle(f"Editing [{ROW}, {COL}]: {self.name_le.text()}")
         if urls != None:
