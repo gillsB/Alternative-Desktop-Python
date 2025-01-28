@@ -128,6 +128,8 @@ def get_icon_data(row, column):
         'use_default_font_color': True
     }
 
+
+# This is an override which returns the global font_size if the DesktopIcon uses default. And the local font_size if it uses a custom font_size.
 def get_icon_font_size(row, col):
     for item in JSON:
         if item['row'] == row and item['column'] == col:
@@ -135,12 +137,12 @@ def get_icon_font_size(row, col):
                 return get_setting("font_size", 10)
             else:
                 return item.get('font_size', get_setting("font_size", 10))
-
+# This is an override which returns the global label_color if the DesktopIcon uses default. And the local font_color if it uses a custom font_color.
 def get_icon_font_color(row, col):
     for item in JSON:
         if item['row'] == row and item['column'] == col:
             if item.get('use_default_font_color'):
-                return get_setting("font_color", "#ffffff")
+                return get_setting("label_color", "#ffffff")
             else:
                 return item.get('font_color', get_setting("font_color", "#ffffff"))
 
