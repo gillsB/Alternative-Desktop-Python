@@ -466,17 +466,9 @@ class Menu(QDialog):
 
             
     def add_entry(self, config):
-        # If font size setting's "Reset" button was pressed and no changes after pressing reset.
-        if self.reset_font_size:
-            font_size = True
-        # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
-        if self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
-            font_size = True
-        else:
-            font_size = False
 
-        ############ ADD LOGIC TO THIS.
-        font_color = True
+        font_size, font_color = self.is_non_default_font()
+        print(f"font_size {font_size}, font_color {font_color}")
 
         new_entry = {
         "row": ROW,
@@ -497,18 +489,8 @@ class Menu(QDialog):
 
 
     def edit_entry(self, config):
-        print(self.use_default_font_size)
-        # If font size setting's "Reset" button was pressed and no changes after pressing reset.
-        if self.reset_font_size:
-            font_size = True
-        # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
-        elif self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
-            font_size = True
-        else:
-            font_size = False
-
-        ############ ADD LOGIC TO THIS
-        font_color = True 
+        font_size, font_color = self.is_non_default_font()
+        print(f"font_size {font_size}, font_color {font_color}")
 
         for item in config:
             if item['row'] == ROW and item['column'] == COL:
@@ -625,6 +607,20 @@ class Menu(QDialog):
         self.font_color = (get_setting("label_color", "#ffffff"))
         self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};") 
         self.reset_font_color = True
+
+    def is_non_default_font(self):
+        # If font size setting's "Reset" button was pressed and no changes after pressing reset.
+        if self.reset_font_size:
+            font_size = True
+        # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
+        elif self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
+            font_size = True
+        else:
+            font_size = False
+
+        font_color = True
+
+        return font_size, font_color
 
 
     def open_color_dialog(self):
