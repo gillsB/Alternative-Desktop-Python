@@ -111,7 +111,7 @@ def get_icon_data(row, column):
                 'website_link': item.get('website_link', ""),
                 'launch_option': item.get('launch_option', 0),
                 'font_size': item.get('font_size', get_setting("font_size", 10)),
-                'use_default_font_size': item.get('use_default_font', True),
+                'use_default_font_size': item.get('use_default_font_size', True),
                 'font_color': item.get('font_color', get_setting("label_color", 10)),
                 'use_default_font_color': item.get('use_default_font_color', True)
             }
