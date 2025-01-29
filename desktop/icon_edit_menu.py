@@ -120,7 +120,7 @@ class Menu(QDialog):
         font_size_layout.setAlignment(Qt.AlignLeft)
 
 
-        self.font_color = get_setting("label_color", "#ffffff")
+        self.font_color = get_setting("global_font_color", "#ffffff")
         self.custom_font_color = QPushButton("", self)
         self.custom_font_color.clicked.connect(self.open_color_dialog)
         self.custom_font_color.setFixedSize(QSize(75, 30))

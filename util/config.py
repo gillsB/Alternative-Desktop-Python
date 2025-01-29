@@ -145,7 +145,7 @@ def get_icon_font_color(row, col):
             if item.get('use_global_font_color'):
                 return get_setting("global_font_color", "#ffffff")
             else:
-                return item.get('font_color', get_setting("font_color", "#ffffff"))
+                return item.get('font_color', get_setting("global_font_color", "#ffffff"))
 
 def get_json():
     return JSON
