@@ -167,7 +167,7 @@ class SettingsDialog(QDialog):
         self.max_cols_sb.setRange(0, 100)
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
 
-        self.label_color = self.settings.get("global_font_color", "white") #default white
+        self.global_font_color = self.settings.get("global_font_color", "white") #default white
 
         # Outer layout is for default padding. I.e. Separators which have no padding
         outer_layout = QVBoxLayout()
@@ -329,19 +329,19 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.setSliderPosition(self.settings.get("icon_size", 100))
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
 
-        ### Icon Label
+        ### Icon Name
         # Flat color button, when clicked opens color dialog
-        self.label_color_box = QPushButton("", self)
-        self.label_color_box.clicked.connect(self.open_color_dialog)
-        self.label_color_box.setFixedSize(QSize(75, 30))
-        self.label_color_box.setAutoDefault(False)
-        self.label_color_box.setDefault(False)
+        self.icon_name_color_box = QPushButton("", self)
+        self.icon_name_color_box.clicked.connect(self.open_color_dialog)
+        self.icon_name_color_box.setFixedSize(QSize(75, 30))
+        self.icon_name_color_box.setAutoDefault(False)
+        self.icon_name_color_box.setDefault(False)
 
-        # Label font size
-        self.label_font_size_sb = QSpinBox()
-        self.label_font_size_sb.setValue(self.settings.get("global_font_size", 10))
-        self.label_font_size_sb.setRange(0, 100)
-        self.label_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
+        # Name font size
+        self.icon_name_font_size_sb = QSpinBox()
+        self.icon_name_font_size_sb.setValue(self.settings.get("global_font_size", 10))
+        self.icon_name_font_size_sb.setRange(0, 100)
+        self.icon_name_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
         reset_button = QPushButton("Reset")
         reset_button.setAutoDefault(False)
@@ -349,7 +349,7 @@ class SettingsDialog(QDialog):
         reset_button.setFixedWidth(75)
         reset_button.clicked.connect(self.reset_default_font_clicked)
         font_size_layout = QHBoxLayout()
-        font_size_layout.addWidget(self.label_font_size_sb)
+        font_size_layout.addWidget(self.icon_name_font_size_sb)
         font_size_layout.addWidget(reset_button)
 
 
@@ -363,14 +363,14 @@ class SettingsDialog(QDialog):
         icon_appearance_inner_layout.addRow("Desktop Icon Size", self.icon_size_slider)
         outer_layout.addLayout(icon_appearance_inner_layout)
 
-        outer_layout.addLayout(create_separator("Icon Label"))
+        outer_layout.addLayout(create_separator("Icon Name"))
 
-        icon_label_inner_layout = QFormLayout()
-        icon_label_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
-        icon_label_inner_layout.addRow("Icon Name color", self.label_color_box)
-        icon_label_inner_layout.addRow("Default Font size", font_size_layout)
-        icon_label_inner_layout.itemAt(2).widget().setToolTip("Sets the default font size for icon names. This can be adjusted individually in the icon edit menu.")
-        outer_layout.addLayout(icon_label_inner_layout)
+        icon_name_inner_layout = QFormLayout()
+        icon_name_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
+        icon_name_inner_layout.addRow("Name font color", self.icon_name_color_box)
+        icon_name_inner_layout.addRow("Default Font size", font_size_layout)
+        icon_name_inner_layout.itemAt(2).widget().setToolTip("Sets the default font size for icon names. This can be adjusted individually in the icon edit menu.")
+        outer_layout.addLayout(icon_name_inner_layout)
 
         # Adds a spacer at the end which pushes up all other separators/content in the tab
         outer_layout.addStretch(1)
@@ -471,7 +471,7 @@ class SettingsDialog(QDialog):
         color = QColorDialog.getColor()
 
         if color.isValid():
-            self.label_color = color.name()  # Get the hex code of the selected color
+            self.global_font_color = color.name()  # Get the hex code of the selected color
             self.display_theme()
     def open_bg_color_dialog(self):
         self.set_changed() # Background color does not need full redraw as it calls render_bg itself.
@@ -551,9 +551,9 @@ class SettingsDialog(QDialog):
                     border: 2px solid {self.primary_color};
                 }}
             """))
-            self.label_color_box.setStyleSheet(f"""
+            self.icon_name_color_box.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: {self.label_color};
+                    background-color: {self.global_font_color};
                     border: 1px solid black;
                 }}
                 QPushButton:focus {{
@@ -573,9 +573,9 @@ class SettingsDialog(QDialog):
             self.setStyleSheet("")
 
             # Required for changing color of the button to match the set color.
-            self.label_color_box.setStyleSheet(f"""
+            self.icon_name_color_box.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: {self.label_color};
+                    background-color: {self.global_font_color};
                 }}
             """)
             self.custom_bg_color.setStyleSheet(f"""
@@ -707,7 +707,7 @@ class SettingsDialog(QDialog):
         settings["icon_size"] = self.icon_size_slider.value()
         settings["max_rows"] = self.max_rows_sb.value()
         settings["max_cols"] = self.max_cols_sb.value()
-        settings["global_font_color"] = self.label_color
+        settings["global_font_color"] = self.global_font_color
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
@@ -719,7 +719,7 @@ class SettingsDialog(QDialog):
         settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
         settings["image_zoom"] = self.slider_to_image_zoom()
         settings["bg_z_order"] = self.bg_z_order_selector.currentIndex()
-        settings["global_font_size"] = self.label_font_size_sb.value()
+        settings["global_font_size"] = self.icon_name_font_size_sb.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()
