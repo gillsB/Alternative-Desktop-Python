@@ -164,8 +164,11 @@ class Menu(QDialog):
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
             self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
-            self.use_default_font_size = entry.get('use_default_font_size', True)
+            self.use_global_font_size = entry.get('use_global_font_size', True)
             LAUNCH_OPTIONS = entry['launch_option']
+        else:
+            self.use_global_font_size = True
+            self.use_global_font_color = True
 
 
         # Deliberately delayed adding until after loading the value to avoid calling it when loading the value.
@@ -459,9 +462,8 @@ class Menu(QDialog):
         else:
             new_config = self.add_entry(config)
             
-
-        self.parent().add_icon(ROW, COL)
         save_config_to_file(new_config)
+        self.parent().add_icon(ROW, COL)
         self.parent().reload_icon(ROW, COL)
         self.close()
 
@@ -481,9 +483,9 @@ class Menu(QDialog):
         "website_link": self.web_link_le.text(),
         "launch_option": self.launch_option_cb.currentIndex(),
         "font_size": self.font_size_sb.value(),
-        "use_default_font_size": font_size,
-        "font_color": "#ff00ff",
-        "use_default_font_color": font_color ############ Fix this (see above)
+        "use_global_font_size": font_size,
+        "icon_font_color": "#ff00ff",
+        "use_global_font_color": font_color ############ Fix this (see above)
         }
         config.append(new_entry)
         return config
@@ -502,9 +504,9 @@ class Menu(QDialog):
                 item["website_link"] = self.web_link_le.text()
                 item["launch_option"] = self.launch_option_cb.currentIndex()
                 item['font_size'] = self.font_size_sb.value()
-                item['use_default_font_size'] = font_size
-                item['font_color'] = "#ff00ff"
-                item['use_default_font_color'] = font_color ############ fix (see above)
+                item['use_global_font_size'] = font_size
+                item['icon_font_color'] = "#ff00ff"
+                item['use_global_font_color'] = font_color ############ fix (see above)
                 break
         return config
 
@@ -601,11 +603,11 @@ class Menu(QDialog):
         self.reset_font_size = False
 
     def reset_font_size_to_default(self):
-        self.font_size_sb.setValue(get_setting("font_size", 10))
+        self.font_size_sb.setValue(get_setting("global_font_size", 10))
         self.reset_font_size = True
     def reset_font_color_to_default(self):
         print("reset font color")
-        self.font_color = (get_setting("label_color", "#ffffff"))
+        self.font_color = (get_setting("global_font_color", "#ffffff"))
         self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};") 
         self.reset_font_color = True
 
@@ -614,7 +616,7 @@ class Menu(QDialog):
         if self.reset_font_size:
             font_size = True
         # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
-        elif self.use_default_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
+        elif self.use_global_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
             font_size = True
         else:
             font_size = False

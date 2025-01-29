@@ -17,7 +17,7 @@ DEFUALT_SETTINGS = {
         "icon_size": 100,
         "max_rows": 20,
         "max_cols": 40,
-        "label_color": "white",
+        "global_font_color": "white",
         "on_close": 0,
         "show_patch_notes": True,
         "keybind_minimize": 0,
@@ -32,7 +32,7 @@ DEFUALT_SETTINGS = {
         "image_zoom": 1.00,
         "bg_z_order": 0,
         "font": "Arial",
-        "font_size": 10,
+        "global_font_size": 10,
         "border_color": "#ff0000",
         "border_width": 5
 }

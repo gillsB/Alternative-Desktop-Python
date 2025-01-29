@@ -167,7 +167,7 @@ class SettingsDialog(QDialog):
         self.max_cols_sb.setRange(0, 100)
         self.max_cols_sb.valueChanged.connect(self.redraw_setting_changed)
 
-        self.label_color = self.settings.get("label_color", "white") #default white
+        self.label_color = self.settings.get("global_font_color", "white") #default white
 
         # Outer layout is for default padding. I.e. Separators which have no padding
         outer_layout = QVBoxLayout()
@@ -339,7 +339,7 @@ class SettingsDialog(QDialog):
 
         # Label font size
         self.label_font_size_sb = QSpinBox()
-        self.label_font_size_sb.setValue(self.settings.get("font_size", 10))
+        self.label_font_size_sb.setValue(self.settings.get("global_font_size", 10))
         self.label_font_size_sb.setRange(0, 100)
         self.label_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
@@ -707,7 +707,7 @@ class SettingsDialog(QDialog):
         settings["icon_size"] = self.icon_size_slider.value()
         settings["max_rows"] = self.max_rows_sb.value()
         settings["max_cols"] = self.max_cols_sb.value()
-        settings["label_color"] = self.label_color
+        settings["global_font_color"] = self.label_color
         settings["on_close"] = self.on_close_cb.currentIndex()
         settings["keybind_minimize"] = self.keybind_minimize.currentIndex()
         settings["video_x_offset"] = float (self.video_horizontal_slider.get_value()/ 100.0)
@@ -719,7 +719,7 @@ class SettingsDialog(QDialog):
         settings["image_y_offset"] = -float (self.image_vertical_slider.get_value()/ 100.0)
         settings["image_zoom"] = self.slider_to_image_zoom()
         settings["bg_z_order"] = self.bg_z_order_selector.currentIndex()
-        settings["font_size"] = self.label_font_size_sb.value()
+        settings["global_font_size"] = self.label_font_size_sb.value()
         save_settings(settings)
         if self.parent():
             self.parent().set_hotkey()

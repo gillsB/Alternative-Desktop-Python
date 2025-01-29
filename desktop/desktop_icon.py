@@ -34,8 +34,8 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
-        self.use_default_font_size = data['use_default_font_size']
-        self.use_default_font_color = data['use_default_font_color']
+        self.use_global_font_size = data['use_global_font_size']
+        self.use_global_font_color = data['use_global_font_color']
         self.font_size = get_icon_font_size(self.row, self.col)
         self.font_color = get_icon_font_color(self.row, self.col)
 
@@ -74,8 +74,8 @@ class DesktopIcon(QGraphicsItem):
         self.command_args = data['command_args']
         self.website_link = data['website_link']
         self.launch_option = data['launch_option']
-        self.use_default_font_size = data['use_default_font_size']
-        self.use_default_font_color = data['use_default_font_color']
+        self.use_global_font_size = data['use_global_font_size']
+        self.use_global_font_color = data['use_global_font_color']
         self.font_size = get_icon_font_size(self.row, self.col)
         self.font_color = get_icon_font_color(self.row, self.col)
         self.init_movie()
@@ -495,8 +495,8 @@ class DesktopIcon(QGraphicsItem):
         logger.info(
             f"Row: {self.row}, Column: {self.col}, Name: {self.name}, Icon_path: {self.icon_path}, "
             f"Exec Path: {self.executable_path}, Command args: {self.command_args}, Website Link: {self.website_link}, "
-            f"Launch option: {self.launch_option}, Use Default Font Size: {self.use_default_font_size}, "
-            f"Font Size: {self.font_size}, Use Default Font color: {self.use_default_font_color}, font_color {self.font_color}"
+            f"Launch option: {self.launch_option}, Use Default Font Size: {self.use_global_font_size}, "
+            f"Font Size: {self.font_size}, Use Default Font color: {self.use_global_font_color}, font_color {self.font_color}"
         )
 
         

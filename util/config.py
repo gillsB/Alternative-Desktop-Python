@@ -21,9 +21,9 @@ DEFAULT_DESKTOP =  {
     "website_link": "",
     "launch_option": 0,
     "font_size": -1,
-    "use_default_font_size": True,
+    "use_global_font_size": True,
     "font_color": "#ffffff",
-    "use_default_font_color": True
+    "use_global_font_color": True
 }
 
 #launch_option options:
@@ -110,10 +110,10 @@ def get_icon_data(row, column):
                 'command_args': item.get('command_args', ""),
                 'website_link': item.get('website_link', ""),
                 'launch_option': item.get('launch_option', 0),
-                'font_size': item.get('font_size', get_setting("font_size", 10)),
-                'use_default_font_size': item.get('use_default_font_size', True),
-                'font_color': item.get('font_color', get_setting("label_color", 10)),
-                'use_default_font_color': item.get('use_default_font_color', True)
+                'font_size': item.get('font_size', get_setting("global_font_size", 10)),
+                'use_global_font_size': item.get('use_global_font_size', True),
+                'font_color': item.get('font_color', get_setting("global_font_color", 10)),
+                'use_global_font_color': item.get('use_global_font_color', True)
             }
     return {
         'icon_path': "",
@@ -123,9 +123,9 @@ def get_icon_data(row, column):
         'website_link': "",
         'launch_option': 0,
         'font_size': 10,
-        'use_default_font_size': True,
+        'use_global_font_size': True,
         'font_color': "#ffffff",
-        'use_default_font_color': True
+        'use_global_font_color': True
     }
 
 
@@ -133,16 +133,17 @@ def get_icon_data(row, column):
 def get_icon_font_size(row, col):
     for item in JSON:
         if item['row'] == row and item['column'] == col:
-            if item.get('use_default_font_size'):
-                return get_setting("font_size", 10)
+            if item.get('use_global_font_size'):
+                return get_setting("global_font_size", 50)
             else:
-                return item.get('font_size', get_setting("font_size", 10))
+                return item.get('font_size', get_setting("global_font_size", 10))
+
 # This is an override which returns the global label_color if the DesktopIcon uses default. And the local font_color if it uses a custom font_color.
 def get_icon_font_color(row, col):
     for item in JSON:
         if item['row'] == row and item['column'] == col:
-            if item.get('use_default_font_color'):
-                return get_setting("label_color", "#ffffff")
+            if item.get('use_global_font_color'):
+                return get_setting("global_font_color", "#ffffff")
             else:
                 return item.get('font_color', get_setting("font_color", "#ffffff"))
 
@@ -290,7 +291,7 @@ def reset_all_to_default_font_size():
     config = load_desktop_config()
 
     for entry in config:
-        entry['use_default_font_size'] = True
+        entry['use_global_font_size'] = True
     
     save_config_to_file(config)
             
