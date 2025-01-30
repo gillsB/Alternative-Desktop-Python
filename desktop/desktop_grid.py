@@ -646,13 +646,22 @@ class DesktopGrid(QGraphicsView):
         self.remove_temp_icon()
 
     # Preview an icon with the font_size changed. Make sure to reload_icon upon close/after or it will get stuck.
-    def preview_font_change(self, row, col, font_size):
+    def preview_font_size_change(self, row, col, font_size):
         icon = self.desktop_icons.get((row, col))
         if icon:
             icon.update_font(font_size)
-            logger.info(f"Reloaded icon at {row} {col}")
+            logger.info(f"Updated font size to {font_size} for icon {row}, {col}")
         else:
-            logger.warning(f"No icon found at {row} {col} to reload.")
+            logger.warning(f"No icon found at {row} {col} preview the font size change")
+
+    # Preview an icon with the font_color changed. Make sure to reload_icon upon close/after or it will get stuck.
+    def preview_font_color_change(self, row, col, font_color):
+        icon = self.desktop_icons.get((row, col))
+        if icon:
+            icon.update_font_color(font_color)
+            logger.info(f"Updated font color to {font_color} for icon {row}, {col}")
+        else:
+            logger.warning(f"No icon found at {row} {col} to preview the font color change.")
 
     # Ensures all variables are up to date and repaints the icon (including name label).
     def reload_icon(self, row, col):

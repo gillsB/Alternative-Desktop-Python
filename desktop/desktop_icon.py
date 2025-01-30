@@ -91,6 +91,10 @@ class DesktopIcon(QGraphicsItem):
             self.font = QFont(get_setting("font", "Arial"), font_size)
         self.update()
 
+    def update_font_color(self, font_color= None):
+        self.font_color = font_color
+        self.update()
+
 
     def update_size(self, new_size):
         self.icon_size = new_size

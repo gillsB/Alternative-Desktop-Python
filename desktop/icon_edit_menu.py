@@ -597,7 +597,7 @@ class Menu(QDialog):
 
     def font_size_changed_toggle(self):
         self.font_size_changed = True
-        self.parent().preview_font_change(ROW, COL, self.font_size_sb.value())
+        self.parent().preview_font_size_change(ROW, COL, self.font_size_sb.value())
         # This is to catch if user hits reset button, then changes font size.
         self.reset_font_size = False
 
@@ -608,6 +608,7 @@ class Menu(QDialog):
         print("reset font color")
         self.font_color = (get_setting("global_font_color", "#ffffff"))
         self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};") 
+        self.parent().preview_font_color_change(ROW, COL, self.font_color)
         self.reset_font_color = True
 
     def is_non_default_font(self):
@@ -636,6 +637,7 @@ class Menu(QDialog):
                 new_color = color.name()
                 self.font_color = new_color 
                 self.custom_font_color.setStyleSheet(f"background-color: {new_color};")  # Update button background color
+                self.parent().preview_font_color_change(ROW, COL, new_color)
 
         color_dialog.currentColorChanged.connect(update_color)
 
