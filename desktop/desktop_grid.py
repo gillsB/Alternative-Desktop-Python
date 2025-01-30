@@ -674,6 +674,8 @@ class DesktopGrid(QGraphicsView):
                             TOP_PADDING + row * (ICON_SIZE + VERTICAL_PADDING))
             self.desktop_icons[(row, col)] = icon_item
             self.scene.addItem(icon_item)
+        else:
+            icon.reload_icon(row, col)
 
     def delete_icon(self, row, col):
         logger.info(f"delete_icon called with {row} {col}")

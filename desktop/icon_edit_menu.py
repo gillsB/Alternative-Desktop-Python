@@ -464,7 +464,6 @@ class Menu(QDialog):
             
         save_config_to_file(new_config)
         self.parent().add_icon(ROW, COL)
-        self.parent().reload_icon(ROW, COL)
         self.close()
 
             
