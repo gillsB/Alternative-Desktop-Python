@@ -136,6 +136,8 @@ def get_icon_font_size(row, col):
                 return get_setting("global_font_size", 50)
             else:
                 return item.get('font_size', get_setting("global_font_size", 10))
+    # Return global font size if item not in JSON (new item)
+    return get_setting("global_font_size", 10)
 
 # This is an override which returns the global label_color if the DesktopIcon uses default. And the local font_color if it uses a custom font_color.
 def get_icon_font_color(row, col):
@@ -145,6 +147,8 @@ def get_icon_font_color(row, col):
                 return get_setting("global_font_color", "#ffffff")
             else:
                 return item.get('font_color', get_setting("global_font_color", "#ffffff"))
+    # Return global font color for item not in JSON (new item)
+    return get_setting("global_font_color", "#ffffff")
 
 def get_json():
     return JSON
