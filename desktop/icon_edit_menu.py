@@ -13,7 +13,7 @@ from icon_gen.icon_selection import select_icon_from_paths
 from icon_gen.favicon_to_image import favicon_to_image
 from icon_gen.browser_to_image import browser_to_image
 from icon_gen.default_icon_to_image import default_icon_to_image
-from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory, get_icon_font_size)
+from util.config import (load_desktop_config, entry_exists, get_entry, save_config_to_file, get_data_directory, get_icon_font_size, get_icon_font_color)
 from util.settings import get_setting
 from menus.display_warning import display_lnk_cli_args_warning, display_icon_path_not_exist_warning, display_executable_file_path_warning, display_icon_path_already_exists_warning
 import os
@@ -126,7 +126,6 @@ class Menu(QDialog):
         self.custom_font_color.setFixedSize(QSize(75, 30))
         self.custom_font_color.setAutoDefault(False)
         self.custom_font_color.setDefault(False)
-        self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};")  # Apply color to button
 
         self.custom_bg_color_label = QLabel("Font color:")
 
@@ -152,23 +151,9 @@ class Menu(QDialog):
 
         main_layout.addWidget(self.tabs)
 
-        global LAUNCH_OPTIONS
 
         ## load already saved data for desktop_icon into fields in this menu
-        entry = get_entry(ROW, COL)
-        if entry:
-            self.name_le.setText(entry['name'])
-            self.icon_path_le.setText(entry['icon_path'])
-            self.exec_path_le.setText(entry['executable_path'])
-            self.web_link_le.setText(entry['website_link'])
-            self.command_args_le.setText(entry['command_args'])
-            self.launch_option_cb.setCurrentIndex(entry['launch_option'])
-            self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
-            self.use_global_font_size = entry.get('use_global_font_size', True)
-            LAUNCH_OPTIONS = entry['launch_option']
-        else:
-            self.use_global_font_size = True
-            self.use_global_font_color = True
+        self.load_data()
 
 
         # Deliberately delayed adding until after loading the value to avoid calling it when loading the value.
@@ -193,6 +178,28 @@ class Menu(QDialog):
         self.setLayout(main_layout)
         if dropped_path != None:
             self.dropped_file(dropped_path)
+
+    
+    def load_data(self):
+        global LAUNCH_OPTIONS
+        entry = get_entry(ROW, COL)
+        if entry:
+            self.name_le.setText(entry['name'])
+            self.icon_path_le.setText(entry['icon_path'])
+            self.exec_path_le.setText(entry['executable_path'])
+            self.web_link_le.setText(entry['website_link'])
+            self.command_args_le.setText(entry['command_args'])
+            self.launch_option_cb.setCurrentIndex(entry['launch_option'])
+            self.use_global_font_size = entry.get('use_global_font_size', True)
+            LAUNCH_OPTIONS = entry['launch_option']
+        else:
+            self.use_global_font_size = True
+            self.use_global_font_color = True
+
+        
+        self.font_size_sb.setValue(get_icon_font_size(ROW, COL))
+        self.font_color == get_icon_font_color(ROW, COL)
+        self.custom_font_color.setStyleSheet(f"background-color: {self.font_color};")  # Apply color to button
 
     
     def dropped_file(self, dropped_path):
