@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
-DESKTOP_CONFIG = None
 
 #These are all active .json arguments and their defaults
 DEFAULT_DESKTOP =  {
@@ -151,27 +150,17 @@ def get_json():
     return JSON
 
 def load_desktop_config():
-    global DESKTOP_CONFIG
-    if DESKTOP_CONFIG == None:
-        if os.path.exists(DESKTOP_CONFIG_DIRECTORY):
-            with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
-                DESKTOP_CONFIG = json.load(f)
-        else:
-            logger.error(f"Error loading settings, expected file at: {DESKTOP_CONFIG_DIRECTORY}")
-            return {}
-    return DESKTOP_CONFIG
+    return JSON
     
 def entry_exists(row, col):
-    config = load_desktop_config()
-    for item in config:
+    for item in JSON:
         if item['row'] == row and item['column'] == col:
             return True
     return False
 
 #entry_exists but returns item if it exists, otherwise false
 def get_entry(row, col):
-    config = load_desktop_config()
-    for item in config:
+    for item in JSON:
         if item['row'] == row and item['column'] == col:
             return item
     return False
@@ -202,12 +191,10 @@ def save_config_to_file(config):
         logger.info(f"reloaded JSON")
 
 def is_default(row, col):
-    config = load_desktop_config()
-    
     # Assume the item is not found and thus is default
     is_default_value = True
     
-    for item in config:
+    for item in JSON:
         if item['row'] == row and item['column'] == col:
             # If the item is found, check if it has non-default values
             if (item.get('name', "") != DEFAULT_DESKTOP['name'] or
