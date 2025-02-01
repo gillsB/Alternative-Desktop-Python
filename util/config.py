@@ -223,6 +223,12 @@ def set_entry_to_default(row, col):
             break
     save_config_to_file(config)
 
+def delete_entry(row, col):
+    config = load_desktop_config()
+    # Iterate over the list and remove the entry matching the row and column
+    config = [entry for entry in config if not (entry.get('row') == row and entry.get('column') == col)]
+    save_config_to_file(config)
+
 #swap row/col between two desktop_icons
 def swap_icons_by_position(row1, col1, row2, col2):
     config = load_desktop_config()

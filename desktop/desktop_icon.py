@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QGraphicsItem, QDialog, QMenu, QMessageBox, QToolT
 from PySide6.QtCore import Qt, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QPainterPath, QPen, QAction, QMovie, QPixmapCache
 from util.settings import get_setting
-from util.config import get_icon_data, is_default, get_data_directory, change_launch, set_entry_to_default, get_icon_font_size, get_icon_font_color
+from util.config import get_icon_data, is_default, get_data_directory, change_launch, set_entry_to_default, get_icon_font_size, get_icon_font_color, delete_entry
 from menus.run_menu_dialog import RunMenuDialog
 from menus.display_warning import (display_no_successful_launch_error, display_file_not_found_error, display_no_default_type_error, display_failed_cleanup_warning, 
                                    display_path_and_parent_not_exist_warning, display_delete_icon_warning, display_cannot_swap_icons_warning)
@@ -598,7 +598,7 @@ class DesktopIcon(QGraphicsItem):
         # Show delete confirmation warning, if Ok -> delete icon. if Cancel -> do nothing.
         if display_delete_icon_warning(self.name, self.row, self.col) == QMessageBox.Yes:   
             logger.info(f"User confirmed deletion for {self.name}, at {self.row}, {self.col}")
-            set_entry_to_default(self.row, self.col)
+            delete_entry(self.row, self.col)
             self.delete_folder_items()
 
             # Delete icon and references from QGraphicsView (To stop it from repainting on hover.)
