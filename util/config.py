@@ -186,13 +186,17 @@ def check_for_new_config():
 
 def save_config_to_file(config):
     logger.info("Attempting to save the desktop.json")
-    global JSON
+    
+    # Sort the config by row then column
+    sorted_config = sorted(config, key=lambda x: (x['row'], x['column']))
+
     with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
-        json.dump(config, f, indent=4)
+        json.dump(sorted_config, f, indent=4)
         logger.info("Successfully saved desktop.json")
     with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
+        global JSON
         JSON = json.load(f)
-        logger.info(f"reloaded JSON")
+        logger.info("Reloaded JSON")
 
 def is_default(row, col):
     # Assume the item is not found and thus is default
