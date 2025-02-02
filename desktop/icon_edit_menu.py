@@ -491,7 +491,7 @@ class Menu(QDialog):
         "launch_option": self.launch_option_cb.currentIndex(),
         "font_size": self.font_size_sb.value(),
         "use_global_font_size": font_size,
-        "icon_font_color": self.font_color,
+        "font_color": self.font_color,
         "use_global_font_color": font_color
         }
         config.append(new_entry)
@@ -512,7 +512,7 @@ class Menu(QDialog):
                 item["launch_option"] = self.launch_option_cb.currentIndex()
                 item['font_size'] = self.font_size_sb.value()
                 item['use_global_font_size'] = font_size
-                item['icon_font_color'] = self.font_color
+                item['font_color'] = self.font_color
                 item['use_global_font_color'] = font_color
                 break
         return config
