@@ -191,6 +191,7 @@ class Menu(QDialog):
             self.command_args_le.setText(entry['command_args'])
             self.launch_option_cb.setCurrentIndex(entry['launch_option'])
             self.use_global_font_size = entry.get('use_global_font_size', True)
+            self.use_global_font_color = entry.get('use_global_font_color', True)
             LAUNCH_OPTIONS = entry['launch_option']
         else:
             self.use_global_font_size = True
@@ -490,8 +491,8 @@ class Menu(QDialog):
         "launch_option": self.launch_option_cb.currentIndex(),
         "font_size": self.font_size_sb.value(),
         "use_global_font_size": font_size,
-        "icon_font_color": "#ff00ff",
-        "use_global_font_color": font_color ############ Fix this (see above)
+        "icon_font_color": self.font_color,
+        "use_global_font_color": font_color
         }
         config.append(new_entry)
         return config
@@ -511,8 +512,8 @@ class Menu(QDialog):
                 item["launch_option"] = self.launch_option_cb.currentIndex()
                 item['font_size'] = self.font_size_sb.value()
                 item['use_global_font_size'] = font_size
-                item['icon_font_color'] = "#ff00ff"
-                item['use_global_font_color'] = font_color ############ fix (see above)
+                item['icon_font_color'] = self.font_color
+                item['use_global_font_color'] = font_color
                 break
         return config
 
@@ -601,16 +602,21 @@ class Menu(QDialog):
         self.reset_font_color = True
 
     def is_non_default_font(self):
+        font_size = False
+        font_color = False
+
         # If font size setting's "Reset" button was pressed and no changes after pressing reset.
         if self.reset_font_size:
             font_size = True
         # (Already Uses default_font_size) AND ((NOT changed font size spinbox) OR (Spinbox changed but reverted to initial value))
         elif self.use_global_font_size and (not self.font_size_changed or self.font_size_sb.value() == get_icon_font_size(ROW, COL)):
             font_size = True
-        else:
-            font_size = False
 
-        font_color = True
+        if self.reset_font_color:
+            font_color = True
+        elif self.use_global_font_color and (not self.font_color_changed or self.font_color == get_icon_font_color(ROW, COL)):
+            font_color = True
+
 
         return font_size, font_color
 
