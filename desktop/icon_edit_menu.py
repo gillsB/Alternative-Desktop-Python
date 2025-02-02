@@ -584,24 +584,6 @@ class Menu(QDialog):
             selected_file = file_dialog.selectedFiles()[0]
             self.icon_path_le.setText(selected_file)
 
-    def text_changed(self):
-        ...
-
-    def cursor_position_changed(self, old, new):
-        logger.debug("old position: ",old," New position: ",new)
-
-
-    def editing_finished(self):
-        logger.debug("editing finished")
-    def return_pressed(self):
-        logger.debug("return pressed")
-
-    def selection_changed(self):
-        ...
-
-    def text_edited(self, new_text):
-        logger.debug("text edited, new text: ", new_text)
-
     def font_size_changed_toggle(self):
         self.font_size_changed = True
         self.parent().preview_font_size_change(ROW, COL, self.font_size_sb.value())
