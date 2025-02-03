@@ -330,30 +330,38 @@ class SettingsDialog(QDialog):
         self.icon_size_slider.valueChanged.connect(self.label_size_changed)
 
         ### Icon Name
-        # Flat color button, when clicked opens color dialog
+        ## Name font color:
         self.icon_name_color_box = QPushButton("", self)
         self.icon_name_color_box.clicked.connect(self.open_color_dialog)
         self.icon_name_color_box.setFixedSize(QSize(75, 30))
         self.icon_name_color_box.setAutoDefault(False)
         self.icon_name_color_box.setDefault(False)
 
-        # Name font size
+        reset_name_color_pb = QPushButton("Reset")
+        reset_name_color_pb.setAutoDefault(False)
+        reset_name_color_pb.setDefault(False)
+        reset_name_color_pb.setFixedWidth(75)
+        reset_name_color_pb.clicked.connect(self.reset_default_color_clicked)
+        name_color_layout = QHBoxLayout()
+        name_color_layout.addWidget(self.icon_name_color_box)
+        name_color_layout.addWidget(reset_name_color_pb)
+
+        # Name Default font size
         self.icon_name_font_size_sb = QSpinBox()
         self.icon_name_font_size_sb.setValue(self.settings.get("global_font_size", 10))
         self.icon_name_font_size_sb.setRange(0, 100)
         self.icon_name_font_size_sb.valueChanged.connect(self.redraw_setting_changed)
 
-        reset_button = QPushButton("Reset")
-        reset_button.setAutoDefault(False)
-        reset_button.setDefault(False)
-        reset_button.setFixedWidth(75)
-        reset_button.clicked.connect(self.reset_default_font_clicked)
+        reset_name_font_size_pb = QPushButton("Reset")
+        reset_name_font_size_pb.setAutoDefault(False)
+        reset_name_font_size_pb.setDefault(False)
+        reset_name_font_size_pb.setFixedWidth(75)
+        reset_name_font_size_pb.clicked.connect(self.reset_default_font_clicked)
         font_size_layout = QHBoxLayout()
         font_size_layout.addWidget(self.icon_name_font_size_sb)
-        font_size_layout.addWidget(reset_button)
+        font_size_layout.addWidget(reset_name_font_size_pb)
 
 
-        # Adding layouts to menu
         left_padding = 20
 
         outer_layout.addLayout(create_separator("Icon Appearance"))
@@ -367,7 +375,7 @@ class SettingsDialog(QDialog):
 
         icon_name_inner_layout = QFormLayout()
         icon_name_inner_layout.setContentsMargins(left_padding, 0, 0, 0)
-        icon_name_inner_layout.addRow("Name font color", self.icon_name_color_box)
+        icon_name_inner_layout.addRow("Name font color", name_color_layout)
         icon_name_inner_layout.addRow("Default Font size", font_size_layout)
         icon_name_inner_layout.itemAt(2).widget().setToolTip("Sets the default font size for icon names. This can be adjusted individually in the icon edit menu.")
         outer_layout.addLayout(icon_name_inner_layout)
@@ -803,6 +811,14 @@ class SettingsDialog(QDialog):
         if display_reset_default_font_size_warning() == QMessageBox.Ok:
             logger.info("User chose to reset all to default font size.")
             reset_all_to_default_font_size()
+        else:
+            logger.info("User chose NOT to reset all font sizes.")
+
+    def reset_default_color_clicked(self):
+        # Add warning for reset font_color 
+        if display_reset_default_font_size_warning() == QMessageBox.Ok:
+            logger.info("User chose to reset all to default font size.")
+            # reset_all_to_default_font_color()
         else:
             logger.info("User chose NOT to reset all font sizes.")
 
