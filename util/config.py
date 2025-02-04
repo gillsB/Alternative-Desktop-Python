@@ -295,6 +295,14 @@ def reset_all_to_default_font_size():
         entry['use_global_font_size'] = True
     
     save_config_to_file(config)
+
+def reset_all_to_default_font_color():
+    config = load_desktop_config()
+
+    for entry in config:
+        entry['use_global_font_color'] = True
+    
+    save_config_to_file(config)
             
 
 def get_data_directory():
