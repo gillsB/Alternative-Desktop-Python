@@ -176,7 +176,14 @@ def display_cannot_swap_icons_warning(error):
 def display_reset_default_font_size_warning():
     logger.warning("Displaying Warning to reset all fonts to Default font size in settings.")
     return show_highlightable_message_box(
-        "Reset ALL font sizes", 
+        "Reset the Font Size for ALL Icons", 
         "This will reset <b>ALL</b> font sizes for <b>ALL</b> icons. ", 
+        QMessageBox.Ok | QMessageBox.Cancel
+    )
+def display_reset_default_font_color_warning():
+    logger.warning("Displaying Warning to reset all Icon Name colors to the Name Font Color in settings.")
+    return show_highlightable_message_box(
+        "Reset the Icon Name color for ALL Icons.", 
+        "This will reset <b>ALL</b> Icon Name Colors for <b>ALL</b> icons. ", 
         QMessageBox.Ok | QMessageBox.Cancel
     )

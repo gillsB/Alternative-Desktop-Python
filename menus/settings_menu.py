@@ -5,7 +5,7 @@ from PySide6.QtGui import QKeySequence, QColor
 from util.utils import ClearableLineEdit, SliderWithInput, create_separator
 from util.settings import get_setting, set_setting, load_settings, save_settings
 from util.config import reset_all_to_default_font_size, reset_all_to_default_font_color
-from menus.display_warning import (display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved,
+from menus.display_warning import (display_bg_video_not_exist, display_bg_image_not_exist, display_settings_not_saved, display_reset_default_font_color_warning,
                                 display_multiple_working_keybind_warning, display_reset_default_font_size_warning)
 import os
 import logging
@@ -815,8 +815,7 @@ class SettingsDialog(QDialog):
             logger.info("User chose NOT to reset all font sizes.")
 
     def reset_default_color_clicked(self):
-        # Add warning for reset font_color 
-        if display_reset_default_font_size_warning() == QMessageBox.Ok:
+        if display_reset_default_font_color_warning() == QMessageBox.Ok:
             logger.info(f"User chose to reset all icons to default font color: {self.global_font_color}.")
             reset_all_to_default_font_color()
         else:
