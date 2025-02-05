@@ -341,7 +341,7 @@ class SettingsDialog(QDialog):
         reset_name_color_pb.setAutoDefault(False)
         reset_name_color_pb.setDefault(False)
         reset_name_color_pb.setFixedWidth(75)
-        reset_name_color_pb.clicked.connect(self.reset_default_color_clicked)
+        reset_name_color_pb.clicked.connect(self.reset_default_font_color_clicked)
         name_color_layout = QHBoxLayout()
         name_color_layout.addWidget(self.icon_name_color_box)
         name_color_layout.addWidget(reset_name_color_pb)
@@ -815,10 +815,11 @@ class SettingsDialog(QDialog):
         else:
             logger.info("User chose NOT to reset all font sizes.")
 
-    def reset_default_color_clicked(self):
+    def reset_default_font_color_clicked(self):
         if display_reset_default_font_color_warning() == QMessageBox.Ok:
             logger.info(f"User chose to reset all icons to default font color: {self.global_font_color}.")
             reset_all_to_default_font_color()
+            self.parent().grid_widget.redraw_all_icons()
         else:
             logger.info("User chose NOT to reset all font sizes.")
 
