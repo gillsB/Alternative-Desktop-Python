@@ -356,7 +356,7 @@ class SettingsDialog(QDialog):
         reset_name_font_size_pb.setAutoDefault(False)
         reset_name_font_size_pb.setDefault(False)
         reset_name_font_size_pb.setFixedWidth(75)
-        reset_name_font_size_pb.clicked.connect(self.reset_default_font_clicked)
+        reset_name_font_size_pb.clicked.connect(self.reset_default_font_size_clicked)
         font_size_layout = QHBoxLayout()
         font_size_layout.addWidget(self.icon_name_font_size_sb)
         font_size_layout.addWidget(reset_name_font_size_pb)
@@ -807,10 +807,11 @@ class SettingsDialog(QDialog):
             selected_file = file_dialog.selectedFiles()[0]
             self.background_image.setText(selected_file)
     
-    def reset_default_font_clicked(self):
+    def reset_default_font_size_clicked(self):
         if display_reset_default_font_size_warning() == QMessageBox.Ok:
             logger.info(f"User chose to reset all to default font size: {self.icon_name_font_size_sb.value()}")
             reset_all_to_default_font_size()
+            self.parent().grid_widget.redraw_all_icons()
         else:
             logger.info("User chose NOT to reset all font sizes.")
 

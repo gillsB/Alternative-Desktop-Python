@@ -121,6 +121,12 @@ class DesktopGrid(QGraphicsView):
         # Initially update visibility based on the current window size
         self.update_icon_visibility()
 
+    # Calls reload_from_config() on all desktopIcons which ensures the Icons appearance is up to date and redraws all icons.
+    def redraw_all_icons(self):
+        for icon in self.desktop_icons.values():
+            if isinstance(icon, DesktopIcon):
+                icon.reload_from_config()
+
 
 
     def resizeEvent(self, event):
