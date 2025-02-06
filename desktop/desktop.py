@@ -239,8 +239,9 @@ class OverlayWidget(QWidget):
 
 
     def show_settings(self):
-        self.settings_dialog = SettingsDialog(parent=self)
-        self.settings_dialog.finished.connect(self.close_settings)
+        if not hasattr(self, 'settings_dialog') or self.settings_dialog is None:
+            self.settings_dialog = SettingsDialog(parent=self)
+            self.settings_dialog.finished.connect(self.close_settings)
         self.settings_dialog.show()
     
     def change_opacity(self ,i):
