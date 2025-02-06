@@ -97,7 +97,8 @@ class OverlayWidget(QWidget):
 
     def close_settings(self):
         self.settings_dialog = None
-        logger.info(f"Closed settings, settings_dialog = {self.settings_dialog}")
+        self.grid_widget.redraw_all_icons()
+        logger.info(f"Closed settings, settings_dialog = {self.settings_dialog} (this should be None)")
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
@@ -239,6 +240,7 @@ class OverlayWidget(QWidget):
 
     def show_settings(self):
         self.settings_dialog = SettingsDialog(parent=self)
+        self.settings_dialog.finished.connect(self.close_settings)
         self.settings_dialog.show()
     
     def change_opacity(self ,i):

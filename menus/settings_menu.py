@@ -741,7 +741,6 @@ class SettingsDialog(QDialog):
                 self.parent().grid_widget.update_icon_size(self.icon_size_slider.value())
                 pass
         
-        self.parent().close_settings()
         # No need to reload self.settings as after saving this will terminate (self.accept()) and reload settings on next launch.
         self.accept()
 
@@ -754,8 +753,7 @@ class SettingsDialog(QDialog):
         
         if self.is_changed == False:
             logger.info("Called close with no changes made in settings")
-            self.parent().close_settings()
-            event.accept()
+            self.accept()
         else:
             logger.info("Called close with changes in settings")
             if self.main_window_closing != True:
@@ -763,7 +761,7 @@ class SettingsDialog(QDialog):
                 if reply == QMessageBox.Yes:
                     logger.info("User chose to close the settings menu and revert the changes")
                     self.on_close()
-                    event.accept()
+                    self.accept()
                 else:
                     logger.info("User chose to cancel the close event.")
                     event.ignore()
@@ -785,13 +783,13 @@ class SettingsDialog(QDialog):
         elif self.background_image.text().startswith("file://"):
             self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
 
+    # This is for essentially reverting anything that is possibly previewed but the user decided to close settings without saving.
     def on_close(self):
         window_opacity = self.settings.get("window_opacity", -1)
         self.parent().change_opacity(window_opacity)
         self.parent().change_theme(self.set_theme)
-        self.parent().grid_widget.update_icon_size(self.settings.get("icon_size"))
+        self.parent().grid_widget.update_icon_size(self.settings.get("icon_size")) # This does not currently preview
         self.parent().grid_widget.render_bg()
-        self.parent().close_settings()
 
     def video_folder_button_clicked(self):
         self.set_changed()

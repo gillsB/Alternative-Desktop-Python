@@ -66,7 +66,6 @@ class DesktopIcon(QGraphicsItem):
         self.distance = 0
 
     def reload_from_config(self):
-        logger.info("Reloaded self fields from config.")
         data = get_icon_data(self.row, self.col)
         self.name = data['name']
         self.icon_path = data['icon_path']
@@ -83,7 +82,6 @@ class DesktopIcon(QGraphicsItem):
         self.update_font()
 
     def update_font(self, font_size= None):
-        print(f"update font called with font_size = {font_size}")
         if font_size == None:
             self.font = QFont(get_setting("font", "Arial"), self.font_size)
         else:
@@ -132,7 +130,7 @@ class DesktopIcon(QGraphicsItem):
             self.update()
         else:
             if self.icon_path != "":
-                logger.warning(f"Invalid icon path: {self.icon_path} Loading unknown.png instead")
+                logger.warning(f"Invalid icon path for icon at {self.row}, {self.col}: {self.icon_path} Loading unknown.png instead")
             self.load_unknown_pixmap()
 
     def load_unknown_pixmap(self):
