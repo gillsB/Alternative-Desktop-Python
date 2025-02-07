@@ -96,12 +96,17 @@ class OverlayWidget(QWidget):
         patch_notes_menu.exec()
 
     def close_settings(self, result):
+        self.settings_dialog = None
         if result == QDialog.Accepted:
-            self.settings_dialog = None
             self.grid_widget.redraw_all_icons()
             logger.info(f"Closed settings, settings_dialog = {self.settings_dialog} (this should be None)")
         elif result == QDialog.Rejected:
-            print("Settings were not saved, reload from saved settings to revert any previews.")
+            logger.info("Settings were not saved, reload from saved settings to revert any previews.")
+            window_opacity = get_setting("window_opacity", 100)
+            self.change_opacity(window_opacity)
+            self.change_theme(get_setting("theme"))
+            self.grid_widget.update_icon_size(get_setting("icon_size")) # This does not currently preview so realistically should not be required
+            self.grid_widget.render_bg()
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)

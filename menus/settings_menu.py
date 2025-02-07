@@ -760,7 +760,6 @@ class SettingsDialog(QDialog):
                 reply = display_settings_not_saved()
                 if reply == QMessageBox.Yes:
                     logger.info("User chose to close the settings menu and revert the changes")
-                    self.on_close()
                     self.reject()
                 else:
                     logger.info("User chose to cancel the close event.")
@@ -782,14 +781,6 @@ class SettingsDialog(QDialog):
             self.background_image.setText(self.background_image.text()[8:])  # remove "file:///"
         elif self.background_image.text().startswith("file://"):
             self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
-
-    # This is for essentially reverting anything that is possibly previewed but the user decided to close settings without saving.
-    def on_close(self):
-        window_opacity = self.settings.get("window_opacity", -1)
-        self.parent().change_opacity(window_opacity)
-        self.parent().change_theme(self.set_theme)
-        self.parent().grid_widget.update_icon_size(self.settings.get("icon_size")) # This does not currently preview
-        self.parent().grid_widget.render_bg()
 
     def video_folder_button_clicked(self):
         self.set_changed()
