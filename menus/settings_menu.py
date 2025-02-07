@@ -761,7 +761,7 @@ class SettingsDialog(QDialog):
                 if reply == QMessageBox.Yes:
                     logger.info("User chose to close the settings menu and revert the changes")
                     self.on_close()
-                    self.accept()
+                    self.reject()
                 else:
                     logger.info("User chose to cancel the close event.")
                     event.ignore()

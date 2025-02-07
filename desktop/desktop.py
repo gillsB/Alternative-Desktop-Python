@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu, QMessageBox
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QSystemTrayIcon, QMenu, QMessageBox, QDialog
 from PySide6.QtCore import Qt, QEvent, QRect, QTimer
 from PySide6.QtGui import QIcon, QIcon, QAction, QColor
 import sys
@@ -95,10 +95,13 @@ class OverlayWidget(QWidget):
         patch_notes_menu = PatchNotesPopup(self)
         patch_notes_menu.exec()
 
-    def close_settings(self):
-        self.settings_dialog = None
-        self.grid_widget.redraw_all_icons()
-        logger.info(f"Closed settings, settings_dialog = {self.settings_dialog} (this should be None)")
+    def close_settings(self, result):
+        if result == QDialog.Accepted:
+            self.settings_dialog = None
+            self.grid_widget.redraw_all_icons()
+            logger.info(f"Closed settings, settings_dialog = {self.settings_dialog} (this should be None)")
+        elif result == QDialog.Rejected:
+            print("Settings were not saved, reload from saved settings to revert any previews.")
 
         
     # Override base CloseEvent to just hide it. (Tray item already exists)
