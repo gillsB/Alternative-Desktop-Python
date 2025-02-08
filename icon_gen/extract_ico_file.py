@@ -12,6 +12,10 @@ def extract_ico_file(source_file, output_path, icon_size):
     logger.info(f"Called with arguments: source_file = {source_file}, output_path = {output_path}, icon_size = {icon_size}")
 
     found = False
+
+    if not source_file:
+        logger.error(f"Source file for file is None or empty, Returning False for ico file.")
+        return found
     
     # Extract the directory path of the source file
     source_dir = os.path.dirname(source_file)
