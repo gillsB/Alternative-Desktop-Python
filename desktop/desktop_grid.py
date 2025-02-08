@@ -327,8 +327,8 @@ class DesktopGrid(QGraphicsView):
         space_left = global_icon_pos.x()
         space_right = screen_geometry.width() - global_icon_pos.x() - ICON_SIZE - HORIZONTAL_PADDING
 
-        # If menu would extend below, adjust y to fit within main window
-        if global_icon_pos.y() + dialog_height > screen_geometry.bottom():  
+        # If menu would extend below taskbar, adjust y to fit within main window
+        if global_icon_pos.y() + dialog_height > screen_geometry.bottom()-80:  
             logger.info("Adjusting y value up to ensure window appears fully on screen")
             # 80 to ensure it appears above taskbar
             adjusted_y = (screen_geometry.bottom() -80) - dialog_height
