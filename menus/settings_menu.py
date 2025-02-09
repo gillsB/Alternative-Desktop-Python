@@ -476,7 +476,7 @@ class SettingsDialog(QDialog):
     def open_color_dialog(self):
         self.redraw_setting_changed() # redraw or it won't update
         # Open the color dialog and get the selected color
-        color = QColorDialog.getColor()
+        color = QColorDialog.getColor(QColor(self.global_font_color))
 
         if color.isValid():
             self.global_font_color = color.name()  # Get the hex code of the selected color
