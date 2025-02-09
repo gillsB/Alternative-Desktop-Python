@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QGraphicsItem, QDialog, QMenu, QMessageBox, QToolTip
+from PySide6.QtWidgets import QGraphicsItem, QDialog, QMenu, QMessageBox, QToolTip, QGraphicsPixmapItem
 from PySide6.QtCore import Qt, QRectF, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont, QFontMetrics, QPixmap, QPainterPath, QPen, QAction, QMovie, QPixmapCache
 from util.settings import get_setting
@@ -231,9 +231,6 @@ class DesktopIcon(QGraphicsItem):
         if frame != -1:
             self.update() 
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.setSelected(True)
         
 
     def calculate_text_height(self, text):
@@ -652,10 +649,17 @@ class DesktopIcon(QGraphicsItem):
             self.distance = 0
             self.dragging = True
             self.start_pos = event.pos()  # Store the initial position
+            self.preview_pixmap_item = QGraphicsPixmapItem(self.pixmap)
+            self.preview_pixmap_item.setOpacity(0.6)
+            self.preview_pixmap_item.setZValue(1000)
+            self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
+            self.scene().addItem(self.preview_pixmap_item)
             event.accept()
 
     # Override mouseMoveEvent (to track dragging without moving)
     def mouseMoveEvent(self, event):
+        if self.preview_pixmap_item:
+            self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
         if self.dragging:
             # Calculate the distance moved, but don't move the item
             self.distance = (event.pos() - self.start_pos).manhattanLength()
@@ -667,6 +671,11 @@ class DesktopIcon(QGraphicsItem):
         views = self.scene().views()
         self.dragging = False
         self.setCursor(Qt.ArrowCursor) 
+
+        if self.preview_pixmap_item:
+            self.scene().removeItem(self.preview_pixmap_item)
+            del self.preview_pixmap_item
+            self.preview_pixmap_item = None
 
         if event.button() == Qt.RightButton:
             # If right-click, do not perform any action related to swapping
