@@ -17,7 +17,7 @@ def show_highlightable_message_box(title, message, standard_buttons=QMessageBox.
     label = QLabel(message)
     label.setTextInteractionFlags(Qt.TextSelectableByMouse)
     label.setWordWrap(True)
-    label.setMinimumWidth(400)
+    label.setMinimumWidth(300)
 
     # Remove default message box but get it's layout
     layout = msg_box.layout()
@@ -27,15 +27,6 @@ def show_highlightable_message_box(title, message, standard_buttons=QMessageBox.
     left_spacer = QSpacerItem(20, 10, QSizePolicy.Expanding, QSizePolicy.Minimum)
     layout.addItem(left_spacer, 0, 0, 1, 1)
     layout.addWidget(label, 0, 1, 1, layout.columnCount(), Qt.AlignCenter)
-
-    # Remove any unnecessary QLabel elements
-    for i in range(layout.count()):
-        item = layout.itemAt(i)
-        widget = item.widget()
-        if isinstance(widget, QLabel) and widget.text() == "":
-            layout.removeWidget(widget)
-            widget.deleteLater()
-            break
 
     # Show the message box and return the user's choice
     return msg_box.exec()
