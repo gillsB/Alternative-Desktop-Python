@@ -640,11 +640,15 @@ class DesktopGrid(QGraphicsView):
             context_menu = icon.context_menu(event)
         else:
             context_menu = QMenu()
-
-
             edit_action = QAction('Edit Icon', context_menu)
             edit_action.triggered.connect(lambda: self.show_grid_menu(row, col))
             context_menu.addAction(edit_action)
+
+            context_menu.addSeparator()
+
+            settings_menu_action = QAction('Settings Menu', context_menu)
+            settings_menu_action.triggered.connect(self.parent().show_settings)
+            context_menu.addAction(settings_menu_action)
 
             context_menu.exec(event.globalPos())
 
