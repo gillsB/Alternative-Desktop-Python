@@ -15,7 +15,7 @@ MEDIA_PLAYER = None
 
 
 class VideoBackgroundManager:
-    def __init__(self, args=None, media_player=None):
+    def __init__(self, parent=None, args=None, media_player=None):
         self.zoom_level = 1.0  # Initial zoom level
         self.offset_x = 0      # Initial horizontal offset
         self.offset_y = 0      # Initial vertical offset
@@ -35,6 +35,7 @@ class VideoBackgroundManager:
         self.scene_height = 0
         global MEDIA_PLAYER
         MEDIA_PLAYER = media_player
+        self.parent = parent
 
         
     def get_video_aspect_ratio(self):
@@ -135,6 +136,7 @@ class VideoBackgroundManager:
 
             # Update the video item's transformation
             self.video_item.setTransform(transform)
+        self.parent.apply_bg_fill()
 
     def handle_media_status_changed(self, status):
         if status == QMediaPlayer.LoadedMedia:

@@ -82,7 +82,7 @@ class DesktopGrid(QGraphicsView):
         self.scene.clear()
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
-        self.video_manager = VideoBackgroundManager(args, MEDIA_PLAYER)  # Create an instance of VideoBackgroundManager
+        self.video_manager = VideoBackgroundManager(self, args, MEDIA_PLAYER)  # Create an instance of VideoBackgroundManager
         self.video_manager.video_item = QGraphicsVideoItem()  # Initialize the QGraphicsVideoItem
         self.scene.addItem(self.video_manager.video_item)  # Add video item to the scene
         self.video_manager.video_item.setZValue(-2)  # Set the Z value for rendering order
@@ -247,6 +247,29 @@ class DesktopGrid(QGraphicsView):
         old_bg_video = BACKGROUND_VIDEO
         self.load_bg_from_settings()
         self.load_video, self.load_image = self.background_setting()
+
+        self.bg_color = None
+
+        secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
+        custom_color = get_setting("custom_bg_fill", False)
+        theme_name = getattr(self.parent(), 'theme_name', None)
+
+        # Base background color becomes "secondary_color" for dark mode, medium gray for No theme,
+        #  and a lighter version of the theme's primaryLightColor for light themes.
+        if theme_name.startswith('dark'):
+            self.bg_color = QColor(secondary_color)
+        elif theme_name.startswith('none'):
+            self.bg_color = QColor('#303030')
+        else:
+            self.bg_color = QColor(getattr(self.parent(), 'light_desktop_color', '#303030'))
+
+        if bg_enabled != False:
+            if (custom_color or bg_enabled) and bg_color == None:
+                self.bg_color = (QColor(get_setting("custom_bg_color", "white")))
+            elif custom_color or bg_enabled:
+                self.bg_color = QColor(bg_color)
+
+
         
         if self.load_video:
             if old_bg_video != BACKGROUND_VIDEO or MEDIA_PLAYER.mediaStatus() == QMediaPlayer.NoMedia:
@@ -269,30 +292,14 @@ class DesktopGrid(QGraphicsView):
             # Remove image background_item if it exists.
             self.image_background_manager.remove_background()
 
-        secondary_color = getattr(self.parent(), 'secondary_color', '#202020')
-        custom_color = get_setting("custom_bg_fill", False)
-        theme_name = getattr(self.parent(), 'theme_name', None)
 
-        color = None
 
-        # Base background color becomes "secondary_color" for dark mode, medium gray for No theme,
-        #  and a lighter version of the theme's primaryLightColor for light themes.
-        if theme_name.startswith('dark'):
-            color = QColor(secondary_color)
-        elif theme_name.startswith('none'):
-            color = QColor('#303030')
-        else:
-            color = QColor(getattr(self.parent(), 'light_desktop_color', '#303030'))
+        if not self.load_video and not self.load_image:
+            self.apply_bg_fill()
 
-        if bg_enabled != False:
-            if (custom_color or bg_enabled) and bg_color == None:
-                color = (QColor(get_setting("custom_bg_color", "white")))
-            elif custom_color or bg_enabled:
-                color = QColor(bg_color)
-
-        # Set the background color as a solid brush
-        if color != None:
-            self.scene.setBackgroundBrush(QBrush(color))
+    def apply_bg_fill(self):
+        if self.bg_color != None:
+            self.scene.setBackgroundBrush(QBrush(self.bg_color))
 
 
     def load_bg_from_settings(self):
