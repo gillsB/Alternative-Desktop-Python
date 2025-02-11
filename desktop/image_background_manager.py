@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageBackgroundManager:
-    def __init__(self, parent_view: QGraphicsView):
+    def __init__(self, parent_view: QGraphicsView, parent= None):
         self.parent_view = parent_view
         self.background_item = None
         self.pixmap = None
@@ -18,6 +18,7 @@ class ImageBackgroundManager:
         self.center_y = 0.00
         self.pixmap_width = 0
         self.pixmap_height = 0
+        self.parent = parent
 
     def load_background(self, image_path: str):
         # If there's an existing background, remove it
@@ -48,6 +49,7 @@ class ImageBackgroundManager:
         center_y = (scene_rect.height() - self.pixmap_height) / 2
         self.background_item.setPos(center_x, center_y)
         self.scene.addItem(self.background_item)
+        self.parent.apply_bg_fill()
 
         self.update_from_settings()
 

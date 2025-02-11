@@ -91,7 +91,7 @@ class DesktopGrid(QGraphicsView):
         MEDIA_PLAYER.mediaStatusChanged.connect(self.video_manager.handle_media_status_changed)
         logger.info(f"self.load_video = {self.load_video}, self.load_image = {self.load_image}")
 
-        self.image_background_manager = ImageBackgroundManager(self)
+        self.image_background_manager = ImageBackgroundManager(self, self)
 
 
         
