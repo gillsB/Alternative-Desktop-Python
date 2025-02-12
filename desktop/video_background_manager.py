@@ -63,6 +63,8 @@ class VideoBackgroundManager:
     def load_new_video(self):
         self.aspect_ratio = None
         self.init_center_point()
+        if self.video_item:
+            self.video_item.setVisible(False)
 
     def init_center_point(self):
         # At max wait 5 seconds (100 x 50ms)
@@ -85,6 +87,7 @@ class VideoBackgroundManager:
 
             self.move_video(-1 * get_setting("video_x_offset", 0.00), get_setting("video_y_offset", 0.00))
             self.zoom_video(get_setting("video_zoom", 1.00))
+            self.video_item.setVisible(True)
 
     def init_center_dot(self):
         if self.center_dot:
