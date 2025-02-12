@@ -87,6 +87,9 @@ class OverlayWidget(QWidget):
         self.grid_widget = DesktopGrid(parent=self, args=args)
         layout.addWidget(self.grid_widget)
 
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
         settings_button = QPushButton("Settings")
         settings_button.clicked.connect(self.show_settings)
         layout.addWidget(settings_button)
