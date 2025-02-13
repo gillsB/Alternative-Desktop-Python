@@ -656,8 +656,6 @@ class DesktopIcon(QGraphicsItem):
 
     # Override mouseMoveEvent (to track dragging without moving)
     def mouseMoveEvent(self, event):
-        if self.preview_pixmap_item:
-            self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
         if self.dragging:
             # Calculate the distance moved, but don't move the item
             self.distance = (event.pos() - self.start_pos).manhattanLength()
