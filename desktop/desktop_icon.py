@@ -652,8 +652,6 @@ class DesktopIcon(QGraphicsItem):
             self.preview_pixmap_item = QGraphicsPixmapItem(self.pixmap)
             self.preview_pixmap_item.setOpacity(0.6)
             self.preview_pixmap_item.setZValue(1000)
-            self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
-            self.scene().addItem(self.preview_pixmap_item)
             event.accept()
 
     # Override mouseMoveEvent (to track dragging without moving)
@@ -665,6 +663,8 @@ class DesktopIcon(QGraphicsItem):
             self.distance = (event.pos() - self.start_pos).manhattanLength()
             if self.distance > 5:  # A threshold to consider as dragging
                 self.setCursor(Qt.ClosedHandCursor) 
+                self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
+                self.scene().addItem(self.preview_pixmap_item)
 
 
     def mouseReleaseEvent(self, event):
