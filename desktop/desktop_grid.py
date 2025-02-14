@@ -138,7 +138,7 @@ class DesktopGrid(QGraphicsView):
         self.scene.setSceneRect(self.rect())
         self.render_bg()
         if self.shelf_hover_item:
-            self.shelf_hover_item.updatePosition(self.viewport().width())
+            self.shelf_hover_item.updatePosition(self.viewport().width(), self.viewport().height())
 
         # Prioritizes resizing window then redraws. i.e. slightly smoother dragging to size then slightly delayed redraw updates.
         self.resize_timer.start() 

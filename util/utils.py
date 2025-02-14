@@ -155,7 +155,8 @@ class ShelfHoverItem(QGraphicsRectItem):
         print("Hovering over the right side!")
         super().hoverMoveEvent(event)
 
-    def updatePosition(self, view_width):
+    def updatePosition(self, view_width, view_height):
+        self.setRect(0, 0, self.rect().width(), view_height)
         self.setPos(view_width - 40, 0)
 
 
