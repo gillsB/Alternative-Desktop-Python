@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButton,
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButton, QGraphicsRectItem,
                               QVBoxLayout, QWidget)
 from PySide6.QtGui import QIcon
 
@@ -30,8 +31,54 @@ class Shelf(QGraphicsWidget):
         self.button_proxy.setPos(0, 0)
         self.setPos(view_width - button_width, center_y)
 
+    def show_button(self, show):
+        print(f"called with {show}")
+        if show:
+            self.show()
+        else:
+            self.hide()
 
     
     def toggle_shelf(self):
         print("Toggle shelf called")
 
+
+class ShelfHoverItem(QGraphicsRectItem):
+    def __init__(self, width, height, shelf: Shelf, parent=None):
+        super().__init__(0, 0, 40, height)
+        self.shelf = shelf 
+        self.setBrush(Qt.transparent)  # Make the inside invisible/transparent
+        #self.setPen(QPen(Qt.transparent))  # Eventually this will be transparent.
+        self.setAcceptHoverEvents(True)
+        self.is_hovered = False
+
+    def hoverMoveEvent(self, event):
+        item_area = self.boundingRect()
+        button_area = self.shelf.button_proxy.boundingRect()
+        if item_area.contains(event.pos()) or button_area.contains(event.pos()):
+            if not self.is_hovered:
+                self.is_hovered = True
+                self.shelf.show_button(True)
+        else:
+            if self.is_hovered:
+                self.is_hovered = False
+                self.shelf.show_button(False)
+        super().hoverMoveEvent(event)
+
+    def hoverEnterEvent(self, event):
+        self.is_hovered = True
+        self.shelf.show_button(True)
+        super().hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        # Check if the mouse is still within the hover or button area before hiding the button
+        item_area = self.boundingRect()
+        button_area = self.shelf.button_proxy.boundingRect()
+        if not item_area.contains(event.pos()) and not button_area.contains(event.pos()):
+            self.is_hovered = False
+            self.shelf.show_button(False)
+        super().hoverLeaveEvent(event)
+
+    def updatePosition(self, view_width, view_height):
+        self.setRect(0, 0, self.rect().width(), view_height)
+        self.setPos(view_width - 40, 0)

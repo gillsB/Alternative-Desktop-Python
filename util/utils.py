@@ -144,19 +144,6 @@ def create_separator(label_text):
     return vbox
 
 
-class ShelfHoverItem(QGraphicsRectItem):
-    def __init__(self, width, height):
-        super().__init__(0, 0, 40, height)
-        self.setBrush(Qt.transparent)  # Make the inside invisible/transparent.
-        #self.setPen(QPen(Qt.transparent))  # Eventually this will be transparent.
-        self.setAcceptHoverEvents(True)
 
-    def hoverMoveEvent(self, event):
-        print("Hovering over the right side!")
-        super().hoverMoveEvent(event)
-
-    def updatePosition(self, view_width, view_height):
-        self.setRect(0, 0, self.rect().width(), view_height)
-        self.setPos(view_width - 40, 0)
 
 

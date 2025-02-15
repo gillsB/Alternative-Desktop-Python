@@ -5,9 +5,8 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_icon_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
-from util.utils import TempIcon, ShelfHoverItem
 from desktop.icon_edit_menu import Menu
-from desktop.shelf import Shelf
+from desktop.shelf import Shelf, ShelfHoverItem
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
 from desktop.icon_edit_menu import Menu
 from desktop.image_background_manager import ImageBackgroundManager
@@ -97,10 +96,11 @@ class DesktopGrid(QGraphicsView):
         self.image_background_manager = ImageBackgroundManager(self, self)
 
         if args.mode == "debug" or args.mode == "devbug":
-            self.shelf_hover_item = ShelfHoverItem(self.width(), self.height())
-            self.scene.addItem(self.shelf_hover_item)
             self.shelf = Shelf()
+            self.shelf_hover_item = ShelfHoverItem(self.width(), self.height(), self.shelf, parent = self)
+            self.scene.addItem(self.shelf_hover_item)
             self.scene.addItem(self.shelf)
+            self.shelf.show_button(False)
 
         self.render_bg()
         self.populate_icons()
