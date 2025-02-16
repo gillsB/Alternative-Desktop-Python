@@ -5,6 +5,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
 from util.settings import get_setting
 from util.config import get_icon_data, create_paths, is_default, get_data_directory, swap_icons_by_position, update_folder
+from util.utils import TempIcon
 from desktop.icon_edit_menu import Menu
 from desktop.shelf import Shelf, ShelfHoverItem
 from menus.display_warning import (display_failed_cleanup_warning,  display_cannot_swap_icons_warning)
