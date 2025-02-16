@@ -7,6 +7,7 @@ from PySide6.QtGui import QIcon
 class Shelf(QGraphicsWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.is_open = False
         
         # Create the toggle button
         button_widget = QWidget()
@@ -40,7 +41,13 @@ class Shelf(QGraphicsWidget):
 
     
     def toggle_shelf(self):
-        print("Toggle shelf called")
+        # Open the shelf
+        if not self.is_open:
+            self.toggle_button.setIcon(QIcon.fromTheme("go-next"))
+        # Close the shelf
+        else:
+            self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
+        self.is_open = not self.is_open
 
 
 class ShelfHoverItem(QGraphicsRectItem):
