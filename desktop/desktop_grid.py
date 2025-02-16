@@ -604,6 +604,13 @@ class DesktopGrid(QGraphicsView):
     def mouseDoubleClickEvent(self, event):
         # Convert mouse position to scene coordinates
         scene_pos = self.mapToScene(event.pos())
+        items = self.scene.items(scene_pos)
+        
+        # Check if the double-click is on the shelf or its children
+        for item in items:
+            if item is self.shelf or self.isChildOfShelf(item):
+                # Don't pass the event to QGraphicsView
+                return
         x = scene_pos.x()
         y = scene_pos.y()
 
@@ -763,6 +770,19 @@ class DesktopGrid(QGraphicsView):
                     file_path = urls[0].toLocalFile()  # Convert the first URL to a local file path
                     event.acceptProposedAction()
                 self.show_grid_menu(row, col, file_path)
+
+    def isChildOfShelf(self, item):
+        # Check if an item is a child of the shelf
+        if not item:
+            return False
+        
+        parent = item.parentItem()
+        while parent:
+            if parent is self.shelf:
+                return True
+            parent = parent.parentItem()
+        
+        return False
 
 
 
