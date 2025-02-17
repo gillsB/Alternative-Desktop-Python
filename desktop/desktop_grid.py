@@ -602,6 +602,19 @@ class DesktopGrid(QGraphicsView):
             if isinstance(item, DesktopIcon):
                 self.scene.removeItem(item)
 
+    def mousePressEvent(self, event):
+        scene_pos = self.mapToScene(event.pos())
+        items = self.scene.items(scene_pos)
+        
+        # Check if the click is on the shelf or its children
+        for item in items:
+            if item is self.shelf or self.isChildOfShelf(item):
+                # Don't pass the event to QGraphicsView
+                return super().mousePressEvent(event)
+        else:
+            self.shelf.close_shelf()
+        return super().mousePressEvent(event)
+
     def mouseDoubleClickEvent(self, event):
         # Convert mouse position to scene coordinates
         scene_pos = self.mapToScene(event.pos())
