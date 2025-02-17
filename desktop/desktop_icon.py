@@ -652,6 +652,7 @@ class DesktopIcon(QGraphicsItem):
             self.preview_pixmap_item = QGraphicsPixmapItem(self.pixmap)
             self.preview_pixmap_item.setOpacity(0.6)
             self.preview_pixmap_item.setZValue(1000)
+            self.preview_pixmap_item.hide()
             event.accept()
 
     # Override mouseMoveEvent (to track dragging without moving)
@@ -663,6 +664,7 @@ class DesktopIcon(QGraphicsItem):
                 self.setCursor(Qt.ClosedHandCursor) 
                 self.preview_pixmap_item.setPos(event.scenePos() - self.pixmap.rect().center())
                 self.scene().addItem(self.preview_pixmap_item)
+                self.preview_pixmap_item.show()
 
 
     def mouseReleaseEvent(self, event):
@@ -670,9 +672,8 @@ class DesktopIcon(QGraphicsItem):
         self.dragging = False
         self.setCursor(Qt.ArrowCursor) 
 
-        if self.preview_pixmap_item:
+        if self.preview_pixmap_item.isVisible():
             self.scene().removeItem(self.preview_pixmap_item)
-            del self.preview_pixmap_item
             self.preview_pixmap_item = None
 
         if event.button() == Qt.RightButton:
