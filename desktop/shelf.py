@@ -23,6 +23,9 @@ class Shelf(QGraphicsWidget):
         self.button_proxy.setWidget(button_widget)
 
         self.toggle_button.clicked.connect(self.toggle_shelf)
+        
+        self.setAcceptHoverEvents(True)
+
     
     def position_at_right(self, view_width, view_height):
         button_width = self.button_proxy.size().width()
@@ -33,12 +36,15 @@ class Shelf(QGraphicsWidget):
         self.setPos(view_width - button_width, center_y)
 
     def show_button(self, show):
-        print(f"called with {show}")
-        if show:
+        if show or self.is_open:
             self.show()
         else:
             self.hide()
 
+    def close_shelf(self):
+        self.is_open = False
+        self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
+        self.hide()
     
     def toggle_shelf(self):
         # Open the shelf
