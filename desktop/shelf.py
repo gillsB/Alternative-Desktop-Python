@@ -1,6 +1,6 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Property, QPropertyAnimation, QEasingCurve, QPointF
 from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButton, QGraphicsRectItem,
-                              QVBoxLayout, QWidget)
+                              QVBoxLayout, QWidget, QLabel)
 from PySide6.QtGui import QIcon
 
 
@@ -8,6 +8,7 @@ class Shelf(QGraphicsWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.is_open = False
+        self._content_width = 250
         
         # Create the toggle button
         button_widget = QWidget()
@@ -22,18 +23,76 @@ class Shelf(QGraphicsWidget):
         self.button_proxy = QGraphicsProxyWidget(self)
         self.button_proxy.setWidget(button_widget)
 
+        # Create content widget
+        self.content_widget = QWidget()
+        self.content_widget.setStyleSheet("background-color: #f0f0f0; border: 1px solid #cccccc;")
+        content_layout = QVBoxLayout(self.content_widget)
+        
+        # Add sample content
+        shelf_label = QLabel("Shelf Content")
+        shelf_label.setAlignment(Qt.AlignCenter)
+        shelf_label.setStyleSheet("font-size: 16px; color: #333333;")
+        content_layout.addWidget(shelf_label)
+        
+        sample_button = QPushButton("Sample Button")
+        content_layout.addWidget(sample_button)
+        content_layout.addStretch()
+        sample_button.clicked.connect(self.sample_button_clicked)
+        
+        # Create a proxy for the content
+        self.content_proxy = QGraphicsProxyWidget(self)
+        self.content_proxy.setWidget(self.content_widget)
+        self.content_proxy.setMinimumWidth(0)
+        self.content_proxy.setMaximumWidth(0)
+        
+        # Position content to the right of button
+        button_width = self.button_proxy.size().width()
+        self.content_proxy.setPos(button_width, 0)
+
+        # Connect the button to toggle action
         self.toggle_button.clicked.connect(self.toggle_shelf)
+
+        # Set up animation for content
+        self.content_animation = QPropertyAnimation(self, b"content_width")
+        self.content_animation.setDuration(300)
+        self.content_animation.setEasingCurve(QEasingCurve.InOutQuad)
+        self.content_animation.finished.connect(self.update_content_position)
+        
+        # Set up animation for shelf position
+        self.shelf_animation = QPropertyAnimation(self, b"pos")
+        self.shelf_animation.setDuration(300)
+        self.shelf_animation.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.setAcceptHoverEvents(True)
 
+    def get_content_width(self):
+        return self.content_proxy.size().width()
+
+    def set_content_width(self, width):
+        self.content_proxy.setMinimumWidth(width)
+        self.content_proxy.setMaximumWidth(width)
+        self.update_content_position()
+
+    content_width = Property(int, get_content_width, set_content_width)
+    
+    def update_content_position(self):
+        # Position content to the right of button
+        button_pos = self.button_proxy.pos()
+        button_width = self.button_proxy.size().width()
+        self.content_proxy.setPos(button_pos.x() + button_width, button_pos.y())
     
     def position_at_right(self, view_width, view_height):
         button_width = self.button_proxy.size().width()
+        content_width = self.content_proxy.size().width()
 
         center_y = (view_height - self.button_proxy.size().height()) / 2
 
-        self.button_proxy.setPos(0, 0)
-        self.setPos(view_width - button_width, center_y)
+        if not self.is_open:
+            self.setPos(view_width - button_width, center_y)
+        else:
+            self.setPos(view_width - button_width - content_width, center_y)
+
+        self.update_content_position()
 
     def show_button(self, show):
         if show or self.is_open:
@@ -46,15 +105,52 @@ class Shelf(QGraphicsWidget):
             self.hide()
             self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
             self.is_open = False
-    
+
     def toggle_shelf(self):
-        # Open the shelf
-        if not self.is_open:
-            self.toggle_button.setIcon(QIcon.fromTheme("go-next"))
-        # Close the shelf
-        else:
-            self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
-        self.is_open = not self.is_open
+        # Get the view width from parent scene and view
+        scene = self.scene()
+        if scene and len(scene.views()) > 0:
+            view = scene.views()[0]
+            view_width = view.viewport().width()
+            
+            if not self.is_open:
+                # Opening shelf
+                current_pos_x = self.pos().x()
+                target_pos_x = view_width - self._content_width - self.button_proxy.size().width()
+
+                self.shelf_animation.setStartValue(QPointF(current_pos_x, 0))
+                self.shelf_animation.setEndValue(QPointF(target_pos_x, 0))
+
+                self.content_animation.setStartValue(0)
+                self.content_animation.setEndValue(self._content_width)
+
+                self.toggle_button.setIcon(QIcon.fromTheme("go-next"))
+            else:
+                # Closing shelf
+                current_pos_x = self.pos().x()
+                button_width = self.button_proxy.size().width()
+                target_pos_x = view_width - button_width
+
+                self.shelf_animation.setStartValue(QPointF(current_pos_x, 0))
+                self.shelf_animation.setEndValue(QPointF(target_pos_x, 0))
+
+                self.content_animation.setStartValue(self.content_proxy.size().width())
+                self.content_animation.setEndValue(0)
+
+                self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
+
+            # Start both animations
+            self.shelf_animation.start()
+            self.content_animation.start()
+
+            self.is_open = not self.is_open
+
+            # This instantly hides the button when closed instead of waiting for animation to finish.
+            self.show_button(self.is_open)
+
+
+    def sample_button_clicked(self):
+        print("sample button clicked")
 
 
 class ShelfHoverItem(QGraphicsRectItem):
