@@ -23,7 +23,7 @@ class Shelf(QGraphicsWidget):
         self.button_proxy.setWidget(button_widget)
 
         self.toggle_button.clicked.connect(self.toggle_shelf)
-        
+
         self.setAcceptHoverEvents(True)
 
     
@@ -42,9 +42,10 @@ class Shelf(QGraphicsWidget):
             self.hide()
 
     def close_shelf(self):
-        self.is_open = False
-        self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
-        self.hide()
+        if self.is_open:
+            self.hide()
+            self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
+            self.is_open = False
     
     def toggle_shelf(self):
         # Open the shelf
