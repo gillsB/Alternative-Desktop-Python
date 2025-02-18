@@ -45,9 +45,9 @@ class Shelf(QGraphicsWidget):
         self.content_proxy.setMinimumWidth(0)
         self.content_proxy.setMaximumWidth(0)
         
-        # Position content to the right of button
+        # Position content to the right of button at the same height
         button_width = self.button_proxy.size().width()
-        self.content_proxy.setPos(button_width, 0)
+        self.content_proxy.setPos(button_width, 0)  # Same vertical position as button
 
         # Connect the button to toggle action
         self.toggle_button.clicked.connect(self.toggle_shelf)
@@ -64,6 +64,7 @@ class Shelf(QGraphicsWidget):
         self.shelf_animation.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.setAcceptHoverEvents(True)
+        self.center_y = 0
 
     def get_content_width(self):
         return self.content_proxy.size().width()
@@ -76,21 +77,20 @@ class Shelf(QGraphicsWidget):
     content_width = Property(int, get_content_width, set_content_width)
     
     def update_content_position(self):
-        # Position content to the right of button
-        button_pos = self.button_proxy.pos()
+        # Position content to the right of button at the same vertical position
         button_width = self.button_proxy.size().width()
-        self.content_proxy.setPos(button_pos.x() + button_width, button_pos.y())
+        self.content_proxy.setPos(button_width, 0)
     
     def position_at_right(self, view_width, view_height):
         button_width = self.button_proxy.size().width()
         content_width = self.content_proxy.size().width()
-
-        center_y = (view_height - self.button_proxy.size().height()) / 2
+        
+        self.center_y = (view_height - self.button_proxy.size().height()) / 2
 
         if not self.is_open:
-            self.setPos(view_width - button_width, center_y)
+            self.setPos(view_width - button_width, self.center_y)
         else:
-            self.setPos(view_width - button_width - content_width, center_y)
+            self.setPos(view_width - button_width - content_width, self.center_y)
 
         self.update_content_position()
 
@@ -118,8 +118,8 @@ class Shelf(QGraphicsWidget):
                 current_pos_x = self.pos().x()
                 target_pos_x = view_width - self._content_width - self.button_proxy.size().width()
 
-                self.shelf_animation.setStartValue(QPointF(current_pos_x, 0))
-                self.shelf_animation.setEndValue(QPointF(target_pos_x, 0))
+                self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
+                self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
 
                 self.content_animation.setStartValue(0)
                 self.content_animation.setEndValue(self._content_width)
@@ -131,8 +131,8 @@ class Shelf(QGraphicsWidget):
                 button_width = self.button_proxy.size().width()
                 target_pos_x = view_width - button_width
 
-                self.shelf_animation.setStartValue(QPointF(current_pos_x, 0))
-                self.shelf_animation.setEndValue(QPointF(target_pos_x, 0))
+                self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
+                self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
 
                 self.content_animation.setStartValue(self.content_proxy.size().width())
                 self.content_animation.setEndValue(0)
@@ -148,10 +148,8 @@ class Shelf(QGraphicsWidget):
             # This instantly hides the button when closed instead of waiting for animation to finish.
             self.show_button(self.is_open)
 
-
     def sample_button_clicked(self):
         print("sample button clicked")
-
 
 class ShelfHoverItem(QGraphicsRectItem):
     def __init__(self, width, height, shelf: Shelf, parent=None):
