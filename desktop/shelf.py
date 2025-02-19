@@ -25,13 +25,11 @@ class Shelf(QGraphicsWidget):
 
         # Create content widget
         self.content_widget = QWidget()
-        self.content_widget.setStyleSheet("background-color: #f0f0f0; border: 1px solid #cccccc;")
         content_layout = QVBoxLayout(self.content_widget)
         
         # Add sample content
         shelf_label = QLabel("Shelf Content")
         shelf_label.setAlignment(Qt.AlignCenter)
-        shelf_label.setStyleSheet("font-size: 16px; color: #333333;")
         content_layout.addWidget(shelf_label)
         
         sample_button = QPushButton("Sample Button")
