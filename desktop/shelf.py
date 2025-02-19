@@ -63,6 +63,7 @@ class Shelf(QGraphicsWidget):
 
         self.setAcceptHoverEvents(True)
         self.center_y = 0
+        self.setZValue(1)
 
     def get_content_width(self):
         return self.content_proxy.size().width()
