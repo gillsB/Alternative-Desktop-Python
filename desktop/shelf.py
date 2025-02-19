@@ -111,7 +111,6 @@ class Shelf(QGraphicsWidget):
         if scene and len(scene.views()) > 0:
             view = scene.views()[0]
             view_width = view.viewport().width()
-            
             if not self.is_open:
                 # Opening shelf
                 current_pos_x = self.pos().x()
@@ -138,17 +137,20 @@ class Shelf(QGraphicsWidget):
 
                 self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
 
+                # Connect the finished signal of shelf animation to hide the button after close
+                self.shelf_animation.finished.connect(self.hide_button_after_close)
+
             # Start both animations
             self.shelf_animation.start()
             self.content_animation.start()
 
             self.is_open = not self.is_open
 
-            # This instantly hides the button when closed instead of waiting for animation to finish.
-            self.show_button(self.is_open)
-
     def sample_button_clicked(self):
         print("sample button clicked")
+
+    def hide_button_after_close(self):
+        self.show_button(self.is_open)
 
 class ShelfHoverItem(QGraphicsRectItem):
     def __init__(self, width, height, shelf: Shelf, parent=None):
