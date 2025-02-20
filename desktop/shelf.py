@@ -2,13 +2,15 @@ from PySide6.QtCore import Qt, Property, QPropertyAnimation, QEasingCurve, QPoin
 from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButton, QGraphicsRectItem,
                               QVBoxLayout, QWidget, QLabel)
 from PySide6.QtGui import QIcon
+from menus.settings_menu import SettingsDialog
 
-
+# Parent passed is Desktop.py NOT desktop_grid where it is created.
 class Shelf(QGraphicsWidget):
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__()
         self.is_open = False
         self._content_width = 250
+        self.parent = parent
         
         # Create the toggle button
         button_widget = QWidget()
@@ -142,7 +144,7 @@ class Shelf(QGraphicsWidget):
             self.is_open = not self.is_open
 
     def settings_button_clicked(self):
-        print("show settings...")
+        self.parent().show_settings()
 
     def hide_button_after_close(self):
         self.show_button(self.is_open)

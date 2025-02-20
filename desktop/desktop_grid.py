@@ -97,7 +97,7 @@ class DesktopGrid(QGraphicsView):
         self.image_background_manager = ImageBackgroundManager(self, self)
 
         if args.mode == "debug" or args.mode == "devbug":
-            self.shelf = Shelf()
+            self.shelf = Shelf(parent=self.parent)
             self.shelf_hover_item = ShelfHoverItem(self.width(), self.height(), self.shelf, parent = self)
             self.scene.addItem(self.shelf_hover_item)
             self.scene.addItem(self.shelf)
