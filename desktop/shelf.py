@@ -27,15 +27,10 @@ class Shelf(QGraphicsWidget):
         self.content_widget = QWidget()
         content_layout = QVBoxLayout(self.content_widget)
         
-        # Add sample content
-        shelf_label = QLabel("Shelf Content")
-        shelf_label.setAlignment(Qt.AlignCenter)
-        content_layout.addWidget(shelf_label)
-        
-        sample_button = QPushButton("Sample Button")
+        sample_button = QPushButton("Settings Menu")
         content_layout.addWidget(sample_button)
         content_layout.addStretch()
-        sample_button.clicked.connect(self.sample_button_clicked)
+        sample_button.clicked.connect(self.settings_button_clicked)
         
         # Create a proxy for the content
         self.content_proxy = QGraphicsProxyWidget(self)
@@ -146,8 +141,8 @@ class Shelf(QGraphicsWidget):
 
             self.is_open = not self.is_open
 
-    def sample_button_clicked(self):
-        print("sample button clicked")
+    def settings_button_clicked(self):
+        print("show settings...")
 
     def hide_button_after_close(self):
         self.show_button(self.is_open)
