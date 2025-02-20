@@ -91,9 +91,6 @@ class OverlayWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        settings_button = QPushButton("Settings")
-        settings_button.clicked.connect(self.show_settings)
-        layout.addWidget(settings_button)
 
     def show_patch_notes(self):
         patch_notes_menu = PatchNotesPopup(self)
