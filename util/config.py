@@ -9,6 +9,9 @@ DESKTOP_CONFIG_DIRECTORY = None
 JSON = ""
 DATA_DIRECTORY = None
 
+# Used to directly get a reference to the JSON item at ("row", "column")
+ITEM_LOOKUP_TABLE = {}
+
 #These are all active .json arguments and their defaults
 DEFAULT_DESKTOP =  {
     "row": 0,
@@ -50,9 +53,8 @@ def create_paths():
 
 def create_config_path():
 
-    global DESKTOP_CONFIG_DIRECTORY
-    global DEFAULT_DESKTOP
-    global JSON
+    global DESKTOP_CONFIG_DIRECTORY, DEFAULT_DESKTOP, JSON, ITEM_LOOKUP_TABLE
+
     app_data_path = os.path.join(os.getenv('APPDATA'), 'AlternativeDesktop')
 
     # Create app_data directory if it doesn't exist
@@ -73,9 +75,11 @@ def create_config_path():
     if os.path.exists(DESKTOP_CONFIG_DIRECTORY) and os.path.getsize(DESKTOP_CONFIG_DIRECTORY) > 0:
         with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
             JSON = json.load(f)
+            ITEM_LOOKUP_TABLE = {(item['row'], item['column']): item for item in JSON}
     else:
         logger.info(f"Creating default settings at: {DESKTOP_CONFIG_DIRECTORY}")
         JSON = [DEFAULT_DESKTOP]
+        ITEM_LOOKUP_TABLE = {(DEFAULT_DESKTOP['row'], DEFAULT_DESKTOP['column']): DEFAULT_DESKTOP}
         with open(DESKTOP_CONFIG_DIRECTORY, "w") as f:
             json.dump([DEFAULT_DESKTOP], f, indent=4)
 
@@ -96,23 +100,24 @@ def create_data_path():
     
     DATA_DIRECTORY = data_path
 
-
+def get_item(row, col):
+    return ITEM_LOOKUP_TABLE.get((row, col))
 
 
 def get_icon_data(row, column):
-    for item in JSON:
-        if item['row'] == row and item['column'] == column:
-            return {
-                'icon_path': item.get('icon_path', ""),
-                'name': item.get('name', ""),
-                'executable_path': item.get('executable_path', ""),
-                'command_args': item.get('command_args', ""),
-                'website_link': item.get('website_link', ""),
-                'launch_option': item.get('launch_option', 0),
-                'font_size': item.get('font_size', get_setting("global_font_size", 10)),
-                'use_global_font_size': item.get('use_global_font_size', True),
-                'font_color': item.get('font_color', get_setting("global_font_color", 10)),
-                'use_global_font_color': item.get('use_global_font_color', True)
+    item = get_item(row, column)
+    if item:
+        return {
+            'icon_path': item.get('icon_path', ""),
+            'name': item.get('name', ""),
+            'executable_path': item.get('executable_path', ""),
+            'command_args': item.get('command_args', ""),
+            'website_link': item.get('website_link', ""),
+            'launch_option': item.get('launch_option', 0),
+            'font_size': item.get('font_size', get_setting("global_font_size", 10)),
+            'use_global_font_size': item.get('use_global_font_size', True),
+            'font_color': item.get('font_color', get_setting("global_font_color", 10)),
+            'use_global_font_color': item.get('use_global_font_color', True)
             }
     return {
         'icon_path': "",
@@ -130,23 +135,23 @@ def get_icon_data(row, column):
 
 # This is an override which returns the global font_size if the DesktopIcon uses default. And the local font_size if it uses a custom font_size.
 def get_icon_font_size(row, col):
-    for item in JSON:
-        if item['row'] == row and item['column'] == col:
-            if item.get('use_global_font_size'):
-                return get_setting("global_font_size", 50)
-            else:
-                return item.get('font_size', get_setting("global_font_size", 10))
+    item = get_item(row, col)
+    if item:
+        if item.get('use_global_font_size'):
+            return get_setting("global_font_size", 50)
+        else:
+            return item.get('font_size', get_setting("global_font_size", 10))
     # Return global font size if item not in JSON (new item)
     return get_setting("global_font_size", 10)
 
 # This is an override which returns the global label_color if the DesktopIcon uses default. And the local font_color if it uses a custom font_color.
 def get_icon_font_color(row, col):
-    for item in JSON:
-        if item['row'] == row and item['column'] == col:
-            if item.get('use_global_font_color'):
-                return get_setting("global_font_color", "#ffffff")
-            else:
-                return item.get('font_color', get_setting("global_font_color", "#ffffff"))
+    item = get_item(row, col)
+    if item:
+        if item.get('use_global_font_color'):
+            return get_setting("global_font_color", "#ffffff")
+        else:
+            return item.get('font_color', get_setting("global_font_color", "#ffffff"))
     # Return global font color for item not in JSON (new item)
     return get_setting("global_font_color", "#ffffff")
 
@@ -157,17 +162,11 @@ def load_desktop_config():
     return JSON
     
 def entry_exists(row, col):
-    for item in JSON:
-        if item['row'] == row and item['column'] == col:
-            return True
-    return False
+    return (row, col) in ITEM_LOOKUP_TABLE
 
-#entry_exists but returns item if it exists, otherwise false
+# entry_exists but returns item if it exists, otherwise false
 def get_entry(row, col):
-    for item in JSON:
-        if item['row'] == row and item['column'] == col:
-            return item
-    return False
+    return ITEM_LOOKUP_TABLE.get((row, col), False)
 
 def check_for_new_config():
     config = load_desktop_config()
@@ -194,43 +193,42 @@ def save_config_to_file(config):
         json.dump(sorted_config, f, indent=4)
         logger.info("Successfully saved desktop.json")
     with open(DESKTOP_CONFIG_DIRECTORY, "r") as f:
-        global JSON
-        JSON = json.load(f)
+        global JSON, ITEM_LOOKUP_TABLE
+        JSON = sorted_config
+        ITEM_LOOKUP_TABLE = {(item['row'], item['column']): item for item in sorted_config}
         logger.info("Reloaded JSON")
 
 def is_default(row, col):
-    # Assume the item is not found and thus is default
-    is_default_value = True
+    item = get_item(row, col)
     
-    for item in JSON:
-        if item['row'] == row and item['column'] == col:
-            # If the item is found, check if it has non-default values
-            if (item.get('name', "") != DEFAULT_DESKTOP['name'] or
-                item.get('icon_path', "") != DEFAULT_DESKTOP['icon_path'] or
-                item.get('executable_path', "") != DEFAULT_DESKTOP['executable_path'] or
-                item.get('command_args', "") != DEFAULT_DESKTOP['command_args'] or
-                item.get('website_link', "") != DEFAULT_DESKTOP['website_link'] or
-                item.get('launch_option', 0) != DEFAULT_DESKTOP['launch_option']):
-                is_default_value = False
-            break
+    if item:
+        # Check only the keys that are not 'row' or 'column' and that exist in the item
+        for key, default_value in DEFAULT_DESKTOP.items():
+            if key not in ['row', 'column']:
+                if key in item and item[key] != default_value:
+                    return False
 
-    return is_default_value
+    return True
+
 
 #updates the entry at row,col to DEFAULT_DESKTOP fields (except row/column)
 def set_entry_to_default(row, col):
     config = load_desktop_config()
-    for entry in config:
-        if entry.get('row') == row and entry.get('column') == col:
-            for key in DEFAULT_DESKTOP:
-                if key not in ['row', 'column']:
-                    entry[key] = DEFAULT_DESKTOP[key]
-            break
-    save_config_to_file(config)
+    item = get_item(row, col)
+    if item:
+        # Update the item to default values (except row and column)
+        for key in DEFAULT_DESKTOP:
+            if key not in ['row', 'column']:
+                item[key] = DEFAULT_DESKTOP[key]
+        save_config_to_file(config)
 
 def delete_entry(row, col):
+    global ITEM_LOOKUP_TABLE
+    
     config = load_desktop_config()
     # Iterate over the list and remove the entry matching the row and column
     config = [entry for entry in config if not (entry.get('row') == row and entry.get('column') == col)]
+    ITEM_LOOKUP_TABLE.pop((row, col), None)
     save_config_to_file(config)
 
 #swap row/col between two desktop_icons
@@ -238,8 +236,8 @@ def swap_icons_by_position(row1, col1, row2, col2):
     config = load_desktop_config()
     
     # Find the items with the specified row and column values
-    item1 = next((item for item in config if item['row'] == row1 and item['column'] == col1), None)
-    item2 = next((item for item in config if item['row'] == row2 and item['column'] == col2), None)
+    item1 = get_item(row1, col1)
+    item2 = get_item(row2, col2)
     
     # if neither icons in desktop.json
     if item1 is None and item2 is None:
@@ -262,47 +260,46 @@ def swap_icons_by_position(row1, col1, row2, col2):
     save_config_to_file(config)
 
 def change_launch(new_launch_value, row, col):
-    config = load_desktop_config()
-    for entry in config:
-        if entry.get('row') == row and entry.get('column') == col:
-            entry['launch_option'] = new_launch_value
-            break
-    save_config_to_file(config)
-
-def update_folder( new_row, new_col):
-    config = load_desktop_config()
-
-    for entry in config:
-        if entry.get('row') == new_row and entry.get('column') == new_col:
-            new_dir = os.path.join(DATA_DIRECTORY, f'[{new_row}, {new_col}]')
-            if entry['icon_path'].startswith(DATA_DIRECTORY):
-                filename = ""
-
-                last_backslash_index = entry['icon_path'].rfind('\\')
-
-                # Extract everything after the last backslash
-                if last_backslash_index != -1:
-                    filename = entry['icon_path'][last_backslash_index + 1:]
-                entry['icon_path'] = os.path.join(new_dir, filename)
+    # Retrieve the item from the lookup table
+    item = get_item(row, col)
     
-    save_config_to_file(config)
+    if item:
+        # Update the launch_option in JSON
+        item['launch_option'] = new_launch_value
+        # Save the updated JSON to the file
+        save_config_to_file(load_desktop_config())
+
+def update_folder(new_row, new_col):
+    item = get_item(new_row, new_col)
+    
+    if item:
+        new_dir = os.path.join(DATA_DIRECTORY, f'[{new_row}, {new_col}]')
+        if item['icon_path'].startswith(DATA_DIRECTORY):
+            filename = ""
+            last_backslash_index = item['icon_path'].rfind('\\')
+
+            # Extract everything after the last backslash
+            if last_backslash_index != -1:
+                filename = item['icon_path'][last_backslash_index + 1:]
+            item['icon_path'] = os.path.join(new_dir, filename)
+        
+        # Save the updated JSON to the file
+        save_config_to_file(load_desktop_config())
             
 
 def reset_all_to_default_font_size():
-    config = load_desktop_config()
-
-    for entry in config:
-        entry['use_global_font_size'] = True
+    for item in ITEM_LOOKUP_TABLE.values():
+        item['use_global_font_size'] = True
     
-    save_config_to_file(config)
+    # Save the updated JSON to the file
+    save_config_to_file(load_desktop_config())
 
 def reset_all_to_default_font_color():
-    config = load_desktop_config()
-
-    for entry in config:
-        entry['use_global_font_color'] = True
+    for item in ITEM_LOOKUP_TABLE.values():
+        item['use_global_font_color'] = True
     
-    save_config_to_file(config)
+    # Save the updated JSON to the file
+    save_config_to_file(load_desktop_config())
             
 
 def get_data_directory():
