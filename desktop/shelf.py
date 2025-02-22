@@ -63,7 +63,7 @@ class Shelf(QGraphicsWidget):
 
         self.setAcceptHoverEvents(True)
         self.center_y = 0
-        self.setZValue(1)
+        self.setZValue(2)
 
     def get_content_width(self):
         return self.content_proxy.size().width()
@@ -182,6 +182,7 @@ class ShelfHoverItem(QGraphicsRectItem):
         self.is_hovered = False
         self.width = width
         self.height = height
+        self.setZValue(1)
 
     def hoverMoveEvent(self, event):
         item_area = self.boundingRect()
@@ -202,12 +203,20 @@ class ShelfHoverItem(QGraphicsRectItem):
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
-        # Check if the mouse is still within the hover or button area before hiding the button
         item_area = self.boundingRect()
-        button_area = self.shelf.button_proxy.boundingRect()
-        if not item_area.contains(event.pos()) and not button_area.contains(event.pos()):
+        event_pos = event.pos()
+
+        # Add a small margin to the item bounding rect to avoid small overlaps triggering .contains()
+        margin = 5
+        adjusted_item_area = item_area.adjusted(margin, margin, -margin, -margin)
+        
+        if not adjusted_item_area.contains(event_pos):
             self.is_hovered = False
             self.shelf.show_button(False)
+        else:
+            # Only case where this should occur is when hovering over the shelf button/shelf item.
+            pass
+            
         super().hoverLeaveEvent(event)
 
     def updatePosition(self, view_width, view_height):
