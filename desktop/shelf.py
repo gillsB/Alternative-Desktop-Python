@@ -3,6 +3,9 @@ from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButto
                               QVBoxLayout, QWidget, QLabel)
 from PySide6.QtGui import QIcon
 from menus.settings_menu import SettingsDialog
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Parent passed is Desktop.py NOT desktop_grid where it is created.
 class Shelf(QGraphicsWidget):
@@ -98,50 +101,70 @@ class Shelf(QGraphicsWidget):
 
     def close_shelf(self):
         if self.is_open:
-            self.hide()
+            scene = self.scene()
+            view = scene.views()[0]
+            view_width = view.viewport().width()
+            current_pos_x = self.pos().x()
+            button_width = self.button_proxy.size().width()
+            target_pos_x = view_width - button_width
+
+            self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
+            self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
+
+            self.content_animation.setStartValue(self.content_proxy.size().width())
+            self.content_animation.setEndValue(0)
+
             self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
+
+            # Connect the finished signal of shelf animation to hide the button after close
+            self.shelf_animation.finished.connect(self.hide_button_after_close)
             self.is_open = False
+
+            # Start both animations
+            self.shelf_animation.start()
+            self.content_animation.start()
+            logger.info("Closed shelf")
+            
+        else:
+            logger.error("Attempted to close shelf when shelf is closed")
+
+    def open_shelf(self):
+        if not self.is_open:
+            scene = self.scene()
+            view = scene.views()[0]
+            view_width = view.viewport().width()
+            current_pos_x = self.pos().x()
+            target_pos_x = view_width - self._content_width - self.button_proxy.size().width()
+
+            self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
+            self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
+
+            self.content_animation.setStartValue(0)
+            self.content_animation.setEndValue(self._content_width)
+
+            self.toggle_button.setIcon(QIcon.fromTheme("go-next"))
+
+            self.is_open = True
+
+            # Start both animations
+            self.shelf_animation.start()
+            self.content_animation.start()
+            logger.info("Opened shelf")
+        else:
+            logger.error("Attempted to open shelf that is open")
 
     def toggle_shelf(self):
         # Get the view width from parent scene and view
         scene = self.scene()
         if scene and len(scene.views()) > 0:
-            view = scene.views()[0]
-            view_width = view.viewport().width()
             if not self.is_open:
-                # Opening shelf
-                current_pos_x = self.pos().x()
-                target_pos_x = view_width - self._content_width - self.button_proxy.size().width()
-
-                self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
-                self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
-
-                self.content_animation.setStartValue(0)
-                self.content_animation.setEndValue(self._content_width)
-
-                self.toggle_button.setIcon(QIcon.fromTheme("go-next"))
+                self.open_shelf()
             else:
-                # Closing shelf
-                current_pos_x = self.pos().x()
-                button_width = self.button_proxy.size().width()
-                target_pos_x = view_width - button_width
+                self.close_shelf()
+        else:
+            logger.error(f"Critical error: scene not found or no view: {scene}, {len(scene.views())}. Aborting shelf toggle.")
 
-                self.shelf_animation.setStartValue(QPointF(current_pos_x, self.center_y))
-                self.shelf_animation.setEndValue(QPointF(target_pos_x, self.center_y))
-
-                self.content_animation.setStartValue(self.content_proxy.size().width())
-                self.content_animation.setEndValue(0)
-
-                self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
-
-                # Connect the finished signal of shelf animation to hide the button after close
-                self.shelf_animation.finished.connect(self.hide_button_after_close)
-
-            # Start both animations
-            self.shelf_animation.start()
-            self.content_animation.start()
-
-            self.is_open = not self.is_open
+            
 
     def settings_button_clicked(self):
         self.parent().show_settings()

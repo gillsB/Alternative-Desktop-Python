@@ -611,7 +611,8 @@ class DesktopGrid(QGraphicsView):
                 # Don't pass the event to QGraphicsView
                 return super().mousePressEvent(event)
         else:
-            self.shelf.close_shelf()
+            if self.shelf.is_open:
+                self.shelf.close_shelf()
         return super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event):
