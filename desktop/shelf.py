@@ -174,12 +174,14 @@ class Shelf(QGraphicsWidget):
 
 class ShelfHoverItem(QGraphicsRectItem):
     def __init__(self, width, height, shelf: Shelf, parent=None):
-        super().__init__(0, 0, 40, height)
+        super().__init__(0, 0, width, height)
         self.shelf = shelf 
         self.setBrush(Qt.transparent)  # Make the inside invisible/transparent
         #self.setPen(QPen(Qt.transparent))  # Eventually this will be transparent.
         self.setAcceptHoverEvents(True)
         self.is_hovered = False
+        self.width = width
+        self.height = height
 
     def hoverMoveEvent(self, event):
         item_area = self.boundingRect()
@@ -209,5 +211,6 @@ class ShelfHoverItem(QGraphicsRectItem):
         super().hoverLeaveEvent(event)
 
     def updatePosition(self, view_width, view_height):
-        self.setRect(0, 0, self.rect().width(), view_height)
-        self.setPos(view_width - 40, 0)
+        self.setRect(0, 0, self.width, self.height)
+        vertical_offset = (view_height - self.height) / 2
+        self.setPos(view_width - self.width, vertical_offset)
