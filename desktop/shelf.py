@@ -220,6 +220,9 @@ class ShelfHoverItem(QGraphicsRectItem):
         super().hoverLeaveEvent(event)
 
     def updatePosition(self, view_width, view_height):
-        self.setRect(0, 0, self.width, self.height)
-        vertical_offset = (view_height - self.height) / 2
-        self.setPos(view_width - self.width, vertical_offset)
+        width = (self.width * view_width) / 100
+        height = (self.height * view_height) / 100
+
+        self.setRect(0, 0, width, height)
+        vertical_offset = (view_height - height) / 2
+        self.setPos(view_width - width, vertical_offset)
