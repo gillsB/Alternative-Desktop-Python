@@ -612,7 +612,10 @@ class DesktopGrid(QGraphicsView):
                 return super().mousePressEvent(event)
         else:
             if self.shelf.is_open:
-                self.shelf.close_shelf()
+                if self.shelf_hover_item.is_mouse_in_hover_area(event):
+                    self.shelf.close_shelf(hide = False)
+                else:
+                    self.shelf.close_shelf(hide = True)
         return super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event):

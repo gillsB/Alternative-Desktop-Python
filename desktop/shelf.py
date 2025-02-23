@@ -99,7 +99,7 @@ class Shelf(QGraphicsWidget):
         else:
             self.hide()
 
-    def close_shelf(self):
+    def close_shelf(self, hide = None):
         if self.is_open:
             scene = self.scene()
             view = scene.views()[0]
@@ -117,7 +117,8 @@ class Shelf(QGraphicsWidget):
             self.toggle_button.setIcon(QIcon.fromTheme("go-previous"))
 
             # Connect the finished signal of shelf animation to hide the button after close
-            self.shelf_animation.finished.connect(self.hide_button_after_close)
+            if hide:
+                self.shelf_animation.finished.connect(self.hide_button_after_close)
             self.is_open = False
 
             # Start both animations
@@ -188,9 +189,8 @@ class ShelfHoverItem(QGraphicsRectItem):
         item_area = self.boundingRect()
         button_area = self.shelf.button_proxy.boundingRect()
         if item_area.contains(event.pos()) or button_area.contains(event.pos()):
-            if not self.is_hovered:
-                self.is_hovered = True
-                self.shelf.show_button(True)
+            self.is_hovered = True
+            self.shelf.show_button(True)
         else:
             if self.is_hovered:
                 self.is_hovered = False
@@ -226,3 +226,10 @@ class ShelfHoverItem(QGraphicsRectItem):
         self.setRect(0, 0, width, height)
         vertical_offset = (view_height - height) / 2
         self.setPos(view_width - width, vertical_offset)
+
+    def is_mouse_in_hover_area(self, event):
+        event_pos = event.pos()
+
+        item_area = self.boundingRect()
+        button_area = self.shelf.button_proxy.boundingRect()
+        return item_area.contains(event_pos) or button_area.contains(event_pos)
