@@ -5,6 +5,7 @@ from PySide6.QtGui import QIcon
 import logging
 
 logger = logging.getLogger(__name__)
+IS_HOVERED = False
 
 # Parent passed is Desktop.py NOT desktop_grid where it is created.
 class Shelf(QGraphicsWidget):
@@ -168,9 +169,9 @@ class Shelf(QGraphicsWidget):
     def animation_finished(self):
         # When the shelf is closed
         if not self.is_open:
-            if self.hide_after_close:
-                print("hide button")
-                self.show_button(self.is_open)
+            # Call to hide button if NOT hovering over ShelfHoverItem. Otherwise leave it showing.
+            if not IS_HOVERED:
+                self.show_button(False)
             self.parent().grid_widget.play_video()
             
 
@@ -187,29 +188,30 @@ class ShelfHoverItem(QGraphicsRectItem):
         self.setBrush(Qt.transparent)  # Make the inside invisible/transparent
         #self.setPen(QPen(Qt.transparent))  # Eventually this will be transparent.
         self.setAcceptHoverEvents(True)
-        self.is_hovered = False
         self.width = width
         self.height = height
         self.setZValue(1)
 
     def hoverMoveEvent(self, event):
+        global IS_HOVERED
         item_area = self.boundingRect()
         button_area = self.shelf.button_proxy.boundingRect()
         if item_area.contains(event.pos()) or button_area.contains(event.pos()):
-            self.is_hovered = True
-            self.shelf.show_button(True)
+            if not IS_HOVERED:
+                IS_HOVERED = True
         else:
-            if self.is_hovered:
-                self.is_hovered = False
-                self.shelf.show_button(False)
+            if IS_HOVERED:
+                IS_HOVERED = False
         super().hoverMoveEvent(event)
 
     def hoverEnterEvent(self, event):
-        self.is_hovered = True
+        global IS_HOVERED
+        IS_HOVERED = True
         self.shelf.show_button(True)
         super().hoverEnterEvent(event)
 
     def hoverLeaveEvent(self, event):
+        global IS_HOVERED
         item_area = self.boundingRect()
         event_pos = event.pos()
 
@@ -218,7 +220,7 @@ class ShelfHoverItem(QGraphicsRectItem):
         adjusted_item_area = item_area.adjusted(margin, margin, -margin, -margin)
         
         if not adjusted_item_area.contains(event_pos):
-            self.is_hovered = False
+            IS_HOVERED = False
             self.shelf.show_button(False)
         else:
             # Only case where this should occur is when hovering over the shelf button/shelf item.
