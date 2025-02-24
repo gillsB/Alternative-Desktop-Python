@@ -194,14 +194,8 @@ class ShelfHoverItem(QGraphicsRectItem):
 
     def hoverMoveEvent(self, event):
         global IS_HOVERED
-        item_area = self.boundingRect()
-        button_area = self.shelf.button_proxy.boundingRect()
-        if item_area.contains(event.pos()) or button_area.contains(event.pos()):
-            if not IS_HOVERED:
-                IS_HOVERED = True
-        else:
-            if IS_HOVERED:
-                IS_HOVERED = False
+        if not IS_HOVERED:
+            IS_HOVERED = True
         super().hoverMoveEvent(event)
 
     def hoverEnterEvent(self, event):
