@@ -1,8 +1,7 @@
 from PySide6.QtCore import Qt, Property, QPropertyAnimation, QEasingCurve, QPointF
 from PySide6.QtWidgets import (QGraphicsWidget, QGraphicsProxyWidget, QPushButton, QGraphicsRectItem,
-                              QVBoxLayout, QWidget, QLabel)
+                              QVBoxLayout, QWidget)
 from PySide6.QtGui import QIcon
-from menus.settings_menu import SettingsDialog
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,10 +32,10 @@ class Shelf(QGraphicsWidget):
         self.content_widget = QWidget()
         content_layout = QVBoxLayout(self.content_widget)
         
-        sample_button = QPushButton("Settings Menu")
-        content_layout.addWidget(sample_button)
+        settings_button = QPushButton("Settings Menu")
+        content_layout.addWidget(settings_button)
         content_layout.addStretch()
-        sample_button.clicked.connect(self.settings_button_clicked)
+        settings_button.clicked.connect(self.settings_button_clicked)
         
         # Create a proxy for the content
         self.content_proxy = QGraphicsProxyWidget(self)
@@ -131,6 +130,7 @@ class Shelf(QGraphicsWidget):
 
     def open_shelf(self):
         if not self.is_open:
+            self.parent().grid_widget.pause_video()
             scene = self.scene()
             view = scene.views()[0]
             view_width = view.viewport().width()
@@ -171,10 +171,13 @@ class Shelf(QGraphicsWidget):
             if self.hide_after_close:
                 print("hide button")
                 self.show_button(self.is_open)
+            self.parent().grid_widget.play_video()
             
 
     def settings_button_clicked(self):
+        self.close_shelf(hide=True)
         self.parent().show_settings()
+
 
 
 class ShelfHoverItem(QGraphicsRectItem):
