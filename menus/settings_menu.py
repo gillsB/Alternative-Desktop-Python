@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QPushButton, QMessageBox, QHBoxLayout, QCheckBox, QDialog, QFormLayout, QScrollArea, QWidget, QVBoxLayout, QLabel, QApplication, QTabWidget, QFrame,
                                QSlider, QComboBox, QStyle, QFileDialog, QSpinBox, QColorDialog, QSizePolicy)
-from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint
+from PySide6.QtCore import Qt, QEvent, QSize, QTimer, QPoint, QStandardPaths
 from PySide6.QtGui import QKeySequence, QColor
 from util.utils import ClearableLineEdit, SliderWithInput, create_separator
 from util.settings import get_setting, set_setting, load_settings, save_settings
@@ -790,10 +790,12 @@ class SettingsDialog(QDialog):
         current_path = self.background_video.text()
 
         # Attempt to open the file path at the saved path
-        if os.path.exists(current_path):
+        if os.path.exists(current_path) and current_path != "":
             # Use the parent directory of the current path
             directory = os.path.dirname(current_path)
-
+        else:
+            # Use default location for Movies (Usually "Videos" folder) if current_path is not a path.
+            directory = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.MoviesLocation)
 
         file_dialog = QFileDialog(self)
         if directory is not None:
