@@ -782,9 +782,23 @@ class SettingsDialog(QDialog):
         elif self.background_image.text().startswith("file://"):
             self.background_image.setText(self.background_image.text()[7:])  # Remove 'file://' prefix
 
+
     def video_folder_button_clicked(self):
         self.set_changed()
-        file_dialog = QFileDialog()
+        directory = None
+
+        current_path = self.background_video.text()
+
+        # Attempt to open the file path at the saved path
+        if os.path.exists(current_path):
+            # Use the parent directory of the current path
+            directory = os.path.dirname(current_path)
+
+
+        file_dialog = QFileDialog(self)
+        if directory is not None:
+            file_dialog.setDirectory(directory)
+
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             self.background_video.setText(selected_file)
