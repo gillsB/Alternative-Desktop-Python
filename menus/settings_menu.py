@@ -807,7 +807,22 @@ class SettingsDialog(QDialog):
 
     def image_folder_button_clicked(self):
         self.set_changed()
-        file_dialog = QFileDialog()
+        directory = None
+
+        current_path = self.background_image.text()
+
+        # Attempt to open the file path at the saved path
+        if os.path.exists(current_path) and current_path != "":
+            # Use the parent directory of the current path
+            directory = os.path.dirname(current_path)
+        else:
+            # Use default location for Movies (Usually "Videos" folder) if current_path is not a path.
+            directory = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.PicturesLocation)
+
+        file_dialog = QFileDialog(self)
+        if directory is not None:
+            file_dialog.setDirectory(directory)
+
         if file_dialog.exec():
             selected_file = file_dialog.selectedFiles()[0]
             self.background_image.setText(selected_file)
