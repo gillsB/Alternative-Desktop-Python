@@ -672,7 +672,13 @@ class DesktopGrid(QGraphicsView):
             return
         
         if row >= self.max_visible_rows or col >= self.max_visible_columns:
-            logger.info("Icon outside of render distance would be called, thus return and do not show a context menu")
+            context_menu = QMenu()
+
+            settings_menu_action = QAction('Settings Menu', context_menu)
+            settings_menu_action.triggered.connect(self.parent().show_settings)
+            context_menu.addAction(settings_menu_action)
+
+            context_menu.exec(event.globalPos())
             return
 
         icon = self.desktop_icons.get((row, col))
